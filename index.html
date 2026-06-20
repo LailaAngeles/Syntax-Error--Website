@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syntax Error | STI Caloocan Thesis Project</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Orbitron:wght@500;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo">
+            <span class="sti-text">STI</span> <span class="game-title">[SYNTAX_ERROR]</span>
+        </div>
+        <div class="auth-buttons">
+            <span class="portal-label">Faculty Portal:</span>
+            <a href="../Components/LogIn.html" class="btn btn-secondary">Sign In</a>
+            <a href="../Components/register.html" class="btn btn-primary">Sign Up</a>
+        </div>
+    </header>
+
+    <main class="hero-container">
+        <section class="game-intro">
+            <p class="school-tag">STI COLLEGE CALOOCAN • BSCS THESIS</p>
+            <h1>AN ERROR HAS OCCURRED. <br><span class="glitch-text">DEBUG THE SYSTEM.</span></h1>
+            
+            <div class="info-split">
+                <div class="info-block">
+                    <h2 class="block-title">&gt; FOR STUDENTS</h2>
+                    <p>Scan the QR code on the right using your mobile device to download the educational game and begin resolving compiler errors.</p>
+                </div>
+                
+                <div class="info-block">
+                    <h2 class="block-title">&gt; FOR TEACHERS</h2>
+                    <p>Register or log in to your account at the top right to access the <strong>Data Analysis Portal</strong>. Monitor real-time class performance and pinpoint specific student learning gaps.</p>
+                </div>
+            </div>
+
+            <div class="cta-actions">
+                <a href="#qr-section" class="btn btn-outline-neon btn-large">Scroll to QR Code</a>
+            </div>
+        </section>
+
+        <section id="qr-section" class="qr-container">
+            <div class="toggle-container">
+                <button id="btn-android" class="toggle-btn active">Android</button>
+                <button id="btn-ios" class="toggle-btn">iOS</button>
+            </div>
+
+            <div class="flip-card">
+                <div class="flip-card-inner" id="qr-card-inner">
+                    
+                    <div class="qr-card card-front">
+                        <h3>SCAN TO PLAY</h3>
+                        <p class="qr-sub">Mobile Android Build</p>
+                        
+                        <div class="qr-placeholder android-theme">
+                            <div class="qr-corner top-left"></div>
+                            <div class="qr-corner top-right"></div>
+                            <div class="qr-corner bottom-left"></div>
+                            <div class="qr-center-icon">
+                                <span class="code-symbol">&lt;/&gt;</span>
+                            </div>
+                        </div>
+                        <span class="status-badge">APK PENDING</span>
+                    </div>
+
+                    <div class="qr-card card-back">
+                        <h3>SCAN TO PLAY</h3>
+                        <p class="qr-sub">Mobile iOS Build</p>
+                        
+                        <div class="qr-placeholder ios-theme">
+                            <div class="qr-corner top-left"></div>
+                            <div class="qr-corner top-right"></div>
+                            <div class="qr-corner bottom-left"></div>
+                            <div class="qr-center-icon">
+                                <span class="code-symbol">iOS</span>
+                            </div>
+                        </div>
+                        <span class="status-badge status-ios">TESTFLIGHT PENDING</span>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

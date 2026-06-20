@@ -1,0 +1,123 @@
+/* STI Palette & Modern Reset */
+:root {
+    --sti-blue: #005596;
+    --sti-yellow: #FFD400;
+    --sti-dark: #1a1a1a;
+    --error-red: #ef4444;
+    --glass-bg: rgba(255, 255, 255, 0.95);
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(135deg, var(--sti-blue) 0%, #003366 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* Add a subtle background decoration to mimic STI branding */
+body::before {
+    content: "";
+    position: absolute;
+    top: -10%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: var(--sti-yellow);
+    border-radius: 50%;
+    opacity: 0.1;
+    z-index: 0;
+}
+
+.container {
+    background: var(--glass-bg);
+    padding: 40px;
+    border-radius: 16px;
+    width: 350px;
+    text-align: center;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+    border-top: 5px solid var(--sti-yellow);
+    position: relative;
+    z-index: 1;
+}
+
+h2 {
+    color: var(--sti-blue);
+    margin-bottom: 25px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 1.5rem;
+}
+
+/* Styling the input fields */
+input {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 10px 0;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    box-sizing: border-box; /* Ensures padding doesn't break width */
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+input:focus {
+    border-color: var(--sti-blue);
+    box-shadow: 0 0 0 4px rgba(0, 85, 150, 0.1);
+}
+
+/* Styling the buttons */
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    background-color: var(--sti-blue);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.3s;
+}
+
+button:hover {
+    background-color: #00447a;
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+/* Secondary Button Look for PIN if needed */
+#pinBtn {
+    background-color: var(--sti-dark);
+}
+
+#pinBtn:hover {
+    background-color: #000;
+}
+
+.error {
+    color: var(--error-red);
+    font-size: 0.85rem;
+    margin-top: 10px;
+    min-height: 1.2rem;
+    font-weight: 500;
+}
+
+/* Smooth fade-in for the PIN step */
+#pinStep {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

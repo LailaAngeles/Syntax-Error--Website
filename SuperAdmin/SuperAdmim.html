@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Login</title>
+    <link rel="stylesheet" href="SuperAdmin.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Super Admin Access</h2>
+
+    <div id="passwordStep">
+        <input 
+            type="password" 
+            id="password" 
+            placeholder="Enter Password"
+            required
+        >
+        <button id="passBtn">Enter Password</button>
+        <p id="passError" class="error"></p>
+    </div>
+
+    <div id="pinStep" style="display:none;">
+        <input 
+            type="password" 
+            id="pin" 
+            placeholder="Enter 6-Digit PIN"
+            maxlength="6"
+            required
+        >
+        <button id="pinBtn">Enter PIN</button>
+        <p id="pinError" class="error"></p>
+    </div>
+</div>
+
+<script type="module" src="access.js"></script>
+
+</body>
+</html>
