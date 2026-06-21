@@ -78,12 +78,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 async function loadTeacherDashboard(user) {
-    // 1. SHOW LOADING OVERLAY
+   
     const loader = document.getElementById("loading-overlay");
     if (loader) loader.style.display = "flex";
 
     try {
-        // Find teacher's assigned sections from approvedUsers
+       
         const q = query(collection(db, "approvedUsers"), where("email", "==", user.email));
         const userSnap = await getDocs(q);
         userSnap.forEach(doc => { mySections = doc.data().section || []; });
@@ -113,8 +113,10 @@ async function loadTeacherDashboard(user) {
                 });
             }
         }
-
-        renderAnalytics(""); // Initial render with all data
+        initLeaderboardDropdown();
+        updateLeaderboard("");
+        renderAnalytics(""); 
+        
     } catch (error) {
         console.error("Dashboard Load Error:", error);
     } finally {
@@ -154,10 +156,9 @@ function renderAnalytics(filterSection) {
         const avg = count > 0 ? parseFloat((totalScore / count).toFixed(1)) : 0;
         avgScores.push(avg);
 
-        // Define thresholds (High score = Student finding it difficult)
         let status, badgeClass;
         if (avg >= 7.5) {
-            status = "Hardest Topic"; // Critical Difficulty
+            status = "Hardest Topic"; 
             badgeClass = "red-badge";
             criticalCount++;
         } else if (avg >= 4.5) {
@@ -221,7 +222,57 @@ function updateTrendChart(dataValues) {
         }
     });
 }
+function updateLeaderboard(sectionId) {
+    const leaderboardList = document.getElementById('leaderboard-list');
+    
+    // Default Look: If no section is selected
+    if (!sectionId) {
+        leaderboardList.innerHTML = `
+            <li class="leaderboard-item empty-state">
+                <span>Select a section to view top performers</span>
+            </li>
+        `;
+        return;
+    }
 
+    leaderboardList.innerHTML = ''; 
+
+    const filteredStudents = allStudentsData.filter(s => s.section === sectionId);
+    
+    const topStudents = filteredStudents
+        .sort((a, b) => b.score - a.score) 
+        .slice(0, 5);
+
+    if (topStudents.length === 0) {
+        leaderboardList.innerHTML = `<li class="leaderboard-item"><span>No data available for this section</span></li>`;
+        return;
+    }
+
+    topStudents.forEach((student, index) => {
+        const li = document.createElement('li');
+        li.className = 'leaderboard-item';
+        li.innerHTML = `
+            <span>${index + 1}. ${student.name}</span>
+            <span>${student.score} pts</span>
+        `;
+        leaderboardList.appendChild(li);
+    });
+}
+
+function initLeaderboardDropdown() {
+    const select = document.getElementById('leaderboard-section-select');
+    
+    mySections.forEach(section => {
+        const option = document.createElement('option');
+        option.value = section;
+        option.textContent = section;
+        select.appendChild(option);
+    });
+
+    select.addEventListener('change', (e) => {
+        updateLeaderboard(e.target.value);
+    });
+}
 function updateDistributionChart(red, orange, green) {
     const canvas = document.getElementById("distributionChart");
     if (!canvas) return;
