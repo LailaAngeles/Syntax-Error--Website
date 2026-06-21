@@ -111,7 +111,7 @@ loginForm?.addEventListener("submit", async function (e) {
 
     if (hasError) return;
 
-    try {
+   try {
         const archiveRef = collection(db, "archivedUsers");
         const q = query(archiveRef, where("email", "==", email.value));
         const snapshot = await getDocs(q);
@@ -121,16 +121,23 @@ loginForm?.addEventListener("submit", async function (e) {
             return;
         }
 
-        // LOGIN IF NOT ARCHIVED
         await signInWithEmailAndPassword(auth, email.value, password.value);
         window.location.href = "../MainMenu/dashboard.html";
 
-    } catch (error) {
+  } catch (error) {
         console.error("Login error:", error.code);
 
         switch (error.code) {
             case "auth/invalid-credential":
-                showPopup("Account not found or incorrect password.");
+                // Add red border to both
+                const emailGroup = email.closest(".input-group");
+                const passGroup = password.closest(".input-group");
+                
+                emailGroup.classList.add("error");
+                passGroup.classList.add("error");
+                
+                // Only show the message on the password field to avoid clutter
+                showError(password, "Invalid email or password.");
                 break;
             case "auth/too-many-requests":
                 showPopup("Too many attempts. Try again later.");
