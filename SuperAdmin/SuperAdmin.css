@@ -1,123 +1,128 @@
-/* STI Palette & Modern Reset */
 :root {
-    --sti-blue: #005596;
-    --sti-yellow: #FFD400;
-    --sti-dark: #1a1a1a;
-    --error-red: #ef4444;
-    --glass-bg: rgba(255, 255, 255, 0.95);
+    --bg-color: #0d0f12;
+    --card-bg: #161a22;
+    --sti-blue: #00529b;
+    --sti-yellow: #fff200;
+    --neon-green: #39ff14;
+    --error-red: #ff3333;
+    --text-main: #ffffff;
+    --text-muted: #8b949e;
+    --border: #21262d;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
 }
 
 body {
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background: linear-gradient(135deg, var(--sti-blue) 0%, #003366 100%);
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    margin: 0;
+    min-height: 100vh;
+    background-color: var(--bg-color);
+    color: var(--text-main);
     overflow: hidden;
 }
 
-/* Add a subtle background decoration to mimic STI branding */
-body::before {
-    content: "";
-    position: absolute;
-    top: -10%;
-    right: -10%;
-    width: 400px;
-    height: 400px;
-    background: var(--sti-yellow);
-    border-radius: 50%;
-    opacity: 0.1;
-    z-index: 0;
-}
-
-.container {
-    background: var(--glass-bg);
-    padding: 40px;
-    border-radius: 16px;
-    width: 350px;
-    text-align: center;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
-    border-top: 5px solid var(--sti-yellow);
-    position: relative;
-    z-index: 1;
-}
-
-h2 {
-    color: var(--sti-blue);
-    margin-bottom: 25px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 1.5rem;
-}
-
-/* Styling the input fields */
-input {
+.background-blobs {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    padding: 12px 15px;
-    margin: 10px 0;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    box-sizing: border-box; /* Ensures padding doesn't break width */
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    outline: none;
+    height: 100%;
+    z-index: -1;
+}
+
+.blob {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: var(--sti-yellow);
+    filter: blur(120px);
+    opacity: 0.05;
+    border-radius: 50%;
+}
+
+.blob-1 { top: -150px; right: -100px; }
+.blob-2 { bottom: -150px; left: -100px; background: var(--sti-blue); }
+
+.wrapper {
+    width: 100%;
+    max-width: 400px;
+    background: var(--card-bg);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    border: 2px solid var(--border);
+    margin: 20px;
+}
+
+
+.error-input {
+    border: 2px solid var(--error-red) !important;
+    background: rgba(255, 51, 51, 0.1) !important;
+}.error-msg {
+    color: #ff4d4d;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    height: 1rem; /* Reserves space so the UI doesn't jump */
+    font-family: 'Inter', sans-serif;
 }
 
 input:focus {
-    border-color: var(--sti-blue);
-    box-shadow: 0 0 0 4px rgba(0, 85, 150, 0.1);
+    border: 2px solid var(--sti-blue);
+    outline: none;
+}
+h1 { font-family: 'Orbitron', sans-serif; font-size: 24px; text-transform: uppercase; }
+
+.subtitle { color: var(--text-muted); font-size: 13px; margin-top: 6px; }
+
+.input-group { margin-bottom: 20px; }
+
+.input-group label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; display: block; }
+
+.input-box input {
+    width: 100%;
+    height: 50px;
+    padding: 0 15px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--text-main);
 }
 
-/* Styling the buttons */
-button {
+.login-btn {
     width: 100%;
-    padding: 12px;
-    margin-top: 15px;
-    background-color: var(--sti-blue);
-    color: white;
+    height: 50px;
+    background: var(--neon-green);
+    color: #000;
     border: none;
     border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
+    font-weight: 900;
     cursor: pointer;
-    transition: transform 0.2s, background-color 0.3s;
+    text-transform: uppercase;
 }
 
-button:hover {
-    background-color: #00447a;
-    transform: translateY(-1px);
-}
-
-button:active {
-    transform: translateY(1px);
-}
-
-/* Secondary Button Look for PIN if needed */
-#pinBtn {
-    background-color: var(--sti-dark);
-}
-
-#pinBtn:hover {
-    background-color: #000;
-}
-
-.error {
-    color: var(--error-red);
-    font-size: 0.85rem;
+#errorMsg {
+    display: none;
     margin-top: 10px;
-    min-height: 1.2rem;
-    font-weight: 500;
+    color: var(--error-red);
+    font-size: 12px;
+    text-align: center;
 }
 
-/* Smooth fade-in for the PIN step */
-#pinStep {
-    animation: fadeIn 0.5s ease forwards;
+.popup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 15, 18, 0.8);
+    justify-content: center;
+    align-items: center;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+.popup-content { background: var(--card-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
+
+.choice-btn { background: var(--neon-green); border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 15px; }

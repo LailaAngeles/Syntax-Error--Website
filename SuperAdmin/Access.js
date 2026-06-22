@@ -1,169 +1,92 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-import { getFirestore, doc, getDoc } 
-from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-document.addEventListener("DOMContentLoaded", () => {
+const firebaseConfig = {
+    apiKey: "AIzaSy...",
+    authDomain: "syntaxerror-data.firebaseapp.com",
+    projectId: "syntaxerror-data",
+    storageBucket: "syntaxerror-data.firebasestorage.app",
+    messagingSenderId: "513961059475",
+    appId: "1:513961059475:web:fbf6f471357465dbaad966"
+};
 
-    // =========================
-    // CONFIG
-    // =========================
-    const firebaseConfig = {
-        apiKey: "AIzaSy...",
-        authDomain: "syntaxerror-data.firebaseapp.com",
-        projectId: "syntaxerror-data",
-        storageBucket: "syntaxerror-data.firebasestorage.app",
-        messagingSenderId: "513961059475",
-        appId: "1:513961059475:web:fbf6f471357465dbaad966"
-    };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+emailjs.init({ publicKey: "SZvtmcDCW3hy4qm5v" });
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+const emailInput = document.getElementById("email");
+const pinInput = document.getElementById("pin");
+const passBtn = document.getElementById("passBtn");
+const pinBtn = document.getElementById("pinBtn");
 
-    // =========================
-    // ELEMENTS
-    // =========================
-    const passwordInput = document.getElementById("password");
-    const pinInput = document.getElementById("pin");
+const triggerError = (element) => {
+    element.classList.add("error-input");
+    setTimeout(() => element.classList.remove("error-input"), 2000);
+};
 
-    const passBtn = document.getElementById("passBtn");
-    const pinBtn = document.getElementById("pinBtn");
+let currentAuthEmail = "";
 
-    const passError = document.getElementById("passError");
-    const pinError = document.getElementById("pinError");
-
-    const passwordStep = document.getElementById("passwordStep");
-    const pinStep = document.getElementById("pinStep");
-
-    // =========================
-    // STATE
-    // =========================
-    let passwordAttempts = 0;
-    let pinAttempts = 0;
-    let isLocked = false;
-    const lockSeconds = 30;
-
-    // =========================
-    // LOCK SYSTEM
-    // =========================
-    function startLockCountdown() {
-        isLocked = true;
-
-        passBtn.disabled = true;
-        pinBtn.disabled = true;
-        passwordInput.disabled = true;
-        pinInput.disabled = true;
-
-        let timeLeft = lockSeconds;
-
-        const timer = setInterval(() => {
-            passError.textContent = `Too many attempts. Try again in ${timeLeft}s`;
-            pinError.textContent = `Too many attempts. Try again in ${timeLeft}s`;
-
-            timeLeft--;
-
-            if (timeLeft < 0) {
-                clearInterval(timer);
-
-                isLocked = false;
-                passwordAttempts = 0;
-                pinAttempts = 0;
-
-                passBtn.disabled = false;
-                pinBtn.disabled = false;
-                passwordInput.disabled = false;
-                pinInput.disabled = false;
-
-                passError.textContent = "";
-                pinError.textContent = "";
-            }
-
-        }, 1000);
+passBtn.addEventListener("click", async () => {
+    const emailVal = emailInput.value.trim();
+    
+    if (!emailVal) {
+        triggerError(emailInput);
+        return;
     }
 
-    // =========================
-    // PASSWORD LOGIN (Firestore)
-    // =========================
-    passBtn.addEventListener("click", async () => {
+    const q = query(collection(db, "authorized_admins"), where("Email", "==", emailVal));
+    const querySnapshot = await getDocs(q);
 
-        if (isLocked) return;
+    if (!querySnapshot.empty) {
+        const randomPin = Math.floor(100000 + Math.random() * 900000).toString();
+        const userDoc = querySnapshot.docs[0];
 
-        passError.textContent = "";
+        // Update Firestore with the new PIN
+        await updateDoc(doc(db, "authorized_admins", userDoc.id), {
+            pin: randomPin 
+        });
+try {
 
-        if (!passwordInput.value) {
-            passError.textContent = "Please fill out this field.";
-            return;
-        }
+    const expirationTime = new Date(Date.now() + 15 * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        try {
-            const docRef = doc(db, "admin", "superadmin");
-            const docSnap = await getDoc(docRef);
-
-            if (!docSnap.exists()) {
-                passError.textContent = "Admin data not found.";
-                return;
-            }
-
-            const storedPassword = docSnap.data().Password; // plain text
-
-            if (passwordInput.value.trim() === storedPassword.trim()) {
-                passwordAttempts = 0;
-                passwordStep.style.display = "none";
-                pinStep.style.display = "block";
-            } else {
-                passwordAttempts++;
-                passError.textContent = "Incorrect password.";
-                if (passwordAttempts >= 3) {
-                    startLockCountdown();
-                }
-            }
-
-        } catch (err) {
-            console.error(err);
-            passError.textContent = "Error verifying password.";
-        }
+    await emailjs.send("service_ixe2e5j", "template_kvlen8d", {
+        email: emailVal,
+        passcode: randomPin,
+        time: expirationTime 
     });
 
-    // =========================
-    // PIN VERIFICATION (Firestore) - SAME AS PASSWORD
-    // =========================
-    pinBtn.addEventListener("click", async () => {
+    currentAuthEmail = emailVal;
+    document.getElementById("passwordStep").style.display = "none";
+    document.getElementById("pinStep").style.display = "block";
+} catch (error) {
+    console.error("EmailJS Error:", error);
+    alert("Failed to send email. Check the console.");
+}
+    } else {
+        triggerError(emailInput);
+        alert("Invalid User Identification");
+    }
+});
 
-        if (isLocked) return;
+pinBtn.addEventListener("click", async () => {
+    const pinVal = pinInput.value.trim();
+    
+    if (!pinVal) {
+        triggerError(pinInput);
+        return;
+    }
 
-        pinError.textContent = "";
+    const q = query(
+        collection(db, "authorized_admins"), 
+        where("Email", "==", currentAuthEmail),
+        where("pin", "==", pinVal)
+    );
+    const querySnapshot = await getDocs(q);
 
-        if (!pinInput.value) {
-            pinError.textContent = "Please fill out this field.";
-            return;
-        }
-
-        try {
-            const docRef = doc(db, "admin", "superadmin");
-            const docSnap = await getDoc(docRef);
-
-            if (!docSnap.exists()) {
-                pinError.textContent = "Admin data not found.";
-                return;
-            }
-
-            const storedPIN = docSnap.data().pinHash; // treated as plain text now
-
-            if (pinInput.value.trim() === storedPIN.trim()) {
-                pinAttempts = 0 ;
-                // SUCCESS → REDIRECT
-                window.location.href = "Dashboard.html";
-            } else {
-                pinAttempts++;
-                pinError.textContent = "Incorrect PIN.";
-                if (pinAttempts >= 3) {
-                    startLockCountdown();
-                }
-            }
-
-        } catch (err) {
-            console.error(err);
-            pinError.textContent = "Error verifying PIN.";
-        }
-    });
-
+    if (!querySnapshot.empty) {
+        window.location.href = "Dashboard.html";
+    } else {
+        triggerError(pinInput);
+        alert("Invalid PIN");
+    }
 });

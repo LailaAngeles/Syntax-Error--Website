@@ -3,39 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Admin Login</title>
+    <title>SECURE ACCESS | SYSTEM ADMIN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="SuperAdmin.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
-
-<div class="container">
-    <h2>Super Admin Access</h2>
-
-    <div id="passwordStep">
-        <input 
-            type="password" 
-            id="password" 
-            placeholder="Enter Password"
-            required
-        >
-        <button id="passBtn">Enter Password</button>
-        <p id="passError" class="error"></p>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
     </div>
 
-    <div id="pinStep" style="display:none;">
-        <input 
-            type="password" 
-            id="pin" 
-            placeholder="Enter 6-Digit PIN"
-            maxlength="6"
-            required
-        >
-        <button id="pinBtn">Enter PIN</button>
-        <p id="pinError" class="error"></p>
+    <div class="wrapper">
+        <form id="loginForm">
+            <header class="header">
+                <h1>Super Admin</h1>
+                <p class="subtitle">System Override Access Required</p>
+            </header>
+
+            <div id="passwordStep">
+                <div class="input-group">
+                    <label>Admin Identification</label>
+                    <div class="input-box">
+                        <input type="email" id="email" placeholder="Email">
+                    </div>
+                </div>
+                <button type="button" id="passBtn" class="login-btn">Verify Identity</button>
+            </div>
+
+            <div id="pinStep" style="display: none;">
+                <div class="input-group">
+                    <label>Check your Gmail or Outlook to view the pin</label>
+                    <div class="input-box">
+                        <input type="password" id="pin" placeholder="*****">
+                    </div>
+                </div>
+                <button type="button" id="pinBtn" class="login-btn">Finalize Access</button>
+            </div>
+        </form>
     </div>
-</div>
 
-<script type="module" src="access.js"></script>
-
+    <script type="module" src="Access.js"></script>
 </body>
 </html>

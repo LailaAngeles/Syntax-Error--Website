@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="Login.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
     <div class="background-blobs">
@@ -40,7 +41,21 @@
                     <i class="bi bi-eye-slash toggle-password" id="togglePassword"></i>
                 </div>
             </div>
+<div class="options">
+    <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+</div>
 
+<div id="forgotPasswordSection" class="wrapper" style="display: none;">
+    <header class="header">
+        <h1>Reset Password</h1>
+        <p class="subtitle">Enter your email to receive a new password</p>
+    </header>
+    <div class="input-group">
+        <input type="email" id="resetEmail" placeholder="Enter your email">
+    </div>
+    <button id="sendResetBtn" class="login-btn">Send New Password</button>
+    <button id="backToLogin" class="login-btn" style="background: gray;">Back</button>
+</div>
             <button type="submit" class="login-btn">Login</button>
 
             <div class="register-link">
@@ -48,6 +63,16 @@
             </div>
         </form>
     </div>
+    <div id="forgotPopup" class="popup">
+    <div class="popup-content">
+        <i class="bi bi-question-circle system-alert-icon" style="color: var(--sti-blue);"></i>
+        <p id="popup-message">Forgot your password? We can send a reset link to your email. Do you want to proceed?</p>
+        <div class="popup-actions">
+            <button id="confirmReset" class="choice-btn yes-btn">Yes, Send Email</button>
+            <button id="cancelReset" class="choice-btn" style="color:var(--error-red); border: 1px solid var(--error-red); margin-top:10px;">Cancel</button>
+        </div>
+    </div>
+</div>
     <script type="module" src="Login.js" defer></script>
 </body>
 </html>
