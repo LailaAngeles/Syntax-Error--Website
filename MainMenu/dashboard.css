@@ -1,7 +1,4 @@
-/* ==========================================================================
-   DESIGN VARIABLES ENGINE (UNIFIED FONTS)
-   ========================================================================== */
-   
+
 html[data-theme="light"] {
     --bg-color: #f0f2f5;
     --card-bg: #ffffff;
@@ -687,14 +684,36 @@ tbody tr:hover {
     text-align: center; 
 }
 .student-modal-box {
-    width: 92%;
+    width: 95%;
     max-width: 1250px;
-    max-height: 92vh;
+    max-height: 95vh;
     overflow-y: auto;
-    padding: 40px;
-    border-radius: 24px;
+    padding: 20px; 
+    border-radius: 16px;
     position: relative;
     box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+@media (max-width: 768px) {
+    .student-modal-box {
+        padding: 15px;
+    }
+    
+    .modal-left-col {
+        border-radius: 16px;
+        padding: 20px;
+    }
+
+    .analysis-bottom-grid {
+        grid-template-columns: 1fr; /* Stack analysis cards vertically */
+    }
+
+    .close-student-btn {
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
+        font-size: 1.2rem;
+    }
 }
 .modal-left-col {
     background: linear-gradient(180deg, #002e5f 0%, #003f80 100%);
@@ -723,12 +742,12 @@ tbody tr:hover {
     cursor: pointer;
 }
 
-.modal-grid-container { 
-    display: grid; 
-    grid-template-columns: 300px 1fr;
-    gap: 30px;
+.modal-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
     width: 100%;
-    height: 100%;
+    height: auto; 
     align-items: start;
 }
 
@@ -781,13 +800,31 @@ tbody tr:hover {
     justify-content: space-between; 
     align-items: flex-start; 
     margin-bottom: 20px; 
+    padding-right: 40px;
 }
-.student-chart-box { 
-    height: 420px; 
-    width: 100%;
-    margin-bottom: 30px;
+.chart-header h3 {
+    margin: 0;
+    padding-right: 10px;
+}@media (max-width: 480px) {
+    .chart-header h3 {
+        font-size: 0.95rem; 
+    }
+    
+    .chart-legend {
+        font-size: 0.7rem; 
+        display: flex;
+        flex-direction: column; /
+    }
 }
-
+.student-chart-box {
+    height: 250px !important; 
+    width: 100% !important;
+    margin-bottom: 20px;
+}
+#modalDifficultyChart {
+    width: 100% !important;
+    height: 100% !important;
+}
 .analysis-bottom-grid { 
     display: grid; 
     grid-template-columns: 1fr 1fr; 
@@ -836,24 +873,23 @@ tbody tr:hover {
 
 .close-student-btn {
     position: absolute;
-    top: 18px;
-    right: 18px;
-    width: 44px;
-    height: 44px;
+    top: 15px;      
+    right: 15px;    
+    width: 36px;    
+    height: 36px;
     border: none;
     border-radius: 50%;
     background: #ffffff;
     color: #1e293b;
-    font-size: 1.5rem;
+    font-size: 1.2rem; 
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     z-index: 10;
 }
-
 .close-student-btn:hover { background: #ef4444; color: white; }
 
 .card.warning-card {
