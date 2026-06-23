@@ -13,12 +13,43 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 emailjs.init({ publicKey: "SZvtmcDCW3hy4qm5v" });
-
+const confirmModal = document.getElementById("confirm-action-modal");
 const emailInput = document.getElementById("email");
 const pinInput = document.getElementById("pin");
 const passBtn = document.getElementById("passBtn");
 const pinBtn = document.getElementById("pinBtn");
+let pendingActions = [];
+async function handleAction(actionType) {
+    const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+    if (checkboxes.length === 0) return alert("Select at least one user.");
+    
+    pendingActions = Array.from(checkboxes).map(cb => ({
+        id: cb.dataset.id,
+        data: JSON.parse(cb.dataset.user) // Ensure you store data in the checkbox
+    }));
 
+    // Show your confirmation popup here
+    document.getElementById("confirm-message").innerText = `Are you sure you want to ${actionType} these users?`;
+    document.getElementById("action-confirm-popup").style.display = 'flex';
+}
+
+// Perform the actual move/delete
+async function confirmAction(actionType) {
+    for (const item of pendingActions) {
+        if (actionType === 'approve') {
+            // 1. Add to approvedUsers collection
+            await addDoc(collection(db, "approvedUsers"), {
+                ...item.data,
+                status: "approved",
+                approvedAt: new Date()
+            });
+        }
+        // 2. Remove from pendingUsers
+        await deleteDoc(doc(db, "pendingUsers", item.id));
+    }
+    loadPendingUsers(); // Refresh the table
+    document.getElementById("action-confirm-popup").style.display = 'none';
+}
 const triggerError = (element) => {
     element.classList.add("error-input");
     setTimeout(() => element.classList.remove("error-input"), 2000);

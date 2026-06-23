@@ -1,0 +1,203 @@
+/* --- THEME VARIABLES (Consistent with your App) --- */
+:root {
+    --font-primary: 'Fira Code', monospace;
+    --font-heading: 'Orbitron', sans-serif;
+}
+
+html[data-theme="light"] {
+    --bg-color: #f0f2f5;
+    --card-bg: #ffffff;
+    --sidebar-bg: #002e5f;
+    --text-main: #1f2937;
+    --text-muted: #6b7280;
+    --border: #e5e7eb;
+    --table-header: #f9fafb;
+    --risk-color: #ef4444;
+    --mastery-color: #10b981;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+html[data-theme="dark"] {
+    --bg-color: #0d0f12;
+    --card-bg: #161a22;
+    --sidebar-bg: rgba(22, 26, 34, 0.8);
+    --text-main: #ffffff;
+    --text-muted: #8b949e;
+    --border: #21262d;
+    --table-header: rgba(255, 255, 255, 0.02);
+    --risk-color: #ff3333;
+    --mastery-color: #39ff14;
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* --- BASE STYLES --- */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-primary); }
+body { display: flex; background-color: var(--bg-color); min-height: 100vh; color: var(--text-main); }
+
+/* --- SIDEBAR (Restored from your App) --- */
+.sidebar { width: 260px; flex-shrink: 0; background-color: var(--sidebar-bg); color: #fff; padding: 30px 20px; }
+.sidebar-header { margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; }
+.logo { font-family: var(--font-heading); color: #ffc107; }
+.sidebar ul { list-style: none; }
+.sidebar li { margin-bottom: 10px; border-radius: 8px; }
+.sidebar li a { color: rgba(255,255,255,0.8); text-decoration: none; display: flex; align-items: center; gap: 10px; padding: 12px; }
+.sidebar li.active { background-color: #ffc107; }
+.sidebar li.active a { color: #002e5f; font-weight: bold; }
+
+/* --- MAIN CONTENT & TABLE --- */
+.main-content { flex: 1; padding: 30px; }
+.card { background-color: var(--card-bg); padding: 25px; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--card-shadow); margin-top: 20px;}
+
+.table-responsive { overflow-x: auto; margin-top: 20px; border-radius: 8px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; }
+th { background-color: var(--table-header); padding: 12px 15px; text-align: left; font-size: 0.8rem; text-transform: uppercase; }
+td { padding: 12px 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+
+/* --- BUTTONS --- */
+button { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.3s; }
+.approve { background-color: var(--mastery-color); color: white; }
+.reject { background-color: var(--risk-color); color: white; }
+button:hover { opacity: 0.8; }
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+    body { flex-direction: column; }
+    .sidebar { width: 100%; }
+    .main-content { padding: 15px; }
+    .actions-bar { flex-direction: column; }
+}/* --- SIDEBAR & LAYOUT FIXES --- */
+body {
+    display: flex;
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+.sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    background-color: var(--sidebar-bg); /* Ensure your theme handles this */
+    padding: 30px 20px;
+}
+
+.main-content {
+    flex: 1;
+    padding: 30px;
+    width: calc(100% - 260px);
+}
+
+/* --- TABLE RESPONSIVENESS --- */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto; /* This prevents the table from breaking the layout */
+    -webkit-overflow-scrolling: touch;
+    margin-top: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px; /* Ensures table doesn't get squished */
+}
+
+/* --- BUTTON BAR --- */
+.actions-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* --- MOBILE ADAPTATION --- */
+@media (max-width: 768px) {
+    body {
+        flex-direction: column; /* Sidebar goes on top */
+    }
+
+    .sidebar {
+        width: 100%;
+        padding: 20px;
+    }
+
+    .main-content {
+        width: 100%;
+        padding: 15px;
+    }
+
+    .actions-bar {
+        flex-direction: column;
+    }
+
+    .actions-bar button {
+        width: 100%;
+    }
+}
+
+.logout-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.logout-box {
+    background: var(--card-bg); 
+    padding: 30px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    text-align: center;
+}
+
+.logout-btns {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 25px;
+}
+
+.logout-btns button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-color);
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+.logout-btns .danger {
+    background: var(--risk-color);
+    color: #fff;
+    border: none;
+}
+.empty-state {
+    text-align: center;
+    padding: 40px !important;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}.feedback-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: var(--card-shadow);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

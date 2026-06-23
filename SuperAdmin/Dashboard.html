@@ -1,48 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <title>Super Admin Dashboard</title>
-    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="AdminDashboard.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 </head>
-
 <body>
-<body>
-
-<div class="dashboard">
-
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <h2 class="logo">STI</h2>
-        <ul>
-            <li class="active">Pending Users</li>
-         <li><a href="ApproveUsers.html">Approve Users</a></li>
-            <li><a href="StudentsList.html">Students</a></li>
-             <li onclick="showLogoutPopup()" style="cursor: pointer;">
-                <i class="bi bi-box-arrow-right"></i> LogOut
-            </li>
-        </ul>
-    </div>
-
-    <!-- CONTENT -->
-    <div class="content">
-
-        <!-- HEADER (ONLY ONE) -->
-        <div class="header">
-            <h1>Super Admin Dashboard</h1>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2 class="logo"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></h2>
+            <button id="theme-toggle" class="theme-btn"><i class="bi bi-moon-stars-fill"></i></button>
         </div>
+        <ul>
+            <li class="active"><a href="#"><i class="bi bi-speedometer2"></i> Pending Users</a></li>
+            <li><a href="ApproveUsers.html"><i class="bi bi-people"></i> Approve Users</a></li>
+            <li><a href="StudentsList.html"><i class="bi bi-archive"></i> Students</a></li>
+            <li onclick="showLogoutPopup()"><a href="#"><i class="bi bi-box-arrow-right"></i> LogOut</a></li>
+        </ul>
+    </nav>
 
-        <!-- MAIN -->
-        <div class="main-container">
+    <main class="main-content">
+        <header>
+            <h1>Super Admin Dashboard</h1>
+        </header>
 
-            <div class="panelL">
+        <div class="card">
+          
+            <div class="card">
                 <h3>Pending Users</h3>
-
-                <div class="actions-bar">
+                <div class="actions-bar" style="margin: 15px 0; gap: 10px; display: flex;">
                     <button id="bulkApprove" class="approve">Approve Selected</button>
                     <button id="bulkReject" class="reject">Reject Selected</button>
                 </div>
 
+                <div id="feedback-message" class="feedback-box" style="display: none;">
+                    <p id="feedback-text"></p>
+                    <div id="feedback-actions" style="margin-top: 10px; gap: 10px; display: flex;">
+                        <button id="cancel-btn">Cancel</button>
+                        <button id="confirm-action-btn" class="danger">Confirm</button>
+                    </div>
+                </div>
+
+    <div class="table-responsive">
+        </div>
+</div>
+
+            <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
@@ -55,58 +59,29 @@
                     <tbody id="userTable"></tbody>
                 </table>
             </div>
-
         </div>
 
-    </div>
-</div>
-
-<!-- CONFIRMATION MODAL -->
-<div id="confirmModal" class="modal hidden">
-    <div class="modal-box">
-        <p id="modalText">Are you sure?</p>
-
-        <div class="modal-actions">
-            <button id="confirmYes" class="approve">Yes</button>
-            <button id="confirmNo" class="reject">Cancel</button>
+    </main>
+    <div id="logout-popup" class="logout-modal" style="display:none;">
+        <div class="logout-box">
+            <h3>Confirm Logout</h3>
+            <p>Are you sure you want to exit?</p>
+            <div class="logout-btns">
+                <button onclick="closeLogoutPopup()">Stay</button>
+                <button class="danger" onclick="logoutUser()">Logout</button>
+            </div>
         </div>
     </div>
-</div>
-
-<!-- SECTION MODAL -->
-<div id="sectionModal" class="modal hidden">
-    <div class="modal-box">
-        <h3>Section</h3>
-        <input type="text" id="sectionInput" placeholder="Enter section name" />
-
-        <div class="modal-actions">
-            <button id="saveSectionBtn" class="approve">Save</button>
-            <button id="cancelSectionBtn" class="reject">Cancel</button>
-        </div>
-    </div>
-</div>
-
-<div id="loading-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
-    <div class="spinner" style="width:50px; height:50px; border:5px solid #f3f3f3; border-top:5px solid #3b82f6; border-radius:50%; animation:spin 1s linear infinite;"></div>
-    <p style="margin-top:15px; font-family:sans-serif; color:#3b82f6; font-weight:bold;">Fetching Data...</p>
-</div>
-
-<style>
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-</style>
-
-<div id="logout-popup" class="logout-modal" style="display:none;">
+<div id="action-popup" class="logout-modal" style="display:none;">
     <div class="logout-box">
-        <h3>Confirm Logout</h3>
-        <p>Are you sure you want to exit the dashboard?</p>
+        <h3 id="action-title">Confirm Action</h3>
+        <p id="action-text">Are you sure you want to perform this action?</p>
         <div class="logout-btns">
-            <button onclick="closeLogoutPopup()">Stay</button>
-            <button class="danger" onclick="logoutUser()">Logout</button>
+            <button onclick="document.getElementById('action-popup').style.display='none'">Cancel</button>
+            <button id="confirm-action-btn" class="danger">Confirm</button>
         </div>
     </div>
 </div>
-
-<script type="module" src="SuperAdmin.js"></script>
-
+    <script type="module" src="SuperAdmin.js"></script>
 </body>
 </html>
