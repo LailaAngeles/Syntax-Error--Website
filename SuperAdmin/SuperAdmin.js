@@ -1,161 +1,255 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, query, where, getDocs, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import { 
+  getFirestore, collection, getDocs, deleteDoc, doc, setDoc, updateDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import { 
+  getAuth, createUserWithEmailAndPassword, signOut 
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
-// 1. Firebase Configuration
 const firebaseConfig = {
-    apiKey: "AIzaSy...",
-    authDomain: "syntaxerror-data.firebaseapp.com",
-    projectId: "syntaxerror-data",
-    storageBucket: "syntaxerror-data.firebasestorage.app",
-    messagingSenderId: "513961059475",
-    appId: "1:513961059475:web:fbf6f471357465dbaad966"
+  apiKey: "AIzaSyCEK9ungYl1PkiqgLkWJPCtNXAsQ3c6xxc",
+  authDomain: "syntaxerror-data.firebaseapp.com",
+  projectId: "syntaxerror-data",
+  storageBucket: "syntaxerror-data.firebasestorage.app",
+  messagingSenderId: "513961059475",
+  appId: "1:513961059475:web:fbf6f471357465dbaad966"
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-// 2. UI Selectors
-const loginBtn = document.getElementById("loginBtn");
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
-const errorMsg = document.getElementById("errorMsg");
-const popup = document.getElementById("systemPopup");
+const table = document.getElementById("userTable");
+const approvedTable = document.getElementById("approvedTable");
+const logoutBtn = document.getElementById("logoutBtn");
+const sectionModal = document.getElementById("sectionModal");
+const sectionInput = document.getElementById("sectionInput");
+const saveSectionBtn = document.getElementById("saveSectionBtn");
+const cancelSectionBtn = document.getElementById("cancelSectionBtn");
+const addBtn = document.querySelector(".add-btn");
+const loadingOverlay = document.getElementById("loading-overlay");
+const themeToggle = document.getElementById("themeToggle");
 
-const userTable = document.getElementById("userTable");
-const actionPopup = document.getElementById("action-popup");
-const confirmBtn = document.getElementById("confirm-action-btn");
-const selectAllPending = document.getElementById("selectAllPending");
-const themeToggle = document.getElementById("theme-toggle");
-const feedbackBox = document.getElementById("feedback-message");
-const feedbackText = document.getElementById("feedback-text");
-const cancelBtn = document.getElementById("cancel-btn");
-let pendingAction = { type: null, ids: [], data: [] };
+let usersData = [];
 
-// 3. LOGIN LOGIC
-if (loginBtn) {
-    loginBtn.addEventListener("click", async () => {
-        try {
-            await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
-            const adminDoc = await getDoc(doc(db, "authorized_admins", "authorized_admins"));
-            const data = adminDoc.data();
+const toggleLoading = (show) => {
+    if (loadingOverlay) {
+        loadingOverlay.style.display = show ? "flex" : "none";
+    }
+};
 
-            if (data && (data.SuperAdmin === emailInput.value || data.superadmin === emailInput.value)) {
-                window.location.href = "AdminDashboard.html";
-            } else {
-                await signOut(auth);
-                document.getElementById('popup-message').innerText = "ACCESS DENIED: AUTHORIZATION LACKING.";
-                popup.style.display = 'flex';
-            }
-        } catch (error) {
-            errorMsg.innerText = "AUTHENTICATION FAILED";
-            errorMsg.style.display = "block";
-        }
-    });
-}
+async function loadUsers() {
+    if (!table) return;
+    const snapshot = await getDocs(collection(db, "pendingUsers"));
+    table.innerHTML = "";
+    usersData = [];
 
-// 4. BULK & SELECT ALL LOGIC
-if (selectAllPending) {
-    selectAllPending.addEventListener("change", (e) => {
-        document.querySelectorAll(".user-checkbox").forEach(cb => cb.checked = e.target.checked);
-    });
-}
-
-function prepareAction(type) {
-    const selected = document.querySelectorAll(".user-checkbox:checked");
-    
-    // Check if no items selected
-    if (selected.length === 0) {
-        feedbackBox.style.display = "block";
-        feedbackBox.style.borderColor = "var(--risk-color)";
-        feedbackText.innerText = "⚠️ Please select at least one user to perform this action.";
-        document.getElementById("feedback-actions").style.display = "none";
+    if (snapshot.empty) {
+        table.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:gray;">No pending users found.</td></tr>`;
         return;
     }
 
-    // Prepare Confirmation UI
-    pendingAction.type = type;
-    pendingAction.ids = [];
-    pendingAction.data = [];
-    selected.forEach(cb => {
-        pendingAction.ids.push(cb.dataset.id);
-        pendingAction.data.push(JSON.parse(cb.dataset.user));
+    snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        usersData.push({ id: docSnap.id, ...data });
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td><input type="checkbox" class="pendingCheck" data-id="${docSnap.id}"></td>
+            <td>${data.email}</td>
+            <td>${data.password}</td>
+            <td>${data.status}</td>
+        `;
+        table.appendChild(row);
     });
-
-    feedbackBox.style.display = "block";
-    feedbackBox.style.borderColor = "var(--border)";
-    feedbackText.innerText = `Are you sure you want to ${type} ${selected.length} user(s)?`;
-    document.getElementById("feedback-actions").style.display = "flex";
 }
-document.getElementById("bulkApprove")?.addEventListener("click", () => prepareAction("approve"));
-document.getElementById("bulkReject")?.addEventListener("click", () => prepareAction("reject"));
-confirmBtn.addEventListener("click", async () => {
-    try {for (let i = 0; i < pendingAction.ids.length; i++) {
-            const id = pendingAction.ids[i];
-            const user = pendingAction.data[i];
-            if (pendingAction.type === "approve") {
-                // Writing to this collection triggers your Cloud Function to create the Auth User
-                await addDoc(collection(db, "approvedUsers"), { ...user, status: "approved" });
-            }
-            await deleteDoc(doc(db, "pendingUsers", id));
-        }
-       
-        
-        feedbackBox.style.display = "none"; 
-        loadPendingUsers(); 
-    } catch (e) { console.error("Action error:", e); }
-});
 
-// 5. LOAD PENDING USERS
-async function loadPendingUsers() {
-    if (!userTable) return;
+window.showLogoutPopup = function() {
+    const popup = document.getElementById("logout-popup");
+    if (popup) popup.style.display = "flex";
+};
+
+window.closeLogoutPopup = function() {
+    const popup = document.getElementById("logout-popup");
+    if (popup) popup.style.display = "none";
+};
+
+window.logoutUser = async function() {
+    toggleLoading(true);
     try {
-        const q = query(collection(db, "pendingUsers"), where("status", "==", "pending"));
-        const snap = await getDocs(q);
-        
-        userTable.innerHTML = "";
+        await signOut(auth);
+        window.location.href = '../Components/LogIn.html';
+    } catch (error) {
+        console.error("Logout Error:", error);
+        alert("Sign out failed. Please try again.");
+    } finally {
+        toggleLoading(false);
+    }
+};
 
-        // Check if no data found
-        if (snap.empty) {
-            userTable.innerHTML = `
-                <tr>
-                    <td colspan="4" class="empty-state">
-                        <i class="bi bi-inbox"></i>
-                        <p>No pending users found.</p>
-                    </td>
-                </tr>
-            `;
-            return;
-        }
+async function getSections() {
+    const snapshot = await getDocs(collection(db, "sections"));
+    let sections = [{ id: null, name: "No Section" }];
+    snapshot.forEach(docSnap => {
+        sections.push({ id: docSnap.id, name: docSnap.data().name });
+    });
+    return sections;
+}
 
-        snap.forEach((doc) => {
-            const user = doc.data();
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td><input type="checkbox" class="user-checkbox" data-id="${doc.id}" data-user='${JSON.stringify(user)}'></td>
-                <td>${user.email || 'N/A'}</td>
-                <td>${user.password || 'N/A'}</td>
-                <td><span class="status-badge">Pending</span></td>
-            `;
-            userTable.appendChild(row);
-        });
-    } catch (e) { 
-        console.error("Load error:", e); 
-        userTable.innerHTML = `<tr><td colspan="4" class="empty-state">Error loading users.</td></tr>`;
+async function loadApprovedUsers() {
+    if (!approvedTable) return;
+    const snapshot = await getDocs(collection(db, "approvedUsers"));
+    const sections = await getSections();
+    approvedTable.innerHTML = "";
+
+    if (snapshot.empty) {
+        approvedTable.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:gray;">No approved users found.</td></tr>`;
+        return;
+    }
+
+    snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td><input type="checkbox" class="approvedCheck" data-id="${docSnap.id}"></td>
+            <td>${data.email}</td>
+            <td>
+                <div class="vertical-content">
+                    ${sections.map(sec => `
+                        <label>
+                            <input type="checkbox" value="${sec.name}"
+                            ${data.section?.includes(sec.name) ? "checked" : ""}>
+                            ${sec.name}
+                        </label>
+                    `).join("")}
+                </div>
+            </td>
+            <td><button class="saveBtn" data-id="${docSnap.id}">Save</button></td>
+        `;
+        approvedTable.appendChild(row);
+    });
+}
+
+async function initializeDashboard() {
+    toggleLoading(true);
+    try {
+        await Promise.all([loadUsers(), loadApprovedUsers()]);
+    } catch (error) {
+        console.error("Initialization Error:", error);
+    } finally {
+        toggleLoading(false);
     }
 }
 
-// 6. THEME PERSISTENCE
-themeToggle?.addEventListener("click", () => {
-    const html = document.documentElement;
-    const newTheme = html.getAttribute("data-theme") === "light" ? "dark" : "light";
-    html.setAttribute("data-theme", newTheme);
-    localStorage.setItem("theme", newTheme);
+document.getElementById("bulkApprove")?.addEventListener("click", async () => {
+    const ids = [...document.querySelectorAll(".pendingCheck:checked")].map(cb => cb.dataset.id);
+    if (ids.length === 0) return alert("No users selected");
+
+    const confirmed = await showConfirm("Approve selected users and create their login accounts?");
+    if (!confirmed) return;
+
+    toggleLoading(true);
+    for (const id of ids) {
+        const user = usersData.find(u => u.id === id);
+        if (!user) continue;
+
+        try {
+            await createUserWithEmailAndPassword(auth, user.email, user.password);
+            await setDoc(doc(db, "approvedUsers", id), {
+                email: user.email,
+                password: user.password,
+                section: ["No Section"],
+                status: "approved"
+            });
+            await deleteDoc(doc(db, "pendingUsers", id));
+        } catch (error) {
+            if (error.code === "auth/email-already-in-use") {
+                await setDoc(doc(db, "approvedUsers", id), {
+                    email: user.email,
+                    password: user.password,
+                    section: ["No Section"],
+                    status: "approved"
+                });
+                await deleteDoc(doc(db, "pendingUsers", id));
+            }
+        }
+    }
+    await initializeDashboard();
+    alert("Approval process complete.");
 });
 
+document.getElementById("bulkReject")?.addEventListener("click", async () => {
+    const ids = [...document.querySelectorAll(".pendingCheck:checked")].map(cb => cb.dataset.id);
+    if (ids.length === 0) return alert("No users selected");
+
+    const confirmed = await showConfirm("Reject selected users?");
+    if (!confirmed) return;
+
+    toggleLoading(true);
+    for (const id of ids) {
+        await deleteDoc(doc(db, "pendingUsers", id));
+    }
+    await initializeDashboard();
+});
+
+if (addBtn) addBtn.onclick = () => { sectionInput.value = ""; sectionModal.classList.remove("hidden"); };
+if (cancelSectionBtn) cancelSectionBtn.onclick = () => sectionModal.classList.add("hidden");
+
+if (saveSectionBtn) {
+    saveSectionBtn.onclick = async () => {
+        const name = sectionInput.value.trim();
+        if (!name) return alert("Enter section name");
+        
+        toggleLoading(true);
+        await setDoc(doc(collection(db, "sections")), { name });
+        sectionModal.classList.add("hidden");
+        await initializeDashboard();
+    };
+}
+
+function showConfirm(message) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById("confirmModal");
+        const text = document.getElementById("modalText");
+        const yesBtn = document.getElementById("confirmYes");
+        const noBtn = document.getElementById("confirmNo");
+
+        if (!modal) return resolve(confirm(message));
+
+        text.innerText = message;
+        modal.classList.remove("hidden");
+        yesBtn.onclick = () => { modal.classList.add("hidden"); resolve(true); };
+        noBtn.onclick = () => { modal.classList.add("hidden"); resolve(false); };
+    });
+}
+
+document.addEventListener("click", async (e) => {
+    if (e.target.classList.contains("saveBtn")) {
+        const id = e.target.dataset.id;
+        const checkboxes = e.target.closest("tr").querySelectorAll("input[type='checkbox']");
+        const selected = [...checkboxes].filter(cb => cb.checked).map(cb => cb.value);
+        
+        toggleLoading(true);
+        await updateDoc(doc(db, "approvedUsers", id), { section: selected });
+        toggleLoading(false);
+        alert("Section updated!");
+    }
+});
+
+if (logoutBtn) logoutBtn.onclick = () => window.location.href = "../Components/LogIn.html";
+
+// Theme Toggle Logic
+if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute("data-theme");
+        const newTheme = currentTheme === "light" ? "dark" : "light";
+        html.setAttribute("data-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-    if (userTable) loadPendingUsers();
+    initializeDashboard();
     const savedTheme = localStorage.getItem("theme") || "light";
     document.documentElement.setAttribute("data-theme", savedTheme);
 });
