@@ -103,14 +103,13 @@ async function fetchAllDatabaseContent() {
 }
 
 // ----------------------------
-// 2. RENDERING LOGIC (With Alphabetical Sort)
+// 2. RENDERING LOGIC (Updated with Empty State UI)
 // ----------------------------
 function renderTable(filterSection) {
     const tableBody = document.getElementById("students-table");
-    const emptyState = document.getElementById("empty-state");
     const searchTerm = document.getElementById("search-student")?.value.toLowerCase() || "";
 
-    if (tableBody) tableBody.innerHTML = "";
+    if (!tableBody) return;
 
     // 1. Filter the data
     let filtered = allStudents.filter(s => {
@@ -121,7 +120,7 @@ function renderTable(filterSection) {
         return matchesSection && matchesSearch;
     });
 
-    // 2. SORT ALPHABETICALLY BY NAME (Added Fix)
+    // 2. Sort alphabetically by name
     filtered.sort((a, b) => {
         const nameA = (a.name || "").toLowerCase();
         const nameB = (b.name || "").toLowerCase();
@@ -133,33 +132,38 @@ function renderTable(filterSection) {
     let avg = filtered.length > 0 ? Math.round(filtered.reduce((acc, s) => acc + (s.progress || 0), 0) / filtered.length) : 0;
     document.getElementById("average-score").textContent = avg + "%";
 
+    // 3. UI logic: Handle Empty State vs Table rows
     if (filtered.length === 0) {
-        if (emptyState) emptyState.style.display = "block";
-        return; 
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                    <div style="font-size: 2rem; margin-bottom: 10px;"><i class="bi bi-inbox"></i></div>
+                    <h4>No Students Found</h4>
+                    <p>Try adjusting your search or section filter.</p>
+                </td>
+            </tr>
+        `;
     } else {
-        if (emptyState) emptyState.style.display = "none";
+        tableBody.innerHTML = filtered.map(s => `
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 15px; font-weight: 600;">${s.id || "---"}</td>
+                <td style="padding: 15px;">${s.name || "Unknown"}</td>
+                <td style="padding: 15px;"><span style="background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 20px;">${s.sectionName}</span></td>
+                <td style="padding: 15px;">
+                    <div style="width: 100px; background: #e2e8f0; height: 6px; border-radius: 10px;">
+                        <div style="width: ${s.progress || 0}%; background: #3b82f6; height: 100%; border-radius: 10px;"></div>
+                    </div>
+                    <small style="color: #64748b;">${s.progress || 0}%</small>
+                </td>
+                <td style="padding: 15px;">
+                    <button onclick="viewAnalysis('${s.firebaseId}')" style="background: #3b82f6; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">
+                        Details
+                    </button>
+                </td>
+            </tr>
+        `).join("");
     }
-
-    tableBody.innerHTML = filtered.map(s => `
-        <tr style="border-bottom: 1px solid #f1f5f9;">
-            <td style="padding: 15px; font-weight: 600;">${s.id || "---"}</td>
-            <td style="padding: 15px;">${s.name || "Unknown"}</td>
-            <td style="padding: 15px;"><span style="background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 20px;">${s.sectionName}</span></td>
-            <td style="padding: 15px;">
-                <div style="width: 100px; background: #e2e8f0; height: 6px; border-radius: 10px;">
-                    <div style="width: ${s.progress || 0}%; background: #3b82f6; height: 100%; border-radius: 10px;"></div>
-                </div>
-                <small style="color: #64748b;">${s.progress || 0}%</small>
-            </td>
-            <td style="padding: 15px;">
-                <button onclick="viewAnalysis('${s.firebaseId}')" style="background: #3b82f6; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">
-                    Details
-                </button>
-            </td>
-        </tr>
-    `).join("");
 }
-
 // ----------------------------
 // 3. ANALYSIS & CHART
 // ----------------------------

@@ -29,7 +29,13 @@ const cancelSectionBtn = document.getElementById("cancelSectionBtn");
 const addBtn = document.querySelector(".add-btn");
 const loadingOverlay = document.getElementById("loading-overlay");
 const themeToggle = document.getElementById("themeToggle");
-
+// --- Select All Logic ---
+if (selectAllPending) {
+    selectAllPending.addEventListener("change", (e) => {
+        const checkboxes = document.querySelectorAll(".pendingCheck");
+        checkboxes.forEach(cb => cb.checked = e.target.checked);
+    });
+}
 let usersData = [];
 
 const toggleLoading = (show) => {
