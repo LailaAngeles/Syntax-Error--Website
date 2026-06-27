@@ -39,31 +39,103 @@ body {
     width: 100%; 
     color: var(--text-main); }
 
-.sidebar { width: 260px; flex-shrink: 0; background-color: var(--sidebar-bg); color: #fff; padding: 30px 20px; }
-.sidebar-header { margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; }
-.logo { font-family: var(--font-heading); color: #ffc107; }
-.sidebar ul { list-style: none; }
-.sidebar li { margin-bottom: 10px; border-radius: 8px; }
-.sidebar li a { color: rgba(255,255,255,0.8); text-decoration: none; display: flex; align-items: center; gap: 10px; padding: 12px; }
-.sidebar li.active { background-color: #ffc107; }
-.sidebar li.active a { color: #002e5f; font-weight: bold; }
+.sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    background-color: var(--sidebar-bg);
+    color: #f8fafc;
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+    border-right: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    width: 100%;
+    gap: 10px;
+}
+
+.sidebar .logo {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-align: left;
+    line-height: 1.2;
+}
+
+.sidebar .logo .sti-text {
+    color: var(--logo-color);
+}
+
+.sidebar .logo .game-title {
+    color: var(--risk-color);
+    font-size: 0.85rem;
+    display: block;
+    margin-top: 2px;
+}
+.sidebar ul {
+    list-style: none;
+    flex-grow: 1;
+}
+
+.sidebar li {
+    margin-bottom: 8px;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.sidebar li a {
+    text-decoration: none;
+    color: var(--sidebar-text);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    width: 100%;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.sidebar li:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar li:hover a {
+    color: var(--text-main);
+}
+
+.sidebar .active {
+    background-color: var(--active-bg);
+    box-shadow: var(--card-shadow);
+}
+
+.sidebar .active a {
+    color: var(--active-text);
+    font-weight: 700;
+}
+
 .theme-btn {
     background: transparent;
     border: 1px solid var(--border);
     color: var(--logo-color);
-    width: 48px; 
-    height: 48px;
+    width: 36px;
+    height: 36px;
     border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    font-size: 1.5rem; 
+    font-size: 1.1rem;
     outline: none;
     flex-shrink: 0;
 }
-
 .theme-btn:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: var(--text-main);

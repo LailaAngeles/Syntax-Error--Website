@@ -2,6 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Superadmin | Student Management</title>
     <link rel="stylesheet" href="StudentList.css">
@@ -10,7 +11,7 @@
 <body>
     <nav class="sidebar">
         <div class="sidebar-header">
-            <h2 class="logo"><span>STI</span> Caloocan</h2>
+            <h2 class="logo"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></h2>
             <button id="themeToggle" class="theme-btn"><i class="bi bi-moon-stars-fill"></i></button>
         </div>
         <ul>
@@ -37,12 +38,24 @@
                     <select id="section-select"><option value="">-- All Sections --</option></select>
                     <input type="text" id="search-student" placeholder="Search..." style="flex-grow: 1;">
                 </div>
-                <table>
-                    <thead>
-                        <tr><th>Student Number</th><th>Name</th><th>Section</th><th>Progress</th><th>View</th></tr>
-                    </thead>
-                    <tbody id="students-table"></tbody>
-                </table>
+                <div class="panelL">
+    <h3>All Registered Students</h3>
+    <div class="table-scroll-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student Number</th>
+                    <th>Name</th>
+                    <th>Section</th>
+                    <th>Progress</th>
+                    <th>View</th>
+                </tr>
+            </thead>
+            <tbody id="students-table">
+                </tbody>
+        </table>
+    </div>
+</div>
             </div>
 
             <div id="analysis-section" style="display: none; margin-top: 30px;">
