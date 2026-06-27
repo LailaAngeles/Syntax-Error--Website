@@ -4,23 +4,24 @@
     <meta charset="UTF-8">
     <title>Approved Users</title>
     <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body>
 <div class="dashboard">
-
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <h2 class="logo">STI</h2>
-        <ul>
-            <li><a href="Dashboard.html">Pending Users</a></li>
-            <li class="active"><a href="ApproveUsers.html">Approve Users</a></li>
-            <li><a href="StudentsList.html">Students</a></li>
-           <li onclick="showLogoutPopup()" style="cursor: pointer;">
-                <i class="bi bi-box-arrow-right"></i> LogOut
-            </li>
-        </ul>
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <h2 class="logo">STI Caloocan</h2>
+        <button id="themeToggle" class="theme-btn">
+            <i class="bi bi-moon-stars-fill"></i>
+        </button>
     </div>
-
+    <ul>
+        <li><a href="Dashboard.html"><i class="bi bi-speedometer2"></i> Pending Users</a></li>
+        <li class="active"><a href="ApproveUsers.html"><i class="bi bi-people"></i> Approve Users</a></li>
+        <li><a href="StudentsList.html"><i class="bi bi-archive"></i> Students</a></li>
+        <li onclick="showLogoutPopup()"><a href="#"><i class="bi bi-box-arrow-right"></i> LogOut</a></li>
+    </ul>
+</nav>
     <!-- CONTENT -->
     <div class="content">
 
@@ -77,18 +78,6 @@
     
     </div>
 
-           <!-- ARCHIVED SECTIONS PANEL -->
-        <div id="archiveSectionContainer" class="panel hidden">
-            <div class="panel-header">
-                <h3>Archived Sections</h3>
-                <p>Item will be permanently deleted if not restored within 7 days.</p>
-            </div>
-            <div id="archivedSectionsList">
-                <p class="empty-text">Empty</p>
-            </div>
-        </div>
-
-        </div>
     </div>
 </div>
 
@@ -210,5 +199,6 @@
     </div>
 </div>
 <script type="module" src="ApproveUser.js"></script>
+
 </body>
 </html>

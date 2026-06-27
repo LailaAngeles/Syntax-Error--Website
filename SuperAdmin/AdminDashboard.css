@@ -1,4 +1,4 @@
-/* --- THEME VARIABLES (Consistent with your App) --- */
+
 :root {
     --font-primary: 'Fira Code', monospace;
     --font-heading: 'Orbitron', sans-serif;
@@ -46,7 +46,6 @@ body { display: flex; background-color: var(--bg-color); min-height: 100vh; colo
     background: transparent;
     border: 1px solid var(--border);
     color: var(--logo-color);
-    /* Increased size to match your reference button */
     width: 48px; 
     height: 48px;
     border-radius: 8px;
@@ -54,7 +53,7 @@ body { display: flex; background-color: var(--bg-color); min-height: 100vh; colo
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Scaled up the icon size to fill the larger button */
+
     font-size: 1.5rem; 
     outline: none;
     flex-shrink: 0;

@@ -599,7 +599,19 @@ function createMultiSelect(selectedSections = []) {
     };
     container.append(input, dropdown);
     return container;
-}
+}const themeToggle = document.getElementById('themeToggle');
+
+// Check for saved user preference
+const savedTheme = localStorage.getItem('theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+
+themeToggle.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+});
 
 document.addEventListener("click", () => document.querySelectorAll(".multi-select-container").forEach(c => c.classList.remove("active")));
 document.getElementById("selectAllApproved")?.addEventListener("change", (e) => {
