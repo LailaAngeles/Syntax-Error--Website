@@ -32,7 +32,12 @@ html[data-theme="dark"] {
 
 /* --- BASE STYLES --- */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-primary); }
-body { display: flex; background-color: var(--bg-color); min-height: 100vh; color: var(--text-main); }
+body { 
+    display: flex; 
+    background-color: var(--bg-color); 
+    overflow-x: hidden;
+    width: 100%; 
+    color: var(--text-main); }
 
 .sidebar { width: 260px; flex-shrink: 0; background-color: var(--sidebar-bg); color: #fff; padding: 30px 20px; }
 .sidebar-header { margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; }
@@ -107,10 +112,17 @@ button:hover { opacity: 0.8; }
 
 /* --- RESPONSIVE --- */
 @media (max-width: 768px) {
-    body { flex-direction: column; }
-    .sidebar { width: 100%; }
-    .main-content { padding: 15px; }
-    .actions-bar { flex-direction: column; }
+    .sidebar {
+        width: 100% !important;
+        position: relative;
+        padding: 20px;
+    }
+    
+    /* Ensure the main content doesn't break layout */
+    .main-content {
+        width: 100% !important;
+        padding: 15px !important;
+    }
 }/* --- SIDEBAR & LAYOUT FIXES --- */
 body {
     display: flex;
@@ -135,17 +147,14 @@ body {
 /* --- TABLE RESPONSIVENESS --- */
 .table-responsive {
     width: 100%;
-    overflow-x: auto; /* This prevents the table from breaking the layout */
-    -webkit-overflow-scrolling: touch;
-    margin-top: 20px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Adds momentum scrolling for iOS */
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
 }
-
 table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 600px; /* Ensures table doesn't get squished */
+    min-width: 600px; /* Forces scroll on small screens */
 }
-
 /* --- BUTTON BAR --- */
 .actions-bar {
     display: flex;
@@ -177,7 +186,11 @@ table {
         width: 100%;
     }
 }
-
+.logout-box, .modal-box {
+    width: 95% !important;
+    max-width: 400px;
+    margin: 10px;
+}
 .logout-modal {
     position: fixed;
     inset: 0;
