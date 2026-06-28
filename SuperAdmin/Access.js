@@ -117,8 +117,11 @@ pinBtn.addEventListener("click", async () => {
         return;
     }
 
+   
     pinBtn.disabled = true;
     pinBtn.innerText = "Validating...";
+    loader.style.display = "flex"; 
+
 
     try {
         const q = query(collection(db, "authorized_admins"), where("Email", "==", currentAuthEmail), where("pin", "==", pinVal));
@@ -133,7 +136,10 @@ pinBtn.addEventListener("click", async () => {
     } catch (error) {
         showError("pinError", "Validation failed.");
     } finally {
+      
+        loader.style.display = "none";
         pinBtn.disabled = false;
         pinBtn.innerText = "Finalize Access";
+   
     }
 });
