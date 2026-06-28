@@ -182,20 +182,57 @@ button { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600;
 .reject { background-color: var(--risk-color); color: white; }
 button:hover { opacity: 0.8; }
 
-/* --- RESPONSIVE --- */
+/* --- MOBILE ADAPTATION --- */
 @media (max-width: 768px) {
+    body {
+        flex-direction: column; 
+    }
+
     .sidebar {
         width: 100% !important;
-        position: relative;
-        padding: 20px;
+        height: auto;
+        padding: 15px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
     }
-    
-    /* Ensure the main content doesn't break layout */
+
+    .sidebar-header {
+        margin-bottom: 15px; 
+    }
+
+   
+    .sidebar ul {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        overflow-x: auto;      
+        white-space: nowrap;   
+        padding-bottom: 5px;  
+        scrollbar-width: none; 
+    }
+
+    .sidebar ul::-webkit-scrollbar {
+        display: none;
+    }
+
+    .sidebar li {
+        margin-bottom: 0;
+        flex-shrink: 0;       
+    }
+
     .main-content {
-        width: 100% !important;
-        padding: 15px !important;
+        width: 100%;
+        padding: 15px;
     }
-}/* --- SIDEBAR & LAYOUT FIXES --- */
+
+    .actions-bar {
+        flex-direction: column;
+    }
+
+    .actions-bar button {
+        width: 100%;
+    }
+}
 body {
     display: flex;
     min-height: 100vh;
