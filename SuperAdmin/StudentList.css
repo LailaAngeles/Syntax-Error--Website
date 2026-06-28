@@ -1,4 +1,10 @@
-:root[data-theme="light"] {
+
+:root {
+    --font-primary: 'Fira Code', monospace;
+    --font-heading: 'Orbitron', sans-serif;
+}
+
+html[data-theme="light"] {
     --bg-color: #f0f2f5;
     --card-bg: #ffffff;
     --sidebar-bg: #002e5f;
@@ -6,10 +12,12 @@
     --text-muted: #6b7280;
     --border: #e5e7eb;
     --table-header: #f9fafb;
+    --risk-color: #ef4444;
+    --mastery-color: #10b981;
     --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-:root[data-theme="dark"] {
+html[data-theme="dark"] {
     --bg-color: #0d0f12;
     --card-bg: #161a22;
     --sidebar-bg: rgba(22, 26, 34, 0.8);
@@ -17,6 +25,8 @@
     --text-muted: #8b949e;
     --border: #21262d;
     --table-header: rgba(255, 255, 255, 0.02);
+    --risk-color: #ff3333;
+    --mastery-color: #39ff14;
     --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
