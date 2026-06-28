@@ -126,3 +126,49 @@ h1 { font-family: 'Orbitron', sans-serif; font-size: 24px; text-transform: upper
 .popup-content { background: var(--card-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
 
 .choice-btn { background: var(--neon-green); border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 15px; }
+/* Modern Loading Overlay */
+#loader-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 15, 18, 0.85);
+    backdrop-filter: blur(8px);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    color: var(--text-main);
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.1);
+    border-top: 5px solid var(--neon-green);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loader-text {
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+.error-msg {
+    color: var(--error-red);
+    font-size: 11px;
+    margin-top: 8px;
+    height: 15px; /* Keeps the layout stable */
+    font-weight: 600;
+}
+
+.error-input {
+    border: 2px solid var(--error-red) !important;
+}
