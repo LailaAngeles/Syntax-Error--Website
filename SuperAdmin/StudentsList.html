@@ -81,7 +81,18 @@
             </div>
         </div>
     </div>
+<div id="loading-overlay" class="loading-overlay">
+    <div class="loader-card">
+        <div class="spinner"></div>
+        <p style="color: var(--text-primary); font-family: var(--font-primary); font-weight: 600;">
+            PROCESSING...
+        </p>
+    </div>
+</div>
 
+<style>
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="./StudentList.js"></script>
     <script>

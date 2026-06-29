@@ -4,8 +4,10 @@
 }
 
 :root[data-theme="light"] {
+     --border-color: #e5e7eb;
     --bg-color: #f0f2f5;
     --card-bg: #ffffff;
+    --btn-primary: #4f46e5;
     --sidebar-bg: #002e5f;
     --text-main: #1f2937;
     --text-muted: #6b7280;
@@ -15,12 +17,14 @@
 }
 
 :root[data-theme="dark"] {
+    --btn-primary: #4f46e5;
     --bg-color: #0d0f12;
     --card-bg: #161a22;
     --sidebar-bg: rgba(22, 26, 34, 0.8);
     --text-main: #ffffff;
     --text-muted: #8b949e;
     --border: #21262d;
+     --border: #21262d;
     --table-header: rgba(255, 255, 255, 0.02);
     --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
@@ -155,3 +159,39 @@ select, input { padding: 10px; border-radius: 8px; border: 1px solid var(--borde
 
     .sidebar li a { padding: 10px 16px; font-size: 0.9rem; }
 }
+/* Add this to your admin.css */
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    display: none; /* Toggle this to flex via JS */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.4); /* Darker backdrop */
+    backdrop-filter: blur(8px);    /* The modern "Glass" look */
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.loader-card {
+    background: var(--bg-panel);
+    padding: 30px 40px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border-color);
+    border-top: 4px solid var(--btn-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
