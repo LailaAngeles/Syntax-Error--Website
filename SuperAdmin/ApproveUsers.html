@@ -12,7 +12,7 @@
     <div class="sidebar-header">
         <h2 class="logo"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></h2>
         <button id="themeToggle" class="theme-btn">
-            <i class="bi bi-moon-stars-fill"></i>
+            <i class="bi bi-moon" id="themeIcon"></i>
         </button>
     </div>
     <ul>
@@ -53,31 +53,22 @@
         </div>
      </div>
 
-        <!-- MAIN -->
-        <div class="main-container">
-
-            <!-- APPROVED USERS PANEL -->
-          <div class="main-container">
-
+<div class="main-container">
     <div class="panel">
-       
-
-        <table>
-            <thead>
-                <tr>
-                    <th><input type="checkbox" id="selectAllApproved"></th>
-                    <th>Email</th>
-                    <th>Section</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="approvedTable">
-                </tbody>
-        </table>
-    </div>
-    
-    </div>
-
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAllApproved"></th>
+                        <th>Email</th>
+                        <th>Section</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="approvedTable">
+                    </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -201,20 +192,17 @@
 </div>
 <script type="module" src="ApproveUser.js"></script>
 <script>
-    // 1. Toggle dropdown on click
+    
     document.querySelectorAll('.dropbtn').forEach(button => {
         button.addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevents immediate closing
-            // Close other open dropdowns
+            e.stopPropagation(); 
             document.querySelectorAll('.dropdown-content').forEach(content => {
                 if (content !== this.nextElementSibling) content.classList.remove('show');
             });
-            // Toggle the clicked one
             this.nextElementSibling.classList.toggle('show');
         });
     });
 
-    // 2. Close dropdowns when clicking anywhere else on the page
     window.onclick = function(event) {
         if (!event.target.matches('.dropbtn')) {
             document.querySelectorAll('.dropdown-content').forEach(content => {

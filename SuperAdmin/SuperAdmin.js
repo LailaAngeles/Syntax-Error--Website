@@ -244,16 +244,45 @@ document.addEventListener("click", async (e) => {
 if (logoutBtn) logoutBtn.onclick = () => window.location.href = "../Components/LogIn.html";
 
 // Theme Toggle Logic
-if (themeToggle) {
-    themeToggle.addEventListener("click", () => {
-        const html = document.documentElement;
-        const currentTheme = html.getAttribute("data-theme");
-        const newTheme = currentTheme === "light" ? "dark" : "light";
-        html.setAttribute("data-theme", newTheme);
-        localStorage.setItem("theme", newTheme);
-    });
-}
+(function() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+})();
 
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const html = document.documentElement;
+
+    // 2. Set the initial icon based on the saved theme
+    const currentTheme = html.getAttribute('data-theme');
+    if (currentTheme === 'dark') {
+        themeIcon.classList.remove('bi-moon');
+        themeIcon.classList.add('bi-sun');
+    } else {
+        themeIcon.classList.remove('bi-sun');
+        themeIcon.classList.add('bi-moon');
+    }
+
+    // 3. Handle the toggle click
+    themeToggle.addEventListener('click', () => {
+        const isDark = html.getAttribute('data-theme') === 'dark';
+        
+        if (isDark) {
+            // Switching to Light
+            html.setAttribute('data-theme', 'light');
+            localStorage.setItem('theme', 'light');
+            themeIcon.classList.remove('bi-sun');
+            themeIcon.classList.add('bi-moon');
+        } else {
+            // Switching to Dark
+            html.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+            themeIcon.classList.remove('bi-moon');
+            themeIcon.classList.add('bi-sun');
+        }
+    });
+});
 document.addEventListener("DOMContentLoaded", () => {
     initializeDashboard();
     const savedTheme = localStorage.getItem("theme") || "light";

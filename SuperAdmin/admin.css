@@ -61,7 +61,11 @@ html[data-theme="dark"] {
     border: 1px solid var(--border-color);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
 }
-
+.modal-box, .admin-modal-box {
+    width: 95% !important;
+    max-width: 500px;    
+    margin: 10px;        
+}
 .modal-box h3 {
     margin-bottom: 20px;
     font-size: 1.25rem;
@@ -107,7 +111,7 @@ body { background-color: var(--bg-main); color: var(--text-primary); min-height:
 .sidebar { width: 260px; flex-shrink: 0; background-color: var(--sidebar-bg); color: var(--logo-color); padding: 30px 20px; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); }
 .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; width: 100%; gap: 10px; }
 .sidebar .logo { font-family: var(--font-heading); font-size: 20px; font-weight: 900; }
-.sidebar .logo .game-title { color: var(--risk-color); font-size: 0.85rem; display: block; margin-top: 2px; }
+.sidebar .logo .game-title { font-size: 0.85rem; display: block; margin-top: 2px; }
 .sidebar ul { list-style: none; flex-grow: 1; }
 .sidebar li { margin-bottom: 8px; border-radius: 12px; cursor: pointer; }
 .sidebar li a { text-decoration: none; color: var(--sidebar-text); display: flex; align-items: center; gap: 12px; padding: 14px 18px; width: 100%; font-weight: 500; }
@@ -230,15 +234,25 @@ button:hover {
     .sidebar ul { display: flex; flex-direction: row; overflow-x: auto; white-space: nowrap; gap: 10px; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
     .sidebar ul::-webkit-scrollbar { display: none; }
     .sidebar li { flex-shrink: 0; margin-bottom: 0; }
+
+    .content {
+        padding: 20px 15px; 
+    }
+    .header {
+        padding: 15px;
+        flex-direction: column; 
+        gap: 10px;
+        align-items: flex-start;
+    }
 }
-/* Container to keep buttons side-by-side */
+
 .controls-wrapper {
     display: flex;
-    gap: 15px; /* Space between the two main dropdowns */
+    gap: 15px; 
     align-items: center;
 }
 
-/* Dropdown Container */
+
 .dropdown {
     position: relative;
     display: inline-block;
@@ -391,3 +405,21 @@ button:hover {
 }
 
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.table-container {
+    width: 100%;
+    overflow-x: auto; /* Adds smooth momentum scrolling */
+    margin-top: 10px;
+}
+
+.table-container table {
+    width: 100%;
+    min-width: 500px; 
+}
+
+
+@media (max-width: 768px) {
+    th, td {
+        padding: 12px 8px; 
+        font-size: 13px;
+    }
+}
