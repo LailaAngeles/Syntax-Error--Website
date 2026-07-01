@@ -113,7 +113,20 @@ th { background: var(--table-header); padding: 15px; text-align: left; color: va
 td { padding: 15px; border-bottom: 1px solid var(--border); color: var(--text-main); }
 
 select, input { padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-color); color: var(--text-main); font-size: 16px; }
+.controls {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+    width: 100%;
+}
 
+.controls select, 
+.controls input {
+    flex: 1; 
+    min-width: 200px; 
+    padding: 12px;
+}
 .logout-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 9999; }
 .logout-box { background: var(--card-bg); padding: 30px; border-radius: 16px; text-align: center; width: 350px; max-width: 90%; border: 1px solid var(--border); box-shadow: var(--card-shadow); }
 .logout-btns { display: flex; gap: 12px; margin-top: 25px; }
