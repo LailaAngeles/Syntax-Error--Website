@@ -151,12 +151,13 @@
     <p style="color: #64748b; margin-top: 10px;">No students found in this section.</p>
 </div>
 <div id="logout-popup" class="logout-modal" style="display:none;">
-    <div class="logout-box">
+  <div class="logout-box">
         <h3>Confirm Logout</h3>
         <p>Are you sure you want to exit the dashboard?</p>
-        <div class="logout-btns">
-            <button onclick="closeLogoutPopup()">Stay</button>
-            <button class="danger" onclick="logoutUser()">Logout</button>
+    
+        <div class="modal-actions">
+            <button id="stayBtn" onclick="closeLogoutPopup()">Stay</button>
+            <button id="logoutBtn" class="danger" onclick="logoutUser()" style="background-color: #ff3333; color: white;">Logout</button>
         </div>
     </div>
 </div>

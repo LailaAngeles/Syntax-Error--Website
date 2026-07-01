@@ -79,7 +79,6 @@ body {
 }
 
 .sidebar .logo .game-title {
-    color: var(--risk-color);
     font-size: 0.85rem;
     display: block;
     margin-top: 2px;
@@ -299,55 +298,26 @@ table {
         width: 100%;
     }
 }
-.logout-box, .modal-box {
-    width: 95% !important;
-    max-width: 400px;
-    margin: 10px;
-}
-.logout-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
+.modal-actions {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999;
-}
-
-.logout-box {
-    background: var(--card-bg); 
-    padding: 30px;
-    border-radius: 16px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: var(--card-shadow);
-    border: 1px solid var(--border);
-    color: var(--text-main);
-    text-align: center;
-}
-
-.logout-btns {
-    display: flex;
     gap: 15px;
-    justify-content: center;
     margin-top: 25px;
+    width: 100%;
 }
 
-.logout-btns button {
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--bg-color);
-    color: var(--text-main);
+.modal-actions button {
+    padding: 10px 30px;
     cursor: pointer;
 }
+.logout-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+.logout-box { background: var(--card-bg); padding: 30px; border-radius: 16px; text-align: center; width: 350px; max-width: 90%; border: 1px solid var(--border); box-shadow: var(--card-shadow); }
+.logout-btns { display: flex; gap: 12px; margin-top: 25px; }
+.logout-btns button { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+.logout-btns button:first-child { background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border); }
+.logout-btns .danger { background: #ff3333; color: white; }
 
-.logout-btns .danger {
-    background: var(--risk-color);
-    color: #fff;
-    border: none;
-}
 .empty-state {
     text-align: center;
     padding: 40px !important;
@@ -373,8 +343,7 @@ table {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
-/* Add this to your admin.css */
-/* The full-screen background container */
+/* --- LOADING OVERLAY --- */
 .loading-overlay {
     position: fixed;
     inset: 0;
@@ -382,30 +351,43 @@ table {
     justify-content: center;
     align-items: center;
     z-index: 9999;
-    background: rgba(0, 0, 0, 0.2); /* Semi-transparent background */
-    backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.4); /* Darker backdrop */
+    backdrop-filter: blur(5px);
 }
 
-/* The compact white/panel box */
+/* --- LOADER CARD --- */
 .loader-card {
-    background: var(--bg-panel);
-    padding: 25px 35px;
+    background: var(--card-bg); /* Use the card background variable */
+    padding: 30px 40px;
     border-radius: 16px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    min-width: 200px;
+    box-shadow: var(--card-shadow);
 }
 
-/* The smaller spinner */
+.loader-card p {
+    color: var(--text-main);
+    font-family: var(--font-heading);
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+/* --- SPINNER --- */
 .spinner {
-    width: 30px;
-    height: 30px;
-    border: 3px solid var(--border-color);
-    border-top: 3px solid #3b82f6; 
+    width: 35px;
+    height: 35px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top: 4px solid #3b82f6; /* Blue spinner color */
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

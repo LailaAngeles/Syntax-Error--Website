@@ -89,14 +89,15 @@ html[data-theme="dark"] {
 /* Modal Actions (Buttons) */
 .modal-actions {
     display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 10px;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 25px;
+    width: 100%;
 }
 
 .modal-actions button {
-    padding: 10px 20px;
-    border-radius: 8px;
+    padding: 10px 30px;
     cursor: pointer;
 }
 body { background-color: var(--bg-main); color: var(--text-primary); min-height: 100vh; transition: background 0.3s, color 0.3s; }
@@ -189,9 +190,40 @@ button:hover {
 .modal-box { background: var(--bg-panel); padding: 35px; border-radius: 24px; width: 90%; max-width: 550px; color: var(--text-primary); border: 1px solid var(--border-color); }
 .hidden { display: none !important; }
 
-.logout-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-.logout-box { background: var(--bg-panel); padding: 30px; border-radius: 12px; text-align: center; width: 350px; }
+.logout-modal {
+    position: fixed;
+    inset: 0;
+    display: flex; /* Or use 'none' and toggle with JS */
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
 
+/* 2. The Modal Content Card */
+.logout-box {
+    background: var(--bg-panel);
+    padding: 30px 40px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    text-align: center;
+    width: 90%;
+    max-width: 350px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* 3. Optional: Add spacing for the text and buttons inside */
+.logout-box h3 {
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.logout-box p {
+    margin-bottom: 25px;
+    color: var(--text-secondary);
+}
 @media (max-width: 768px) {
     .dashboard { flex-direction: column; }
     .sidebar { width: 100%; height: auto; padding: 15px; }

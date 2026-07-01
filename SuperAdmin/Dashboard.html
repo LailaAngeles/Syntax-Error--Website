@@ -13,7 +13,7 @@
             <button id="themeToggle" class="theme-btn"><i class="bi bi-moon-stars-fill"></i></button>
         </div>
         <ul>
-            <li class="active"><a href="#"><i class="bi bi-speedometer2"></i> Pending Users</a></li>
+            <li class="active"><a href="Dashboard.html"><i class="bi bi-speedometer2"></i> Pending Users</a></li>
             <li><a href="ApproveUsers.html"><i class="bi bi-people"></i> Approve Users</a></li>
             <li><a href="StudentsList.html"><i class="bi bi-archive"></i> Students</a></li>
             <li onclick="showLogoutPopup()"><a href="#"><i class="bi bi-box-arrow-right"></i> LogOut</a></li>
@@ -62,16 +62,17 @@
         </div>
 
     </main>
-    <div id="logout-popup" class="logout-modal" style="display:none;">
-        <div class="logout-box">
-            <h3>Confirm Logout</h3>
-            <p>Are you sure you want to exit?</p>
-            <div class="logout-btns">
-                <button onclick="closeLogoutPopup()">Stay</button>
-                <button class="danger" onclick="logoutUser()">Logout</button>
-            </div>
+ <div id="logout-popup" class="logout-modal" style="display:none;">
+  <div class="logout-box">
+        <h3>Confirm Logout</h3>
+        <p>Are you sure you want to exit the dashboard?</p>
+    
+        <div class="modal-actions">
+            <button id="stayBtn" onclick="closeLogoutPopup()">Stay</button>
+            <button id="logoutBtn" class="danger" onclick="logoutUser()" style="background-color: #ff3333; color: white;">Logout</button>
         </div>
     </div>
+</div>
 <div id="action-popup" class="logout-modal" style="display:none;">
     <div class="logout-box">
         <h3 id="action-title">Confirm Action</h3>
