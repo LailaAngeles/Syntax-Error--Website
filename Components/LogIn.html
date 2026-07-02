@@ -41,21 +41,23 @@
                     <i class="bi bi-eye-slash toggle-password" id="togglePassword"></i>
                 </div>
             </div>
-<div class="options">
-    <a href="#" id="forgotPasswordLink">Forgot Password?</a>
-</div>
 
-<div id="forgotPasswordSection" class="wrapper" style="display: none;">
-    <header class="header">
-        <h1>Reset Password</h1>
-        <p class="subtitle">Enter your email to receive a new password</p>
-    </header>
-    <div class="input-group">
-        <input type="email" id="resetEmail" placeholder="Enter your email">
-    </div>
-    <button id="sendResetBtn" class="login-btn">Send New Password</button>
-    <button id="backToLogin" class="login-btn" style="background: gray;">Back</button>
-</div>
+            <div class="options">
+                <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+            </div>
+
+            <div id="forgotPasswordSection" class="wrapper" style="display: none;">
+                <header class="header">
+                    <h1>Reset Password</h1>
+                    <p class="subtitle">Enter your email to receive a new password</p>
+                </header>
+                <div class="input-group">
+                    <input type="email" id="resetEmail" placeholder="Enter your email">
+                </div>
+                <button id="sendResetBtn" class="login-btn">Send New Password</button>
+                <button id="backToLogin" class="login-btn" style="background: gray;">Back</button>
+            </div>
+
             <button type="submit" class="login-btn">Login</button>
 
             <div class="register-link">
@@ -63,30 +65,45 @@
             </div>
         </form>
     </div>
-    <div id="forgotPopup" class="popup">
-    <div class="popup-content">
-        <i class="bi bi-question-circle system-alert-icon" style="color: var(--sti-blue);"></i>
-        <p id="popup-message">Forgot your password? We can send a reset link to your email. Do you want to proceed?</p>
-        <div class="popup-actions">
-            <button id="confirmReset" class="choice-btn yes-btn">Yes, Send Email</button>
-            <button id="cancelReset" class="choice-btn" style="color:var(--error-red); border: 1px solid var(--error-red); margin-top:10px;">Cancel</button>
-        </div>
-    </div>
-</div>
-<div id="emailFeedbackPopup" class="popup">
 
-    
-    <div class="popup-content">
-        <i class="bi bi-envelope-check" style="font-size: 32px; color: var(--neon-green);"></i>
-        <h2 style="color: var(--text-main); margin: 10px 0;">Check Your Email</h2>
-        <p id="popup-message" style="color: var(--text-muted); margin-bottom: 20px;">
-            A password reset link has been sent to your email. Please check your <b>Inbox</b>, <b>Junk</b>, or <b>Drafts</b> folder to proceed with the reset.
-        </p>
-        <div class="popup-actions">
-            <button id="closeFeedbackBtn" class="choice-btn yes-btn">I UNDERSTAND</button>
+    <div id="forgotPopup" class="popup">
+        <div class="popup-content">
+            <i class="bi bi-question-circle system-alert-icon" style="color: var(--sti-blue);"></i>
+            <p id="popup-message">Forgot your password? We can send a reset link to your email. Do you want to proceed?</p>
+            <div class="popup-actions">
+                <button id="confirmReset" class="choice-btn yes-btn">Yes, Send Email</button>
+                <button id="cancelReset" class="choice-btn" style="color:var(--error-red); border: 1px solid var(--error-red); margin-top:10px;">Cancel</button>
+            </div>
         </div>
     </div>
-</div>
+
+    <div id="emailFeedbackPopup" class="popup">
+        <div class="popup-content">
+            <i class="bi bi-envelope-check" style="font-size: 32px; color: var(--neon-green);"></i>
+            <h2 style="color: var(--text-main); margin: 10px 0;">Check Your Email</h2>
+            <p id="popup-message" style="color: var(--text-muted); margin-bottom: 20px;">
+                A password reset link has been sent to your email. Please check your <b>Inbox</b>, <b>Junk</b>, or <b>Drafts</b> folder.
+            </p>
+            <div class="popup-actions">
+                <button id="closeFeedbackBtn" class="choice-btn yes-btn">I UNDERSTAND</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="otpPopup" class="popup">
+        <div class="popup-content">
+            <h2 style="font-family: 'Orbitron', sans-serif; color: var(--text-main); margin-bottom: 15px;">Enter Verification Code</h2>
+            <p style="margin-bottom: 20px; font-size: 13px; color: var(--text-muted);">A 6-digit code has been sent to your email.</p>
+            
+            <div class="input-group">
+                <div class="input-box">
+                    <input type="text" id="otpInput" placeholder="Enter 6-digit PIN" maxlength="6" style="text-align: center; letter-spacing: 5px;">
+                </div>
+            </div>
+            
+            <button id="verifyOtpBtn" class="login-btn">Verify and Login</button>
+        </div>
+    </div>
 
     <script type="module" src="Login.js" defer></script>
 </body>

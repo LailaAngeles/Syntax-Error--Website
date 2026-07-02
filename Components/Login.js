@@ -7,7 +7,6 @@ import {
     sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
-// NEW FIRESTORE IMPORTS (ADDED)
 import { 
     getFirestore, 
     collection, 
@@ -27,7 +26,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app); // NEW ADDED
+const db = getFirestore(app);
 
 const email = document.getElementById("email");
 const password = document.getElementById("password");
@@ -36,6 +35,8 @@ const loginForm = document.getElementById("loginForm");
 const popup = document.getElementById("popup");
 const popupMessage = document.getElementById("popup-message");
 const popupClose = document.getElementById("popup-close");
+
+let generatedOtp = "";
 
 function showPopup(message) {
     if (popup && popupMessage) {
@@ -76,7 +77,6 @@ function hideErrors() {
     document.querySelectorAll(".input-group").forEach(group => {
         group.classList.remove("error");
     });
-
     document.querySelectorAll(".error-tooltip").forEach(e => {
         e.style.display = "none";
     });
@@ -112,7 +112,7 @@ loginForm?.addEventListener("submit", async function (e) {
 
     if (hasError) return;
 
-   try {
+    try {
         const archiveRef = collection(db, "archivedUsers");
         const q = query(archiveRef, where("email", "==", email.value));
         const snapshot = await getDocs(q);
@@ -122,22 +122,20 @@ loginForm?.addEventListener("submit", async function (e) {
             return;
         }
 
+        // Validate credentials before initiating OTP
         await signInWithEmailAndPassword(auth, email.value, password.value);
-        window.location.href = "../MainMenu/dashboard.html";
+        
+        // Credentials valid, initiate OTP
+        await handleLoginAttempt(email.value);
 
-  } catch (error) {
+    } catch (error) {
         console.error("Login error:", error.code);
-
         switch (error.code) {
             case "auth/invalid-credential":
-                // Add red border to both
                 const emailGroup = email.closest(".input-group");
                 const passGroup = password.closest(".input-group");
-                
                 emailGroup.classList.add("error");
                 passGroup.classList.add("error");
-                
-                // Only show the message on the password field to avoid clutter
                 showError(password, "Invalid email or password.");
                 break;
             case "auth/too-many-requests":
@@ -161,45 +159,62 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
 const reset = document.getElementById("forgotPasswordLink");
 
-// Helper function for the feedback popup
 function toggleFeedbackPopup(show) {
     const popup = document.getElementById("emailFeedbackPopup");
     if (popup) popup.style.display = show ? "flex" : "none";
 }
 
-// Attach event listener once outside the reset logic
 document.getElementById("closeFeedbackBtn")?.addEventListener("click", function() {
     toggleFeedbackPopup(false);
 });
 
 reset?.addEventListener("click", function(event) {
     event.preventDefault();
-
     const emailValue = document.getElementById("email").value;
-
     if (!emailValue) {
         alert("Please enter your email address.");
         return;
     }
-
     sendPasswordResetEmail(auth, emailValue)
         .then(() => {
-            // Success: Hide the main popup and show feedback
             const forgotPopup = document.getElementById("forgotPopup");
             if (forgotPopup) forgotPopup.style.display = "none";
-            
             toggleFeedbackPopup(true);
         })
         .catch((error) => {
-            console.error("Error sending reset email:", error.code, error.message);
-
-            // Check if the error is because the user was not found
             if (error.code === 'auth/user-not-found') {
                 alert("Account not found. Please check the email address or sign up.");
             } else {
                 alert("Error: " + error.message);
             }
         });
+});
+
+emailjs.init({ publicKey: "SZvtmcDCW3hy4qm5v" });
+
+async function handleLoginAttempt(userEmail) {
+    generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    try {
+        await emailjs.send("service_ixe2e5j", "template_kvlen8d", {
+            email: userEmail,
+            passcode: generatedOtp,
+            time: "15 minutes"
+        });
+        document.getElementById("otpPopup").style.display = "block";
+    } catch (error) {
+        console.error("Email failed:", error);
+        showPopup("Failed to send PIN. Please check your internet.");
+    }
+}
+
+document.getElementById("verifyOtpBtn").addEventListener("click", () => {
+    const userEnteredOtp = document.getElementById("otpInput").value;
+    if (userEnteredOtp === generatedOtp) {
+        window.location.href = "../MainMenu/dashboard.html";
+    } else {
+        alert("Invalid PIN. Please try again.");
+    }
 });

@@ -317,9 +317,13 @@ h1 {
     justify-content: center;
     align-items: center;
     padding: 20px;
+
+    justify-content: center;
+    align-items: center;
 }
 
 .popup-content {
+    
     background: var(--card-bg);
     padding: 30px;
     border-radius: 12px;
