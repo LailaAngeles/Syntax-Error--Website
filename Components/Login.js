@@ -4,8 +4,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/fireba
 import { 
     getAuth, 
     signInWithEmailAndPassword,
-    sendPasswordResetEmail // Add this
+    sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+
 // NEW FIRESTORE IMPORTS (ADDED)
 import { 
     getFirestore, 
@@ -160,29 +161,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
-const forgotPasswordLink = document.getElementById("forgotPasswordLink");
+const reset = document.getElementById("forgotPasswordLink");
+reset?.addEventListener("click", function(event) {
+    event.preventDefault();
 
-forgotPasswordLink?.addEventListener("click", async () => {
-    const userEmail = email.value.trim();
+    const emailValue = document.getElementById("email").value;
 
-    // 1. Basic validation
-    if (!userEmail) {
-        showError(email, "Please enter your email address first.");
+    // Validate if email is empty
+    if (!emailValue) {
+        alert("Please enter your email address.");
         return;
     }
 
-    try {
-        // 2. Trigger Firebase Password Reset
-        await sendPasswordResetEmail(auth, userEmail);
-        
-        // 3. Show success popup
-        showPopup("A password reset link has been sent to your Outlook account. Please check your inbox and spam folder.");
-    } catch (error) {
-        console.error("Reset error:", error.code);
-        if (error.code === 'auth/user-not-found') {
-            showPopup("No account found with this email.");
-        } else {
-            showPopup("Error sending reset email. Please try again.");
-        }
-    }
+    sendPasswordResetEmail(auth, emailValue)
+        .then(() => {
+            // Password reset email sent!
+            alert("Password reset email sent! Please check your inbox.");
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            console.error("Error sending reset email:", errorCode, errorMessage);
+            alert("Error: " + errorMessage);
+        });
 });
