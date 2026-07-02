@@ -3,9 +3,9 @@ console.log("Login.js loaded");
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { 
     getAuth, 
-    signInWithEmailAndPassword 
+    signInWithEmailAndPassword,
+    sendPasswordResetEmail // Add this
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-
 // NEW FIRESTORE IMPORTS (ADDED)
 import { 
     getFirestore, 
@@ -159,4 +159,30 @@ document.addEventListener("DOMContentLoaded", () => {
             clickCount = 0;
         }
     });
+});
+const forgotPasswordLink = document.getElementById("forgotPasswordLink");
+
+forgotPasswordLink?.addEventListener("click", async () => {
+    const userEmail = email.value.trim();
+
+    // 1. Basic validation
+    if (!userEmail) {
+        showError(email, "Please enter your email address first.");
+        return;
+    }
+
+    try {
+        // 2. Trigger Firebase Password Reset
+        await sendPasswordResetEmail(auth, userEmail);
+        
+        // 3. Show success popup
+        showPopup("A password reset link has been sent to your Outlook account. Please check your inbox and spam folder.");
+    } catch (error) {
+        console.error("Reset error:", error.code);
+        if (error.code === 'auth/user-not-found') {
+            showPopup("No account found with this email.");
+        } else {
+            showPopup("Error sending reset email. Please try again.");
+        }
+    }
 });
