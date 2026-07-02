@@ -390,3 +390,47 @@ h1 {
     margin-top: 5px;
     display: none;
 }
+/* Container for the Feedback Popup */
+#emailFeedbackPopup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85); /* Dark overlay */
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* Sections inside the popup */
+#inputSection, #successSection {
+    background: #ffffff; /* Adjust to match your theme background */
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+/* Ensure consistent button styling */
+#sendResetBtn, #closeFeedbackBtn {
+    margin-top: 20px;
+    padding: 12px 20px;
+    width: 100%;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background 0.3s ease;
+}
+
+#sendResetBtn { background-color: var(--neon-green); color: #000; }
+#closeFeedbackBtn { background-color: #333; color: #fff; }
+
+/* Hide success section initially */
+#successSection {
+    display: none;
+}

@@ -162,12 +162,23 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 const reset = document.getElementById("forgotPasswordLink");
+
+// Helper function for the feedback popup
+function toggleFeedbackPopup(show) {
+    const popup = document.getElementById("emailFeedbackPopup");
+    if (popup) popup.style.display = show ? "flex" : "none";
+}
+
+// Attach event listener once outside the reset logic
+document.getElementById("closeFeedbackBtn")?.addEventListener("click", function() {
+    toggleFeedbackPopup(false);
+});
+
 reset?.addEventListener("click", function(event) {
     event.preventDefault();
 
     const emailValue = document.getElementById("email").value;
 
-    // Validate if email is empty
     if (!emailValue) {
         alert("Please enter your email address.");
         return;
@@ -175,13 +186,20 @@ reset?.addEventListener("click", function(event) {
 
     sendPasswordResetEmail(auth, emailValue)
         .then(() => {
-            // Password reset email sent!
-            alert("Password reset email sent! Please check your inbox.");
+            // Success: Hide the main popup and show feedback
+            const forgotPopup = document.getElementById("forgotPopup");
+            if (forgotPopup) forgotPopup.style.display = "none";
+            
+            toggleFeedbackPopup(true);
         })
         .catch((error) => {
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            console.error("Error sending reset email:", errorCode, errorMessage);
-            alert("Error: " + errorMessage);
+            console.error("Error sending reset email:", error.code, error.message);
+
+            // Check if the error is because the user was not found
+            if (error.code === 'auth/user-not-found') {
+                alert("Account not found. Please check the email address or sign up.");
+            } else {
+                alert("Error: " + error.message);
+            }
         });
 });
