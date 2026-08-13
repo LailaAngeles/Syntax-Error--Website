@@ -203,7 +203,7 @@ async function handleLoginAttempt(userEmail) {
             passcode: generatedOtp,
             time: "15 minutes"
         });
-        document.getElementById("otpPopup").style.display = "block";
+     document.getElementById("otpPopup").style.display = "flex";
     } catch (error) {
         console.error("Email failed:", error);
         showPopup("Failed to send PIN. Please check your internet.");

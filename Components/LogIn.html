@@ -90,21 +90,24 @@
         </div>
     </div>
 
-    <div id="otpPopup" class="popup">
-        <div class="popup-content">
-            <h2 style="font-family: 'Orbitron', sans-serif; color: var(--text-main); margin-bottom: 15px;">Enter Verification Code</h2>
-            <p style="margin-bottom: 20px; font-size: 13px; color: var(--text-muted);">A 6-digit code has been sent to your email.</p>
-            
-            <div class="input-group">
-                <div class="input-box">
-                    <input type="text" id="otpInput" placeholder="Enter 6-digit PIN" maxlength="6" style="text-align: center; letter-spacing: 5px;">
-                </div>
+   <div id="otpPopup" class="popup">
+    <div class="popup-content">
+        <h2 style="font-family: 'Orbitron', sans-serif; color: var(--text-main); margin-bottom: 15px;">Enter Verification Code</h2>
+        <p style="margin-bottom: 8px; font-size: 13px; color: var(--text-muted);">A 6-digit code has been sent to your email.</p>
+      
+        <p style="margin-bottom: 20px; font-size: 11px; color: var(--text-muted); font-style: italic;">
+            Can't find the email in your Outlook inbox? Please check your <strong>Junk / Spam</strong> folder.
+        </p>
+        
+        <div class="input-group">
+            <div class="input-box">
+                <input type="text" id="otpInput" placeholder="Enter 6-digit PIN" maxlength="6" style="text-align: center; letter-spacing: 5px;">
             </div>
-            
-            <button id="verifyOtpBtn" class="login-btn">Verify and Login</button>
         </div>
+        
+        <button id="verifyOtpBtn" class="login-btn">Verify and Login</button>
     </div>
-
+</div>
     <script type="module" src="Login.js" defer></script>
 </body>
 </html>
