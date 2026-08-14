@@ -6,7 +6,7 @@
     --sti-blue: #00529b;
     --sti-yellow: #fff200;
     --neon-green: #39ff14;
-    --error-red: #ff3333;
+    --error-red: #2121d9ac;
     --risk-color: #ff4d4d;
     --mastery-color: #10b981;
     --ios-blue: #007aff;
@@ -60,10 +60,14 @@ body {
 }
 
 .game-title {
-    color: var(--error-red);
-    text-shadow: 0 0 10px rgba(51, 82, 255, 0.5);
+  color: #00529c; 
+  text-shadow: 
+    -1px -1px 0 #fff,  
+     1px -1px 0 #fff,
+    -1px  1px 0 #fff,
+     1px  1px 0 #fff,
+    3px 3px 6px rgba(255, 209, 0, 0.8);
 }
-
 .auth-buttons {
     display: flex;
     align-items: center;
@@ -78,7 +82,7 @@ body {
 }
 
 /* ==========================================
-   Buttons System
+   Buttons 
    ========================================== */
 .btn {
     text-decoration: none;
@@ -213,7 +217,7 @@ h1 {
 }
 
 /* ==========================================
-   3D Flipping Card Section
+   QR CARD YUNG NA FLIP
    ========================================== */
 .qr-container {
     flex: 1;
@@ -579,5 +583,113 @@ h1 {
         font-size: 1.1rem;
         bottom: max(16px, env(safe-area-inset-bottom, 16px));
         right: max(16px, env(safe-area-inset-right, 16px));
+    }
+}
+/* ==========================================
+   Development Team Section
+   ========================================== */
+.developers-section {
+    padding: 3rem 5%;
+    max-width: 1400px;
+    margin: 0 auto 5rem auto;
+}
+
+.developers-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-top: 1rem;
+}
+
+.developer-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.developer-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--neon-green);
+    box-shadow: 0 8px 25px rgba(57, 255, 20, 0.15);
+}
+
+.dev-img-wrapper {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.2rem;
+    background-color: rgba(255, 255, 255, 0.03);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.3s ease;
+}
+
+.developer-card:hover .dev-img-wrapper {
+    border-color: var(--neon-green);
+}
+
+.dev-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+}
+
+/* Fallback placeholder when img src is empty */
+.dev-img:not([src]), 
+.dev-img[src=""] {
+    display: none;
+}
+
+.dev-img-placeholder {
+    font-size: 3rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.dev-name {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 0.3rem;
+}
+
+.dev-role {
+    font-size: 0.78rem;
+    color: var(--neon-green);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+}
+
+/* Grid Responsiveness for Developers */
+@media (max-width: 1024px) {
+    .developers-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .developers-grid {
+        grid-template-columns: 1fr;
     }
 }
