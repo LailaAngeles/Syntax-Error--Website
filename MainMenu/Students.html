@@ -62,7 +62,10 @@
     <div class="stat-cards">
         <div class="card stat"><h3>Total Students</h3><p id="card-total-students">0</p></div>
         <div class="card stat"><h3>Avg. Progress</h3><p id="average-score">0%</p></div>
-        <div class="card stat"><h3>Avg. Idle Time</h3><p id="avg-idle">0m</p></div>
+<div class="card stat">
+  <h3>Online Students</h3>
+  <p id="online-count">0</p>
+</div>
     </div>
 
    <div class="card">
@@ -73,7 +76,7 @@
                         <th>Student ID</th>
                         <th>Full Name</th>
                         <th>Game Progress</th>
-                        <th>Idle Time</th>
+                       <th>Status</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -95,10 +98,15 @@
         <div id="attempts-list">No data available</div>
     </div>
 
-    <div class="analysis-box">
-        <h4>Difficulty Trend</h4>
-        <div class="chart-container">
-            <canvas id="difficultyChart"></canvas>
+   <div style="background: var(--card-bg, #161a22); border: 1px solid var(--border, #21262d); border-radius: 12px; padding: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 1rem; color: #fff; margin: 0;">Difficulty Trend</h3>
+            <span style="font-size: 0.75rem; color: #8b949e;">Easy (0-3) | Moderate (4-6) | Hard (7-10)</span>
+        </div>
+        
+        <!-- CHART CANVAS TARGET (Set fixed/responsive height) -->
+        <div style="position: relative; height: 180px; width: 100%;">
+            <canvas id="difficultyTrendChart"></canvas>
         </div>
     </div>
     
@@ -232,24 +240,28 @@
 
 
 <!-- STUDENT DETAILS MODAL -->
-<div id="student-details-modal" class="modal-overlay" style="display:none;">
+<div id="student-details-modal" class="modal-overlay" style="display: none;">
     <div class="student-modal-box">
+        
         <!-- Close Button -->
-        <button onclick="closeStudentModal()" class="close-student-btn">&times;</button>
+        <button onclick="closeStudentModal()" class="close-student-btn" aria-label="Close Modal">&times;</button>
         
         <div class="modal-grid-container">
+            
             <!-- LEFT COLUMN: Quick Stats -->
             <div class="modal-left-col">
+                
                 <div class="student-info-header">
                     <h2 id="modal-student-name">Student Name</h2>
                     <p id="modal-student-id">0000000000</p>
-                    <!-- NEW: Birthday Field -->
-                    <p id="modal-student-birthday" style="font-size: 0.85rem; color: #64748b; margin-top: -5px;">Birthday: --</p>
+                    <p id="modal-student-birthday">Birthday: --</p>
                 </div>
 
                 <!-- Status Highlight Card -->
                 <div id="status-card" class="side-stat-card status-box">
-                    <div class="icon-circle"><i class="bi bi-check-lg"></i></div>
+                    <div class="icon-circle">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
                     <div>
                         <strong id="modal-status-title">Good Progress</strong>
                         <p id="modal-short-summary">Proceeding with manageable difficulty.</p>
@@ -258,7 +270,9 @@
 
                 <!-- Progress Card -->
                 <div class="side-stat-card">
-                    <div class="icon-wrap text-red"><i class="bi bi-x-circle"></i></div>
+                    <div class="icon-wrap text-red">
+                        <i class="bi bi-x-circle"></i>
+                    </div>
                     <div>
                         <span>Progress</span>
                         <h4 id="modal-progress">0%</h4>
@@ -267,7 +281,9 @@
 
                 <!-- Idle Time Card -->
                 <div class="side-stat-card">
-                    <div class="icon-wrap text-blue"><i class="bi bi-clock"></i></div>
+                    <div class="icon-wrap text-blue">
+                        <i class="bi bi-clock"></i>
+                    </div>
                     <div>
                         <span>Idle Time</span>
                         <h4 id="modal-idle">0m</h4>
@@ -276,54 +292,69 @@
 
                 <!-- Difficulty Card -->
                 <div class="side-stat-card">
-                    <div class="icon-wrap text-orange"><i class="bi bi-bar-chart"></i></div>
+                    <div class="icon-wrap text-orange">
+                        <i class="bi bi-bar-chart"></i>
+                    </div>
                     <div>
                         <span>Difficulty Score</span>
                         <h4 id="modal-difficulty">0/10</h4>
                     </div>
                 </div>
+
             </div>
 
             <!-- RIGHT COLUMN: Chart & Detailed Analysis -->
             <div class="modal-right-col">
+                
+                <!-- CHART SECTION -->
                 <div class="chart-section">
                     <div class="chart-header">
                         <h3>Difficulty Trend</h3>
                         <div class="chart-legend">
-                            <span class="dot easy"></span> Easy (0-3)
-                            <span class="dot moderate"></span> Moderate (4-6)
-                            <span class="dot hard"></span> Hard (7-10)
+                            <span><span class="dot easy"></span> Easy (0-3)</span>
+                            <span><span class="dot moderate"></span> Moderate (4-6)</span>
+                            <span><span class="dot hard"></span> Hard (7-10)</span>
                         </div>
                     </div>
-                    <!-- Fixed Container for Diagram -->
-                    <div class="student-chart-box" style="position: relative; height: 260px; width: 100%;">
+                    
+                    <!-- Responsive Container for Chart -->
+                    <div class="student-chart-box">
                         <canvas id="modalDifficultyChart"></canvas>
                     </div>
                 </div>
 
+                <!-- BOTTOM GRID LAYOUT -->
                 <div class="analysis-bottom-grid">
+                    
                     <!-- Learning Analysis Box -->
                     <div class="analysis-card">
-                        <h3><i class="bi bi-book"></i> Learning Analysis</h3>
-                        <div id="modal-analysis-content">
-                            <!-- JS injected content -->
+                        <h3><i class="bi bi-diagram-3"></i> Concept-Level Breakdown</h3>
+                        <p class="analysis-subtext">Granular view of student errors per concept</p>
+                        
+                        <div id="modal-concept-breakdown" class="concept-scroll-box">
+                            <p class="empty-concept-text">Select a student to view concept performance.</p>
                         </div>
                     </div>
                     
                     <!-- Key Indicators Box -->
-                    <div class="analysis-card">
+                    <div class="analysis-card key-indicators-card">
                         <h3><i class="bi bi-lightning-charge"></i> Key Indicators</h3>
+                        
                         <div class="indicator-item">
                             <span>Weakest Topic:</span>
                             <strong id="modal-weakest-topic">--</strong>
                         </div>
+                        
                         <div class="indicator-item">
                             <span>Performance:</span>
-                            <span id="modal-performance-text">On Track</span>
+                            <span id="modal-performance-text" class="status-badge">On Track</span>
                         </div>
                     </div>
+
                 </div>
+                
             </div>
+
         </div>
     </div>
 </div>

@@ -660,16 +660,24 @@ html:not([data-theme="dark"]) .loading-text {
 .side-stat-card {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 16px;
+    border-radius: 12px;
+    padding: 12px 14px; 
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 12px;
     transition: all 0.3s ease;
-    cursor: default;
+}
+.side-stat-card h4 {
+    font-size: 1rem; 
 }
 
+
+@media (max-width: 900px) {
+    .modal-grid-container {
+        grid-template-columns: 1fr;
+    }
+}
 .side-stat-card:hover {
     transform: translateY(-2px);
     background: rgba(255, 255, 255, 0.2) !important;
@@ -685,12 +693,13 @@ html:not([data-theme="dark"]) .loading-text {
 .modal-overlay {
     position: fixed; 
     inset: 0; 
-    background: rgba(15,23,42,0.6); 
+    background: var(--popup-overlay); 
     backdrop-filter: blur(6px); 
     display: flex; 
     justify-content: center; 
     align-items: center; 
     z-index: 9999;
+    padding: 16px;
 }
 
 .archive-modal-box, 
@@ -726,8 +735,8 @@ html:not([data-theme="dark"]) .loading-text {
 
 .modal-left-col {
     background: linear-gradient(180deg, #002e5f 0%, #003f80 100%);
-    padding: 30px 22px;
-    border-radius: 22px;
+    padding: 20px 16px; 
+    border-radius: 18px;
     color: white;
     height: 100%;
 }
@@ -742,13 +751,12 @@ html:not([data-theme="dark"]) .loading-text {
 
 .modal-grid-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+   
+    grid-template-columns: 300px 1fr;
     gap: 20px;
     width: 100%;
-    height: auto; 
     align-items: start;
 }
-
 .chart-header { 
     display: flex; 
     justify-content: space-between; 

@@ -172,7 +172,14 @@ function loadStudents(section) {
 
     filtered.sort((a, b) => a.name.localeCompare(b.name));
 
+    // Update Card Stats
     document.getElementById("card-total-students").textContent = filtered.length;
+    
+    // Calculate and display how many students are currently online
+    const onlineCount = filtered.filter(s => s.isOnline === true).length;
+    const onlineCountEl = document.getElementById("online-count");
+    if (onlineCountEl) onlineCountEl.textContent = onlineCount;
+
     let avgProg = filtered.length > 0 
         ? Math.round(filtered.reduce((acc, s) => acc + (s.progress || 0), 0) / filtered.length) 
         : 0;
@@ -185,38 +192,49 @@ function loadStudents(section) {
         if(emptyState) emptyState.style.display = "none";
     }
 
-    if(table) {
-        table.innerHTML = filtered.map(s => `
-           
-            <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 15px;"><strong>${s.id}</strong></td>
-                <td style="padding: 15px;">${s.name}</td>
-                <td style="padding: 15px;">
-                    <div style="width:100px; background:#e5e7eb; border-radius:10px; height:8px; margin-bottom:4px;">
-                        <div style="width:${s.progress || 0}%; background:#3b82f6; height:100%; border-radius:10px;"></div>
-                    </div>
-                    <small style="color:#64748b;">${s.progress || 0}% Complete</small>
-                </td>
-                <td style="padding: 15px;">${s.idleTime || "0m"}</td>
-                <td style="padding: 15px;">
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <button onclick="viewStudent('${s.id}')" 
-                                style="background: #3b82f6; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 14px;">
-                            <i class="bi bi-eye"></i> Details
-                        </button>
-                        <button onclick="editStudent('${s.id}')" 
-                                style="background:#f59e0b; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; display: flex; align-items: center; height: 35px;">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button onclick="archiveStudent('${s.id}')" 
-                                style="background:#6b7280; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; display: flex; align-items: center; height: 35px;">
-                            <i class="bi bi-archive"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>`).join("");
-             updateInstructorSummary(filtered);
-    }
+  if(table) {
+    table.innerHTML = filtered.map(s => {
+        // Robust check for boolean, string, or truthy values
+        const isOnline = s.isOnline === true || s.isOnline === "true";
+
+        const statusBadge = isOnline 
+            ? `<span style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
+                 <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span> Online
+               </span>`
+            : `<span style="background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
+                 <span style="width: 8px; height: 8px; background: #94a3b8; border-radius: 50%;"></span> Offline
+               </span>`;
+
+        return `
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 15px;"><strong>${s.id}</strong></td>
+            <td style="padding: 15px;">${s.name}</td>
+            <td style="padding: 15px;">
+                <div style="width:100px; background:#e5e7eb; border-radius:10px; height:8px; margin-bottom:4px;">
+                    <div style="width:${s.progress || 0}%; background:#3b82f6; height:100%; border-radius:10px;"></div>
+                </div>
+                <small style="color:#64748b;">${s.progress || 0}% Complete</small>
+            </td>
+            <td style="padding: 15px;">${statusBadge}</td>
+            <td style="padding: 15px;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button onclick="viewStudent('${s.id}')" 
+                            style="background: #3b82f6; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 14px;">
+                        <i class="bi bi-eye"></i> Details
+                    </button>
+                    <button onclick="editStudent('${s.id}')" 
+                            style="background:#f59e0b; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; display: flex; align-items: center; height: 35px;">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button onclick="archiveStudent('${s.id}')" 
+                            style="background:#6b7280; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; display: flex; align-items: center; height: 35px;">
+                        <i class="bi bi-archive"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>`;
+    }).join("");
+}
 }
 
 // ----------------------------
@@ -348,7 +366,129 @@ window.closeArchiveModal = () => document.getElementById("custom-archive-modal")
 // ----------------------------
 let gapChart; 
 let modalDifficultyChart;
+// Helper to parse nested Firestore "Subject Content" map and render UI badges
+function renderConceptBreakdown(studentData) {
+    const container = document.getElementById("modal-concept-breakdown");
+    if (!container) return;
 
+    container.innerHTML = "";
+
+    const subjectContent = studentData["Subject Content"] || studentData.subjectContent;
+
+    if (!subjectContent) {
+        container.innerHTML = `<p style="font-size: 0.85rem; color: #94a3b8;">No detailed topic attempt data found for this student.</p>`;
+        return;
+    }
+
+    // Process categories and their sub-topics
+    const categories = [];
+
+    for (const catKey in subjectContent) {
+        const categoryData = subjectContent[catKey];
+        if (typeof categoryData !== "object" || categoryData === null) continue;
+
+        let categoryTotalWrongs = 0;
+        const subTopics = [];
+
+        // Recursive function to collect leaf topics with wrongAttempts > 0
+        function extractLeafTopics(obj, prefix = "") {
+            for (const key in obj) {
+                const val = obj[key];
+                if (typeof val === "object" && val !== null && !(val instanceof Date)) {
+                    if ("wrongAttempts" in val) {
+                        const wrongs = val.wrongAttempts || 0;
+                        // STRICT RULE: Only include sub-topics where wrong attempts > 0
+                        if (wrongs > 0) {
+                            categoryTotalWrongs += wrongs;
+                            subTopics.push({
+                                name: prefix ? `${prefix} → ${key}` : key,
+                                wrongs: wrongs
+                            });
+                        }
+                    } else {
+                        extractLeafTopics(val, prefix ? `${prefix} → ${key}` : key);
+                    }
+                }
+            }
+        }
+
+        extractLeafTopics(categoryData);
+
+        // Only display categories that have recorded errors
+        if (categoryTotalWrongs > 0 && subTopics.length > 0) {
+            categories.push({
+                title: catKey,
+                totalWrongs: categoryTotalWrongs,
+                subTopics: subTopics
+            });
+        }
+    }
+
+    if (categories.length === 0) {
+        container.innerHTML = `<p style="font-size: 0.85rem; color: #10b981; font-weight: 500;">✨ No wrong attempts recorded across any concepts!</p>`;
+        return;
+    }
+
+    // Sort categories by highest wrong attempts first
+    categories.sort((a, b) => b.totalWrongs - a.totalWrongs);
+
+    // Render HTML Cards with Expandable Details
+    container.innerHTML = categories.map((cat, idx) => {
+        const detailsId = `concept-detail-${idx}`;
+        const btnId = `concept-btn-${idx}`;
+
+        return `
+            <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border, #e2e8f0); border-radius: 8px; padding: 10px 12px; margin-bottom: 6px;">
+                <!-- Main Category Summary Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="font-weight: 700; font-size: 0.9rem; text-transform: capitalize; color: var(--text-main, #1e293b);">
+                            ${cat.title}
+                        </span>
+                        <div style="font-size: 0.75rem; color: #ef4444; font-weight: 600; margin-top: 2px;">
+                            ${cat.totalWrongs} Total Wrong Attempt${cat.totalWrongs > 1 ? 's' : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- View Details Button -->
+                    <button id="${btnId}" onclick="toggleConceptDetail('${detailsId}', '${btnId}')" 
+                            style="background: transparent; color: #3b82f6; border: 1px solid #3b82f6; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
+                        <span>View Details</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                </div>
+
+                <!-- Sub-topics Collapsible Container -->
+                <div id="${detailsId}" style="display: none; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border, #e2e8f0); flex-direction: column; gap: 6px;">
+                    ${cat.subTopics.map(sub => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: rgba(0,0,0,0.02); border-radius: 4px;">
+                            <span style="font-size: 0.8rem; color: var(--text-muted, #64748b); font-weight: 500;">
+                                - ${sub.name}
+                            </span>
+                            <span style="background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; padding: 1px 8px; border-radius: 10px; font-weight: 700; font-size: 0.75rem;">
+                                ${sub.wrongs} wrong
+                            </span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+// Global toggle helper function
+window.toggleConceptDetail = function(detailsId, btnId) {
+    const detailsEl = document.getElementById(detailsId);
+    const btnEl = document.getElementById(btnId);
+    if (!detailsEl || !btnEl) return;
+
+    const isHidden = detailsEl.style.display === "none";
+    detailsEl.style.display = isHidden ? "flex" : "none";
+
+    btnEl.innerHTML = isHidden 
+        ? `<span>Hide Details</span> <i class="bi bi-chevron-up"></i>` 
+        : `<span>View Details</span> <i class="bi bi-chevron-down"></i>`;
+};
 window.viewStudent = function(studentId) {
     const student = allStudents.find(s => s.id === studentId);
     if (!student) return;
@@ -365,7 +505,7 @@ document.getElementById("modal-student-birthday").textContent =
     `Birthday: ${birthdayText}`;
     document.getElementById("modal-progress").textContent = (student.progress || 0) + "%";
     document.getElementById("modal-idle").textContent = (student.idleTime || "0") + "m";
-
+    renderConceptBreakdown(student);
     // 2. COURSE TOPICS (Based on LO 1-8)
     const topics = [
         "C# Basic Concepts",           // LO 1-2
