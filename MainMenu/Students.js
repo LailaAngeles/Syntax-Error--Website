@@ -13,22 +13,22 @@ const firebaseConfig = {
     messagingSenderId: "513961059475",
     appId: "1:513961059475:web:fbf6f471357465dbaad966"
 };
+
 const mockStudent = {
     id: "2024-0512",
     name: "Alex Rivera",
     section: "BSCS-201",
     progress: 65,
-    // raw metrics from your game levels
     gameStats: [
-        { level: "Variables", wrongs: 1, time: 95 },   // Easy for them
-        { level: "If-Else",   wrongs: 8, time: 420 },  // Major Struggle
-        { level: "Loops",     wrongs: 4, time: 210 },  // Moderate Struggle
-        { level: "Functions", wrongs: 0, time: 0 },    // Locked
-        { level: "Firestore", wrongs: 0, time: 0 }     // Locked
+        { level: "Variables", wrongs: 1, time: 95 },
+        { level: "If-Else",   wrongs: 8, time: 420 },
+        { level: "Loops",     wrongs: 4, time: 210 },
+        { level: "Functions", wrongs: 0, time: 0 },
+        { level: "Firestore", wrongs: 0, time: 0 }
     ],
-    // Normalized 1-10 scores for the Radar Chart
     difficulty: [1, 9, 5, 0, 0] 
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -38,9 +38,153 @@ let allStudents = [];
 let currentUserSection = []; 
 let sectionDocMapping = {}; 
 let difficultyChart;
-// =============================
-// COURSE OUTLINE (SOURCE OF TRUTH)
-// =============================
+let sectionPieChartInstance = null;
+let overallColumnChartInstance = null;
+function getSubjectContentWrongs(studentDoc) {
+    const subjectContent = studentDoc["Subject Content"] || studentDoc.subjectContent;
+    const categoryAffected = {};
+
+    if (!subjectContent || typeof subjectContent !== "object") {
+        return categoryAffected;
+    }
+
+    // Iterate dynamically through all top-level categories in "Subject Content"
+    for (const categoryKey in subjectContent) {
+        const categoryData = subjectContent[categoryKey];
+        if (typeof categoryData !== "object" || categoryData === null) continue;
+
+        let hasError = false;
+
+        // Recursive check to see if any leaf node has wrongAttempts > 0
+        function checkForErrors(obj) {
+            for (const key in obj) {
+                const val = obj[key];
+                if (typeof val === "object" && val !== null) {
+                    if ("wrongAttempts" in val) {
+                        if (Number(val.wrongAttempts || 0) > 0) {
+                            hasError = true;
+                        }
+                    } else {
+                        checkForErrors(val);
+                    }
+                }
+            }
+        }
+
+        checkForErrors(categoryData);
+        
+        // Mark 1 if student faced an issue in this category, 0 otherwise
+        categoryAffected[categoryKey] = hasError ? 1 : 0;
+    }
+
+    return categoryAffected;
+}
+function renderDashboardCharts(sectionStudents) {
+    const conceptMapSection = {};
+    const conceptMapOverall = {};
+    updateRecommendations(conceptMapOverall, allStudents.length);
+    // 1. Count affected students in selected section
+    sectionStudents.forEach(s => {
+        const affectedCategories = getSubjectContentWrongs(s);
+        for (const [concept, count] of Object.entries(affectedCategories)) {
+            conceptMapSection[concept] = (conceptMapSection[concept] || 0) + count;
+        }
+    });
+
+    // 2. Count affected students across ALL sections
+    allStudents.forEach(s => {
+        const affectedCategories = getSubjectContentWrongs(s);
+        for (const [concept, count] of Object.entries(affectedCategories)) {
+            conceptMapOverall[concept] = (conceptMapOverall[concept] || 0) + count;
+        }
+    });
+
+    let sectionLabels = Object.keys(conceptMapSection);
+    let sectionValues = Object.values(conceptMapSection);
+
+    if (sectionLabels.length === 0) {
+        sectionLabels = ["No Data Available"];
+        sectionValues = [0];
+    }
+
+    let overallLabels = Object.keys(conceptMapOverall);
+    let overallValues = Object.values(conceptMapOverall);
+
+    if (overallLabels.length === 0) {
+        overallLabels = ["No Data Available"];
+        overallValues = [0];
+    }
+
+    const colorPalette = ['#ef4444', '#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4'];
+
+    // 3. Render Section Pie Chart
+    const pieCanvas = document.getElementById("sectionPieChart");
+    if (pieCanvas) {
+        const pieCtx = pieCanvas.getContext("2d");
+        if (sectionPieChartInstance) sectionPieChartInstance.destroy();
+
+        sectionPieChartInstance = new Chart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: sectionLabels.map(l => l.toUpperCase()),
+                datasets: [{
+                    data: sectionValues,
+                    backgroundColor: colorPalette.slice(0, sectionLabels.length)
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.label}: ${context.raw} Student(s) Struggling`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 4. Render Overall Column Chart
+    const colCanvas = document.getElementById("overallColumnChart");
+    if (colCanvas) {
+        const colCtx = colCanvas.getContext("2d");
+        if (overallColumnChartInstance) overallColumnChartInstance.destroy();
+
+        overallColumnChartInstance = new Chart(colCtx, {
+            type: 'bar',
+            data: {
+                labels: overallLabels.map(l => l.toUpperCase()),
+                datasets: [{
+                    label: 'Students Facing Issues',
+                    data: overallValues,
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        ticks: { stepSize: 1 }, 
+                        title: { display: true, text: 'Number of Students' } 
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+}
+// COURSE OUTLINE
 const COURSE_OUTLINE = [
     { level: 1, module: "C# Basics", lesson: "Variables & Data Types" },
     { level: 2, module: "Control Flow", lesson: "If-Else Statements" },
@@ -51,8 +195,6 @@ const COURSE_OUTLINE = [
 
 function formatBirthdayToPassword(dateStr) {
     if (!dateStr || dateStr === "No Birthday") return "";
-
-    // Converts 2005-01-14 -> 20050114
     return String(dateStr).replace(/-/g, "");
 }
 
@@ -62,10 +204,9 @@ const toggleLoading = (show) => {
     if(loader) loader.style.display = show ? "flex" : "none";
 };
 
-
-
 function renderStudentInsights(students) {
     const container = document.getElementById("student-analysis");
+    if (!container) return;
 
     let struggling = students.filter(s => (s.progress || 0) < 50);
 
@@ -81,9 +222,8 @@ function renderStudentInsights(students) {
         `;
     }).join("") || "<p>All students performing well.</p>";
 }
-// ----------------------------
+
 // 2. DATA INITIALIZATION
-// ----------------------------
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         window.location.href = "../Login/Login.html";
@@ -151,9 +291,7 @@ async function fetchClassList() {
     loadStudents("");
 }
 
-// ----------------------------
 // 3. TABLE LOADING & STAT UPDATES
-// ----------------------------
 function loadStudents(section) {
     const table = document.getElementById("students-table");
     const emptyState = document.getElementById("empty-state");
@@ -173,9 +311,10 @@ function loadStudents(section) {
     filtered.sort((a, b) => a.name.localeCompare(b.name));
 
     // Update Card Stats
-    document.getElementById("card-total-students").textContent = filtered.length;
+    const totalStudentsEl = document.getElementById("card-total-students");
+    if (totalStudentsEl) totalStudentsEl.textContent = filtered.length;
     
-    // Calculate and display how many students are currently online
+    // Calculate and display online students
     const onlineCount = filtered.filter(s => s.isOnline === true).length;
     const onlineCountEl = document.getElementById("online-count");
     if (onlineCountEl) onlineCountEl.textContent = onlineCount;
@@ -183,7 +322,9 @@ function loadStudents(section) {
     let avgProg = filtered.length > 0 
         ? Math.round(filtered.reduce((acc, s) => acc + (s.progress || 0), 0) / filtered.length) 
         : 0;
-    document.getElementById("average-score").textContent = avgProg + "%";
+    
+    const avgScoreEl = document.getElementById("average-score");
+    if (avgScoreEl) avgScoreEl.textContent = avgProg + "%";
 
     if (filtered.length === 0) {
         if(emptyState) emptyState.style.display = "block";
@@ -191,55 +332,52 @@ function loadStudents(section) {
     } else {
         if(emptyState) emptyState.style.display = "none";
     }
+    renderDashboardCharts(filtered);
+    if(table) {
+        table.innerHTML = filtered.map(s => {
+            const isOnline = s.isOnline === true || s.isOnline === "true";
 
-  if(table) {
-    table.innerHTML = filtered.map(s => {
-        // Robust check for boolean, string, or truthy values
-        const isOnline = s.isOnline === true || s.isOnline === "true";
+            const statusBadge = isOnline 
+                ? `<span style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
+                     <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span> Online
+                   </span>`
+                : `<span style="background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
+                     <span style="width: 8px; height: 8px; background: #94a3b8; border-radius: 50%;"></span> Offline
+                   </span>`;
 
-        const statusBadge = isOnline 
-            ? `<span style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
-                 <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span> Online
-               </span>`
-            : `<span style="background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
-                 <span style="width: 8px; height: 8px; background: #94a3b8; border-radius: 50%;"></span> Offline
-               </span>`;
-
-        return `
-        <tr style="border-bottom: 1px solid #f1f5f9;">
-            <td style="padding: 15px;"><strong>${s.id}</strong></td>
-            <td style="padding: 15px;">${s.name}</td>
-            <td style="padding: 15px;">
-                <div style="width:100px; background:#e5e7eb; border-radius:10px; height:8px; margin-bottom:4px;">
-                    <div style="width:${s.progress || 0}%; background:#3b82f6; height:100%; border-radius:10px;"></div>
-                </div>
-                <small style="color:#64748b;">${s.progress || 0}% Complete</small>
-            </td>
-            <td style="padding: 15px;">${statusBadge}</td>
-            <td style="padding: 15px;">
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <button onclick="viewStudent('${s.id}')" 
-                            style="background: #3b82f6; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 14px;">
-                        <i class="bi bi-eye"></i> Details
-                    </button>
-                    <button onclick="editStudent('${s.id}')" 
-                            style="background:#f59e0b; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; display: flex; align-items: center; height: 35px;">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button onclick="archiveStudent('${s.id}')" 
-                            style="background:#6b7280; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; display: flex; align-items: center; height: 35px;">
-                        <i class="bi bi-archive"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>`;
-    }).join("");
+            return `
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 15px;"><strong>${s.id}</strong></td>
+                <td style="padding: 15px;">${s.name}</td>
+                <td style="padding: 15px;">
+                    <div style="width:100px; background:#e5e7eb; border-radius:10px; height:8px; margin-bottom:4px;">
+                        <div style="width:${s.progress || 0}%; background:#3b82f6; height:100%; border-radius:10px;"></div>
+                    </div>
+                    <small style="color:#64748b;">${s.progress || 0}% Complete</small>
+                </td>
+                <td style="padding: 15px;">${statusBadge}</td>
+                <td style="padding: 15px;">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button onclick="viewStudent('${s.id}')" 
+                                style="background: #3b82f6; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 14px;">
+                            <i class="bi bi-eye"></i> Details
+                        </button>
+                        <button onclick="editStudent('${s.id}')" 
+                                style="background:#f59e0b; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; display: flex; align-items: center; height: 35px;">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button onclick="archiveStudent('${s.id}')" 
+                                style="background:#6b7280; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; display: flex; align-items: center; height: 35px;">
+                            <i class="bi bi-archive"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join("");
+    }
 }
-}
 
-// ----------------------------
 // 4. EDIT & ARCHIVE LOGIC
-// ----------------------------
 window.editStudent = function(studentId) {
     const student = allStudents.find(s => s.id === studentId);
     if (!student) return;
@@ -261,7 +399,7 @@ window.editStudent = function(studentId) {
         const newId = idInput.value.trim();
         const newName = nameInput.value.trim();
         const newBday = bdayInput.value;
-        const newPassword = formatBirthdayToPassword(newBday); // Generate Password
+        const newPassword = formatBirthdayToPassword(newBday);
 
         if (!newId || !newName) {
             alert("Student Number and Name are required!");
@@ -282,14 +420,14 @@ window.editStudent = function(studentId) {
                     id: newId,
                     name: newName,
                     birthday: newBday,
-                    password: newPassword // Added password update
+                    password: newPassword
                 });
                 await deleteDoc(oldRef);
             } else {
                 await updateDoc(oldRef, { 
                     name: newName,
                     birthday: newBday,
-                    password: newPassword // Added password update
+                    password: newPassword
                 });
             }
             
@@ -361,12 +499,10 @@ async function proceedWithArchive(student) {
 window.closeConfirmModal = () => document.getElementById("confirm-modal").style.display = "none";
 window.closeArchiveModal = () => document.getElementById("custom-archive-modal").style.display = "none";
 
-// ----------------------------
 // 5. INDIVIDUAL STUDENT VIEW 
-// ----------------------------
 let gapChart; 
 let modalDifficultyChart;
-// Helper to parse nested Firestore "Subject Content" map and render UI badges
+
 function renderConceptBreakdown(studentData) {
     const container = document.getElementById("modal-concept-breakdown");
     if (!container) return;
@@ -380,7 +516,6 @@ function renderConceptBreakdown(studentData) {
         return;
     }
 
-    // Process categories and their sub-topics
     const categories = [];
 
     for (const catKey in subjectContent) {
@@ -390,14 +525,12 @@ function renderConceptBreakdown(studentData) {
         let categoryTotalWrongs = 0;
         const subTopics = [];
 
-        // Recursive function to collect leaf topics with wrongAttempts > 0
         function extractLeafTopics(obj, prefix = "") {
             for (const key in obj) {
                 const val = obj[key];
                 if (typeof val === "object" && val !== null && !(val instanceof Date)) {
                     if ("wrongAttempts" in val) {
                         const wrongs = val.wrongAttempts || 0;
-                        // STRICT RULE: Only include sub-topics where wrong attempts > 0
                         if (wrongs > 0) {
                             categoryTotalWrongs += wrongs;
                             subTopics.push({
@@ -414,7 +547,6 @@ function renderConceptBreakdown(studentData) {
 
         extractLeafTopics(categoryData);
 
-        // Only display categories that have recorded errors
         if (categoryTotalWrongs > 0 && subTopics.length > 0) {
             categories.push({
                 title: catKey,
@@ -429,17 +561,14 @@ function renderConceptBreakdown(studentData) {
         return;
     }
 
-    // Sort categories by highest wrong attempts first
     categories.sort((a, b) => b.totalWrongs - a.totalWrongs);
 
-    // Render HTML Cards with Expandable Details
     container.innerHTML = categories.map((cat, idx) => {
         const detailsId = `concept-detail-${idx}`;
         const btnId = `concept-btn-${idx}`;
 
         return `
             <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border, #e2e8f0); border-radius: 8px; padding: 10px 12px; margin-bottom: 6px;">
-                <!-- Main Category Summary Header -->
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <span style="font-weight: 700; font-size: 0.9rem; text-transform: capitalize; color: var(--text-main, #1e293b);">
@@ -450,7 +579,6 @@ function renderConceptBreakdown(studentData) {
                         </div>
                     </div>
                     
-                    <!-- View Details Button -->
                     <button id="${btnId}" onclick="toggleConceptDetail('${detailsId}', '${btnId}')" 
                             style="background: transparent; color: #3b82f6; border: 1px solid #3b82f6; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
                         <span>View Details</span>
@@ -458,7 +586,6 @@ function renderConceptBreakdown(studentData) {
                     </button>
                 </div>
 
-                <!-- Sub-topics Collapsible Container -->
                 <div id="${detailsId}" style="display: none; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border, #e2e8f0); flex-direction: column; gap: 6px;">
                     ${cat.subTopics.map(sub => `
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: rgba(0,0,0,0.02); border-radius: 4px;">
@@ -476,7 +603,6 @@ function renderConceptBreakdown(studentData) {
     }).join("");
 }
 
-// Global toggle helper function
 window.toggleConceptDetail = function(detailsId, btnId) {
     const detailsEl = document.getElementById(detailsId);
     const btnEl = document.getElementById(btnId);
@@ -489,109 +615,172 @@ window.toggleConceptDetail = function(detailsId, btnId) {
         ? `<span>Hide Details</span> <i class="bi bi-chevron-up"></i>` 
         : `<span>View Details</span> <i class="bi bi-chevron-down"></i>`;
 };
+
 window.viewStudent = function(studentId) {
     const student = allStudents.find(s => s.id === studentId);
     if (!student) return;
 
-    // 1. OPEN MODAL & BASIC INFO
     document.getElementById("student-details-modal").style.display = "flex";
     document.getElementById("modal-student-name").textContent = student.name;
     document.getElementById("modal-student-id").textContent = student.id;
-  const birthdayText = student.birthday
-    ? student.birthday
-    : "No Birthday Saved";
-
-document.getElementById("modal-student-birthday").textContent =
-    `Birthday: ${birthdayText}`;
+    
+    const birthdayText = student.birthday ? student.birthday : "No Birthday Saved";
+    document.getElementById("modal-student-birthday").textContent = `Birthday: ${birthdayText}`;
+    
     document.getElementById("modal-progress").textContent = (student.progress || 0) + "%";
     document.getElementById("modal-idle").textContent = (student.idleTime || "0") + "m";
     renderConceptBreakdown(student);
-    // 2. COURSE TOPICS (Based on LO 1-8)
+
     const topics = [
-        "C# Basic Concepts",           // LO 1-2
-        "Conditionals and Loops",      // LO 3
-        "Methods",                     // LO 4
-        "Classes and Objects",         // LO 5
-        "Arrays and Strings",          // LO 6
-        "Advanced Class Concepts",     // LO 7
-        "Inheritance & Polymorphism"   // LO 8
+        "C# Basic Concepts",
+        "Conditionals and Loops",
+        "Methods",
+        "Classes and Objects",
+        "Arrays and Strings",
+        "Advanced Class Concepts",
+        "Inheritance & Polymorphism"
     ];
 
     const difficulty = student.difficulty || [0, 0, 0, 0, 0, 0, 0];
     const highest = Math.max(...difficulty);
     const weakestIndex = difficulty.indexOf(highest);
 
-    // Update UI Stats
     document.getElementById("modal-difficulty").textContent = `${highest}/10`;
-    document.getElementById("modal-weakest-topic").textContent = topics[weakestIndex];
+    document.getElementById("modal-weakest-topic").textContent = topics[weakestIndex] || "--";
 
-    // 3. DYNAMIC STATUS & ANALYSIS
     const statusBox = document.getElementById("status-card");
     const statusTitle = document.getElementById("modal-status-title");
     const perfText = document.getElementById("modal-performance-text");
     const analysisBox = document.getElementById("modal-analysis-content");
 
     if (highest >= 7) {
-        statusBox.style.borderLeft = "6px solid #ef4444";
-        statusBox.style.background = "#fef2f2";
-        statusTitle.textContent = "Critical Intervention";
-        perfText.textContent = "At Risk";
-        perfText.className = "text-red";
-        
-        analysisBox.innerHTML = `
-            <div style="border-left: 4px solid #ef4444; padding: 10px; background: #fef2f2;">
-                <strong style="color: #b91c1c;">Gap Detected: ${topics[weakestIndex]}</strong>
-                <p style="font-size: 0.85rem; margin-top: 5px; color: #b91c1c;">
-                    Repeated incorrect attempts in ${topics[weakestIndex]}. Recommend review of Laboratory Activity 1-3.
-                </p>
-            </div>`;
-    } else {
-        statusBox.style.borderLeft = "6px solid #10b981";
-        statusBox.style.background = "#f0fdf4";
-        statusTitle.textContent = "Good Progress (C# Mastery)";
-        perfText.textContent = "On Track";
-        perfText.className = "text-green";
-
-        analysisBox.innerHTML = `
-            <div style="border-left: 4px solid #10b981; padding: 10px; background: #f0fdf4;">
-                <strong style="color: #15803d;">Performance: On Track</strong>
-                <p style="font-size: 0.85rem; margin-top: 5px; color: #15803d;">
-                    Student demonstrates strong understanding. Ready for 1st Periodical Examination.
-                </p>
-            </div>`;
-    }
-
-    // 4. RENDER THE DIAGRAM
-    const ctx = document.getElementById("modalDifficultyChart").getContext("2d");
-    if (window.modalDifficultyChart instanceof Chart) {
-        window.modalDifficultyChart.destroy();
-    }
-
-    window.modalDifficultyChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ["Basics", "Logic", "Methods", "Classes", "Arrays", "Adv. Class", "OOP"],
-            datasets: [{
-                data: difficulty,
-                borderRadius: 6,
-                backgroundColor: difficulty.map(v => v >= 7 ? '#ef4444' : (v >= 4 ? '#f59e0b' : '#10b981'))
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } },
-                x: { grid: { display: false } }
-            }
+        if (statusBox) {
+            statusBox.style.borderLeft = "6px solid #ef4444";
+            statusBox.style.background = "#fef2f2";
         }
-    });
+        if (statusTitle) statusTitle.textContent = "Critical Intervention";
+        if (perfText) {
+            perfText.textContent = "At Risk";
+            perfText.className = "text-red";
+        }
+        if (analysisBox) {
+            analysisBox.innerHTML = `
+                <div style="border-left: 4px solid #ef4444; padding: 10px; background: #fef2f2;">
+                    <strong style="color: #b91c1c;">Gap Detected: ${topics[weakestIndex]}</strong>
+                    <p style="font-size: 0.85rem; margin-top: 5px; color: #b91c1c;">
+                        Repeated incorrect attempts in ${topics[weakestIndex]}. Recommend review of Laboratory Activity 1-3.
+                    </p>
+                </div>`;
+        }
+    } else {
+        if (statusBox) {
+            statusBox.style.borderLeft = "6px solid #10b981";
+            statusBox.style.background = "#f0fdf4";
+        }
+        if (statusTitle) statusTitle.textContent = "Good Progress (C# Mastery)";
+        if (perfText) {
+            perfText.textContent = "On Track";
+            perfText.className = "text-green";
+        }
+        if (analysisBox) {
+            analysisBox.innerHTML = `
+                <div style="border-left: 4px solid #10b981; padding: 10px; background: #f0fdf4;">
+                    <strong style="color: #15803d;">Performance: On Track</strong>
+                    <p style="font-size: 0.85rem; margin-top: 5px; color: #15803d;">
+                        Student demonstrates strong understanding. Ready for 1st Periodical Examination.
+                    </p>
+                </div>`;
+        }
+    }
+
+    const ctx = document.getElementById("modalDifficultyChart")?.getContext("2d");
+    if (ctx) {
+        if (window.modalDifficultyChart instanceof Chart) {
+            window.modalDifficultyChart.destroy();
+        }
+
+        window.modalDifficultyChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ["Basics", "Logic", "Methods", "Classes", "Arrays", "Adv. Class", "OOP"],
+                datasets: [{
+                    data: difficulty,
+                    borderRadius: 6,
+                    backgroundColor: difficulty.map(v => v >= 7 ? '#ef4444' : (v >= 4 ? '#f59e0b' : '#10b981'))
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
 };
+
 window.closeStudentModal = function(){
     document.getElementById("student-details-modal").style.display = "none";
 };
-// --- NEW CHART FUNCTION (RADAR TYPE) ---
+function updateRecommendations(conceptMapOverall, totalStudentsCount) {
+    const container = document.getElementById("recommendations-container");
+    if (!container) return;
+
+    // Find concept with highest student struggle count
+    let maxCount = 0;
+    let topTroubleConcept = null;
+
+    for (const [concept, count] of Object.entries(conceptMapOverall)) {
+        if (count > maxCount) {
+            maxCount = count;
+            topTroubleConcept = concept;
+        }
+    }
+
+    if (!topTroubleConcept || maxCount === 0) {
+        container.innerHTML = `
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px;">
+                <strong style="color: #15803d; font-size: 0.9rem;">✨ Excellent Class Performance</strong>
+                <p style="font-size: 0.8rem; color: #166534; margin-top: 4px;">
+                    No major learning roadblocks detected. Students are progressing smoothly.
+                </p>
+            </div>
+        `;
+        return;
+    }
+
+    const percentage = totalStudentsCount > 0 
+        ? Math.round((maxCount / totalStudentsCount) * 100) 
+        : 0;
+
+    const formattedConceptName = topTroubleConcept.replace(/_/g, ' ').toUpperCase();
+
+    container.innerHTML = `
+        <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 10px 12px; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="color: #b91c1c; font-size: 0.85rem;">⚠️ High Risk Category</strong>
+                <span style="background: #ef4444; color: white; border-radius: 12px; padding: 2px 8px; font-size: 0.75rem; font-weight: bold;">
+                    ${maxCount} Students (${percentage}%)
+                </span>
+            </div>
+            <p style="font-size: 0.8rem; color: #991b1b; margin-top: 4px; font-weight: 600;">
+                Focus Area: ${formattedConceptName}
+            </p>
+        </div>
+
+        <div style="background: var(--bg-secondary, #f8fafc); border-left: 4px solid #3b82f6; padding: 10px 12px; border-radius: 4px;">
+            <strong style="font-size: 0.82rem; color: var(--text-main, #1e293b);">💡 Recommended Actions:</strong>
+            <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.78rem; color: var(--text-muted, #475569); line-height: 1.4;">
+                <li>Conduct a quick 10-minute recap session focusing on <strong>${formattedConceptName}</strong>.</li>
+                <li>Provide step-by-step visual tracing exercises before coding.</li>
+                <li>Assign pair programming or guided practice activities to support struggling learners.</li>
+            </ul>
+        </div>
+    `;
+}
 function renderGapChart(data) {
     const ctx = document.getElementById("gapChart")?.getContext("2d");
     if (!ctx) return;
@@ -604,7 +793,7 @@ function renderGapChart(data) {
             datasets: [{
                 label: 'Difficulty Level',
                 data: data,
-                backgroundColor: 'rgba(239, 68, 68, 0.2)', // Red tint for "gaps"
+                backgroundColor: 'rgba(239, 68, 68, 0.2)',
                 borderColor: '#ef4444',
                 pointBackgroundColor: '#ef4444',
                 borderWidth: 2
@@ -624,19 +813,20 @@ function renderGapChart(data) {
         }
     });
 }
+
 function calculateDifficulty(wrongs, timeInSeconds) {
-    // 1 wrong = 0.5 points, every 60s = 1 point
     let score = (wrongs * 0.5) + (timeInSeconds / 60);
-    return Math.min(Math.round(score), 10); // Keep it between 0-10
+    return Math.min(Math.round(score), 10);
 }
-// --- NEW CONCLUSION GENERATOR ---
+
 function renderGapConclusion(student, difficulty) {
     const container = document.getElementById("student-analysis");
+    if (!container) return;
+
     const maxVal = Math.max(...difficulty);
     const gapIndex = difficulty.indexOf(maxVal);
     const topic = COURSE_OUTLINE[gapIndex];
     
-    // Check gameStats if available
     const levelStats = student.gameStats ? student.gameStats[`level${gapIndex + 1}`] : null;
 
     let detailNote = "";
@@ -659,8 +849,8 @@ function renderGapConclusion(student, difficulty) {
         </div>
     `;
 }
-function renderStudentChart(student) {
 
+function renderStudentChart(student) {
     const ctx = document.getElementById("difficultyChart")?.getContext("2d");
     if (!ctx) return;
 
@@ -686,14 +876,8 @@ function renderStudentChart(student) {
                 borderRadius: 10,
                 borderSkipped: false,
                 backgroundColor: difficulty.map(v => {
-
-                    // Hard
                     if (v >= 7) return '#ef4444';
-
-                    // Moderate
                     if (v >= 4) return '#f59e0b';
-
-                    // Easy
                     return '#10b981';
                 })
             }]
@@ -701,55 +885,36 @@ function renderStudentChart(student) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-
             plugins: {
-                legend: {
-                    display: false
-                },
-
+                legend: { display: false },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-
                             const value = context.raw;
-
-                            if (value >= 7)
-                                return `Hard Difficulty (${value}/10)`;
-
-                            if (value >= 4)
-                                return `Moderate Difficulty (${value}/10)`;
-
+                            if (value >= 7) return `Hard Difficulty (${value}/10)`;
+                            if (value >= 4) return `Moderate Difficulty (${value}/10)`;
                             return `Easy Difficulty (${value}/10)`;
                         }
                     }
                 }
             },
-
             scales: {
                 y: {
                     beginAtZero: true,
                     max: 10,
-                    ticks: {
-                        stepSize: 1
-                    },
-                    title: {
-                        display: true,
-                        text: "Difficulty Score"
-                    }
+                    ticks: { stepSize: 1 },
+                    title: { display: true, text: "Difficulty Score" }
                 }
             }
         }
     });
 
-    // =========================
-    // ADDITIONAL ANALYSIS
-    // =========================
-
     renderAdvancedAnalysis(student);
 }
-function renderAdvancedAnalysis(student) {
 
+function renderAdvancedAnalysis(student) {
     const container = document.getElementById("student-analysis");
+    if (!container) return;
 
     const difficulty = student.difficulty || [0,0,0,0,0];
 
@@ -758,22 +923,18 @@ function renderAdvancedAnalysis(student) {
             lesson: "Variables & Data Types",
             explanation: "Student struggles in understanding variable declaration, assigning values, and identifying proper data types."
         },
-
         {
             lesson: "If-Else Statements",
             explanation: "Student struggles in understanding decision making and logical conditions."
         },
-
         {
             lesson: "Loops",
             explanation: "Student struggles in repetition logic and controlling loop execution."
         },
-
         {
             lesson: "Functions",
             explanation: "Student struggles in method creation, parameters, and code organization."
         },
-
         {
             lesson: "Firestore",
             explanation: "Student struggles in database integration and backend communication."
@@ -782,203 +943,82 @@ function renderAdvancedAnalysis(student) {
 
     const highest = Math.max(...difficulty);
     const weakestIndex = difficulty.indexOf(highest);
-
     const weakestTopic = topics[weakestIndex];
 
-    // Difficulty Meaning
     let level = "";
     let recommendation = "";
     let severityColor = "";
 
     if (highest >= 7) {
-
         level = "Critical Learning Gap";
-
         severityColor = "#ef4444";
-
-        recommendation =
-            "Teacher should reteach this lesson step-by-step with visual demonstrations and guided coding exercises.";
-
-    }
-    else if (highest >= 4) {
-
+        recommendation = "Teacher should reteach this lesson step-by-step with visual demonstrations and guided coding exercises.";
+    } else if (highest >= 4) {
         level = "Moderate Difficulty";
-
         severityColor = "#f59e0b";
-
-        recommendation =
-            "Student understands some concepts but still needs additional practice and reinforcement activities.";
-
-    }
-    else {
-
+        recommendation = "Student understands some concepts but still needs additional practice and reinforcement activities.";
+    } else {
         level = "Good Understanding";
-
         severityColor = "#10b981";
-
-        recommendation =
-            "Student shows good understanding and may proceed to more advanced challenges.";
-
+        recommendation = "Student shows good understanding and may proceed to more advanced challenges.";
     }
 
-    // Time + Wrong Attempts
     let wrongs = 0;
     let timeSpent = 0;
 
     if (student.gameStats && student.gameStats[weakestIndex]) {
-
         wrongs = student.gameStats[weakestIndex].wrongs || 0;
         timeSpent = student.gameStats[weakestIndex].time || 0;
     }
 
-    // Teacher Insights
     let teacherInsight = "";
-
     if (wrongs >= 5) {
-
-        teacherInsight =
-            "The student repeatedly made incorrect attempts, indicating confusion with the lesson logic rather than simple syntax errors.";
-
-    }
-    else if (timeSpent >= 300) {
-
-        teacherInsight =
-            "The student spent a long time solving the activity, suggesting hesitation and lack of confidence.";
-
-    }
-    else {
-
-        teacherInsight =
-            "The student was able to continue with manageable difficulty.";
+        teacherInsight = "The student repeatedly made incorrect attempts, indicating confusion with the lesson logic rather than simple syntax errors.";
+    } else if (timeSpent >= 300) {
+        teacherInsight = "The student spent a long time solving the activity, suggesting hesitation and lack of confidence.";
+    } else {
+        teacherInsight = "The student was able to continue with manageable difficulty.";
     }
 
     container.innerHTML = `
-
-        <div style="
-            background:white;
-            border-radius:12px;
-            padding:20px;
-            display:flex;
-            flex-direction:column;
-            gap:18px;
-            box-shadow:0 4px 15px rgba(0,0,0,0.08);
-        ">
-
-            <div style="
-                padding:15px;
-                border-left:6px solid ${severityColor};
-                background:#f8fafc;
-                border-radius:8px;
-            ">
-
-                <h3 style="margin:0; color:${severityColor};">
-                    ${level}
-                </h3>
-
+        <div style="background:white; border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:18px; box-shadow:0 4px 15px rgba(0,0,0,0.08);">
+            <div style="padding:15px; border-left:6px solid ${severityColor}; background:#f8fafc; border-radius:8px;">
+                <h3 style="margin:0; color:${severityColor};">${level}</h3>
                 <p style="margin-top:10px; line-height:1.6;">
-                    <strong>${student.name}</strong> is currently struggling most in
-                    <strong>${weakestTopic.lesson}</strong>.
+                    <strong>${student.name}</strong> is currently struggling most in <strong>${weakestTopic.lesson}</strong>.
                 </p>
-
-                <p style="line-height:1.6;">
-                    ${weakestTopic.explanation}
-                </p>
-
+                <p style="line-height:1.6;">${weakestTopic.explanation}</p>
             </div>
 
-            <div style="
-                display:grid;
-                grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-                gap:15px;
-            ">
-
-                <div style="
-                    background:#f1f5f9;
-                    padding:15px;
-                    border-radius:10px;
-                ">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:15px;">
+                <div style="background:#f1f5f9; padding:15px; border-radius:10px;">
                     <h4>Wrong Attempts</h4>
-                    <div style="
-                        font-size:28px;
-                        font-weight:bold;
-                        color:#ef4444;
-                    ">
-                        ${wrongs}
-                    </div>
+                    <div style="font-size:28px; font-weight:bold; color:#ef4444;">${wrongs}</div>
                 </div>
-
-                <div style="
-                    background:#f1f5f9;
-                    padding:15px;
-                    border-radius:10px;
-                ">
+                <div style="background:#f1f5f9; padding:15px; border-radius:10px;">
                     <h4>Time Spent</h4>
-                    <div style="
-                        font-size:28px;
-                        font-weight:bold;
-                        color:#3b82f6;
-                    ">
-                        ${Math.round(timeSpent / 60)} mins
-                    </div>
+                    <div style="font-size:28px; font-weight:bold; color:#3b82f6;">${Math.round(timeSpent / 60)} mins</div>
                 </div>
-
-                <div style="
-                    background:#f1f5f9;
-                    padding:15px;
-                    border-radius:10px;
-                ">
+                <div style="background:#f1f5f9; padding:15px; border-radius:10px;">
                     <h4>Difficulty Score</h4>
-                    <div style="
-                        font-size:28px;
-                        font-weight:bold;
-                        color:#f59e0b;
-                    ">
-                        ${highest}/10
-                    </div>
+                    <div style="font-size:28px; font-weight:bold; color:#f59e0b;">${highest}/10</div>
                 </div>
-
             </div>
 
-            <div style="
-                background:#eff6ff;
-                padding:18px;
-                border-radius:10px;
-                border-left:5px solid #3b82f6;
-            ">
-
-                <h4 style="margin-top:0;">
-                    Teacher Insight
-                </h4>
-
-                <p style="line-height:1.7;">
-                    ${teacherInsight}
-                </p>
-
+            <div style="background:#eff6ff; padding:18px; border-radius:10px; border-left:5px solid #3b82f6;">
+                <h4 style="margin-top:0;">Teacher Insight</h4>
+                <p style="line-height:1.7;">${teacherInsight}</p>
             </div>
 
-            <div style="
-                background:#f0fdf4;
-                padding:18px;
-                border-radius:10px;
-                border-left:5px solid #10b981;
-            ">
-
-                <h4 style="margin-top:0;">
-                    Suggested Intervention
-                </h4>
-
-                <p style="line-height:1.7;">
-                    ${recommendation}
-                </p>
-
+            <div style="background:#f0fdf4; padding:18px; border-radius:10px; border-left:5px solid #10b981;">
+                <h4 style="margin-top:0;">Suggested Intervention</h4>
+                <p style="line-height:1.7;">${recommendation}</p>
             </div>
-
         </div>
     `;
 }
-// ----------------------------
+
 // 6. EXCEL IMPORT LOGIC
-// ----------------------------
 window.updateFileName = function(input) {
     const label = document.getElementById("file-name-text"); 
     if (input.files.length > 0) {
@@ -990,45 +1030,33 @@ window.updateFileName = function(input) {
     }
 };
 
-
 function excelDateToJSDate(value) {
-
-    // Excel serial number
     if (typeof value === "number") {
-
         const date = new Date((value - 25569) * 86400 * 1000);
-
         const yyyy = date.getUTCFullYear();
         const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
         const dd = String(date.getUTCDate()).padStart(2, "0");
-
         return `${yyyy}-${mm}-${dd}`;
     }
 
     if (typeof value === "string") {
-
         const raw = value.trim();
-
-        // Handles 14/01/2005 or 14-01-2005
         const parts = raw.split(/[\/\-\.]/);
 
         if (parts.length === 3) {
-
             let [day, month, year] = parts;
-
             day = day.padStart(2, "0");
             month = month.padStart(2, "0");
 
             if (year.length === 2) {
                 year = "20" + year;
             }
-
             return `${year}-${month}-${day}`;
         }
     }
-
     return "";
 }
+
 window.importExcel = async function () {
     const input = document.getElementById("excel-input");
     const sectionSelect = document.getElementById("section-select");
@@ -1048,12 +1076,8 @@ window.importExcel = async function () {
             const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
             const batch = writeBatch(db);
 
-           
-            const allExistingIds = new Set(
-                allStudents.map(s => String(s.id))
-            );
+            const allExistingIds = new Set(allStudents.map(s => String(s.id)));
 
-            
             try {
                 const archiveSnap = await getDocs(collection(db, "archivedStudents"));
                 archiveSnap.forEach(doc => {
@@ -1070,85 +1094,38 @@ window.importExcel = async function () {
             let skippedArchiveCount = 0;
 
             data.forEach(row => {
+                const values = Object.values(row);
 
-    // =========================
-    // EXCEL COLUMN ORDER
-    // =========================
-    // Column 1 = Student Number
-    // Column 2 = Name
-    // Column 3 = Email
-    // Column 4 = Birthday
+                const sId = String(values[0] || "").trim();
+                const sName = values[1] || "Unknown";
+                const sEmail = values[2] || "No Email";
+                const rawBirthday = values[3];
 
-    const values = Object.values(row);
+                const sBirthday = excelDateToJSDate(rawBirthday);
+                const sPassword = formatBirthdayToPassword(sBirthday);
 
-    const sId = String(values[0] || "").trim();
-    const sName = values[1] || "Unknown";
-    const sEmail = values[2] || "No Email";
-    const rawBirthday = values[3];
+                if (!sId) return;
 
-    console.log("RAW BIRTHDAY:", rawBirthday);
-
-    // Convert Excel date properly
-    const sBirthday = excelDateToJSDate(rawBirthday);
-
-    console.log("PARSED BIRTHDAY:", sBirthday);
-
-    // Default password = birthday
-    // Example:
-    // 2005-01-14 -> 20050114
-    const sPassword = formatBirthdayToPassword(sBirthday);
-
-    // Skip empty student number
-    if (!sId) return;
-
-    // =========================
-    // CHECK DUPLICATES
-    // =========================
                 if (!allExistingIds.has(sId)) {
-
-                    const studentRef = doc(
-                        db,
-                        "sections",
-                        parentDocId,
-                        "classList",
-                        sId
-                    );
+                    const studentRef = doc(db, "sections", parentDocId, "classList", sId);
 
                     batch.set(studentRef, {
-
                         id: sId,
                         name: sName,
                         email: sEmail,
-
-                        // IMPORTANT
                         birthday: sBirthday,
-
-                        // IMPORTANT
                         password: sPassword,
-
                         progress: 0,
                         idleTime: "0m",
-
                         difficulty: [0, 0, 0, 0, 0],
-
                         attempts: []
-                    });
-
-                    console.log("✅ SAVED:", {
-                        id: sId,
-                        birthday: sBirthday,
-                        password: sPassword
                     });
 
                     addedCount++;
                     allExistingIds.add(sId);
-
                 } else {
-
                     skippedCount++;
-
                     const isActive = allStudents.some(s => s.id === sId);
-
                     if (isActive) {
                         skippedActiveCount++;
                     } else {
@@ -1170,7 +1147,6 @@ window.importExcel = async function () {
                       `Archived duplicates: ${skippedArchiveCount}`);
             }
 
-            // Reset file input
             input.value = "";
             if (label) {
                 label.textContent = "Choose File";
@@ -1194,12 +1170,10 @@ window.handlePasswordReset = function() {
     const searchInput = document.getElementById("reset-search-input");
     const studentDrop = document.getElementById("reset-student-select");
     
-    // Reset modal UI
     document.getElementById("reset-step-1").style.display = "block";
     document.getElementById("reset-step-2").style.display = "none";
     searchInput.value = "";
     
-    // Fill Sections
     sectionDrop.innerHTML = '<option value="">-- Select Section --</option>';
     currentUserSection.forEach(sec => {
         const opt = document.createElement("option");
@@ -1208,7 +1182,6 @@ window.handlePasswordReset = function() {
         sectionDrop.appendChild(opt);
     });
 
-    // Function to filter students based on Section AND Search Input
     const filterResetList = () => {
         const selectedSec = sectionDrop.value;
         const term = searchInput.value.toLowerCase();
@@ -1239,7 +1212,6 @@ window.handlePasswordReset = function() {
         }
     };
 
-    // Listeners for typing and section changing
     sectionDrop.onchange = filterResetList;
     searchInput.oninput = filterResetList;
 
@@ -1282,7 +1254,6 @@ async function saveNewPassword(student) {
 
     toggleLoading(true);
     try {
-        // Targets the student document inside the specific section's classList
         const studentRef = doc(db, "sections", student.parentDocId, "classList", student.id);
         
         await updateDoc(studentRef, {
@@ -1291,7 +1262,7 @@ async function saveNewPassword(student) {
 
         alert(`Success! Password for ${student.name} has been updated.`);
         closeResetModal();
-        await fetchClassList(); // Refresh data to keep system in sync
+        await fetchClassList();
     } catch (error) {
         console.error("Firestore Update Error:", error);
         alert("Failed to update password. Please check your connection.");
@@ -1299,6 +1270,7 @@ async function saveNewPassword(student) {
         toggleLoading(false);
     }
 }
+
 // Event Listeners
 document.getElementById("excel-input")?.addEventListener("change", function() {
     updateFileName(this);
@@ -1308,9 +1280,9 @@ document.getElementById("section-select")?.addEventListener("change", (e) => loa
 document.getElementById("search-student")?.addEventListener("input", () => {
     const sec = document.getElementById("section-select").value;
     loadStudents(sec);
-});// ----------------------------
-// 7. LESSON GAP ANALYSIS ENGINE (NEW - SAFE APPEND)
-// ----------------------------
+});
+
+// 7. LESSON GAP ANALYSIS ENGINE
 function generateInstructorSummary(students) {
     if (!students || students.length === 0) {
         return "No student data available for analysis.";
@@ -1333,44 +1305,29 @@ function generateInstructorSummary(students) {
 
     let difficultyAvg = difficultyTotals.map(d => d / students.length);
 
-    // Identify hardest level
     let maxDifficulty = Math.max(...difficultyAvg);
     let hardestLevelIndex = difficultyAvg.indexOf(maxDifficulty);
     let hardestLevel = `Level ${hardestLevelIndex + 1}`;
 
-    // ----------------------------
-    // INTERPRETATION LOGIC
-    // ----------------------------
     let roadblock = "";
     let reason = "";
     let recommendation = "";
 
     if (maxDifficulty >= 7) {
         roadblock = `${hardestLevel} - Complex Logic & Problem Solving`;
-
         reason = `Students show high difficulty (${maxDifficulty.toFixed(1)}/10) at ${hardestLevel}, indicating they struggle when tasks require combining multiple concepts.`;
-
         recommendation = `Break the problem into smaller steps and guide students through each step before coding. Encourage them to explain their logic before writing code.`;
-
     } else if (avgProgress < 50) {
         roadblock = `Early Programming Concepts (Variables / Output)`;
-
         reason = `Average progress is only ${Math.round(avgProgress)}%, suggesting students are not confidently completing even basic tasks.`;
-
         recommendation = `Reinforce fundamentals using simple examples and repetition. Use guided exercises before independent tasks.`;
-
     } else if (avgIdle > 10) {
         roadblock = `Code Understanding & Debugging`;
-
         reason = `High idle time (~${Math.round(avgIdle)} minutes) suggests students are getting stuck and unsure how to proceed.`;
-
         recommendation = `Introduce step-by-step tracing. Ask students to predict outputs before running their code.`;
-
     } else {
         roadblock = `Applying Concepts Independently`;
-
         reason = `Students perform well initially but show difficulty as tasks become less guided.`;
-
         recommendation = `Provide scaffolded challenges that gradually reduce hints to build independence.`;
     }
 
@@ -1388,10 +1345,7 @@ function generateInstructorSummary(students) {
     `;
 }
 
-
-// ----------------------------
 // 8. UPDATE UI WITH SUMMARY
-// ----------------------------
 function updateInstructorSummary(filteredStudents) {
     const container = document.getElementById("instructor-summary-content");
     if (!container) return;
@@ -1400,18 +1354,9 @@ function updateInstructorSummary(filteredStudents) {
     container.innerHTML = summary;
 }
 
-/*window.logoutUser = () => {
-    signOut(auth).then(() => {
-        window.location.href = '../Components/LogIn.html';
-    }).catch((error) => {
-        console.error("Logout Error:", error);
-        window.location.href = '../Components/LogIn.html';
-    });
-};*/
 window.logoutUser = async () => {
     try {
         await signOut(auth);
-     
         window.location.href = '../index.html'; 
     } catch (error) {
         console.error("Logout error", error);
@@ -1425,34 +1370,20 @@ window.closeLogoutPopup = () => {
 window.showLogoutPopup = () => {
     document.getElementById("logout-popup").style.display = "flex";
 };
-// Function to apply the theme
+
 function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme); // Saves the user's preference
+    localStorage.setItem('theme', theme);
 }
 
-// Function to toggle the theme
 function toggleTheme() {
     const currentTheme = localStorage.getItem('theme') || 'light';
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
 }
 
-
-document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    setTheme(savedTheme);
-
-
-    const themeBtn = document.getElementById('theme-toggle');
-    if (themeBtn) {
-        themeBtn.addEventListener('click', toggleTheme);
-    }
-});
 function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    
-    // Update button icon if the button exists on the current page
     const themeToggleBtn = document.getElementById("theme-toggle");
     if (themeToggleBtn) {
         const icon = themeToggleBtn.querySelector("i");
@@ -1460,11 +1391,12 @@ function applyTheme(theme) {
             icon.className = (theme === "dark") ? "bi bi-sun-fill" : "bi bi-moon-stars-fill";
         }
     }
-}document.addEventListener('DOMContentLoaded', () => {
+}
+
+document.addEventListener('DOMContentLoaded', () => {
     const savedTheme = localStorage.getItem('dashboard-theme') || 'light';
     applyTheme(savedTheme);
 
-    // Event listener for the toggle button
     const themeBtn = document.getElementById('theme-toggle');
     if (themeBtn) {
         themeBtn.addEventListener('click', () => {
@@ -1472,15 +1404,14 @@ function applyTheme(theme) {
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             
             localStorage.setItem('dashboard-theme', newTheme);
-            applyTheme(newTheme); // Update current page
+            applyTheme(newTheme);
         });
     }
 });
 
-// 3. Listen for changes from OTHER tabs/files
 window.addEventListener('storage', (event) => {
     if (event.key === 'dashboard-theme') {
         const newTheme = event.newValue;
-        applyTheme(newTheme); // Update this page when the other one changes
+        applyTheme(newTheme);
     }
-})
+});

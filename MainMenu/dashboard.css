@@ -1003,3 +1003,34 @@ html:not([data-theme="dark"]) .loading-text {
         flex-direction: column;
     }
 }
+
+.stat-cards-responsive {
+    display: grid;
+    grid-template-columns: minmax(220px, 260px) repeat(2, 1fr);
+    gap: 20px;
+    align-items: stretch;
+    margin-bottom: 25px;
+}
+
+/* Tablet Screen Breakpoint */
+@media (max-width: 1024px) {
+    .stat-cards-responsive {
+        grid-template-columns: 1fr 1fr;
+    }
+    .card.stat {
+        grid-column: 1 / -1; 
+    }
+}
+
+/* Mobile Screen Breakpoint - Vertical Stacking */
+@media (max-width: 768px) {
+    .stat-cards-responsive {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    /* Ensures canvas containers remain responsive */
+    .stat-cards-responsive .card > div {
+        height: 220px !important;
+    }
+}
