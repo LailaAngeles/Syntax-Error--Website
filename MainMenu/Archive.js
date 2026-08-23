@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { 
-    getFirestore, collection, getDocs, query, doc, setDoc, deleteDoc, serverTimestamp 
+    getFirestore, collection, getDocs, query, doc, setDoc, deleteDoc, serverTimestamp, writeBatch 
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
@@ -18,6 +18,10 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+const deleteAllModal = document.getElementById('delete-all-modal');
+const deleteAllBtn = document.getElementById('delete-all-btn');
+const confirmDeleteAllBtn = document.getElementById('confirm-delete-all-btn');
+
 // Global Variables
 const archivedTableBody = document.getElementById('archived-students-table');
 let allArchived = [];
@@ -29,20 +33,67 @@ const toggleLoading = (show) => {
     if (loader) loader.style.display = show ? "flex" : "none";
 };
 
+// --- DELETE ALL MODAL LOGIC ---
+if (deleteAllBtn) {
+    deleteAllBtn.addEventListener('click', () => {
+        if (allArchived.length === 0) {
+            alert("No archived students to delete.");
+            return;
+        }
+        deleteAllModal.style.display = 'flex';
+    });
+}
+
+window.closeDeleteAllModal = function() {
+    deleteAllModal.style.display = 'none';
+};
+
+// --- DELETE ALL FIRESTORE LOGIC ---
+if (confirmDeleteAllBtn) {
+    confirmDeleteAllBtn.addEventListener('click', async function() {
+        if (allArchived.length === 0) return;
+
+        try {
+            confirmDeleteAllBtn.disabled = true;
+            confirmDeleteAllBtn.innerText = "Deleting...";
+
+            const batch = writeBatch(db);
+
+            allArchived.forEach(student => {
+                const docRef = doc(db, "archivedStudents", student.docId);
+                batch.delete(docRef);
+            });
+
+            await batch.commit();
+
+            allArchived = [];
+            renderTable(allArchived);
+
+            closeDeleteAllModal();
+            alert("All archived students have been permanently deleted.");
+
+        } catch (error) {
+            console.error("Error deleting all archives:", error);
+            alert("Failed to delete all records. Please try again.");
+        } finally {
+            confirmDeleteAllBtn.disabled = false;
+            confirmDeleteAllBtn.innerText = "Yes, Delete All";
+        }
+    });
+}
+
 // --- AUTH OBSERVER ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // Start loading as soon as we know the user is logged in
         toggleLoading(true);
         await loadArchivedStudents();
-        // Stop loading only after the function finishes fetching and rendering
         toggleLoading(false);
     } else {
         window.location.href = '../Login/Login.html';
     }
 });
 
-// --- LOAD ARCHIVES ---
+// --- LOAD ARCHIVES & AUTO-CLEANUP (7 DAYS) ---
 async function loadArchivedStudents() {
     try {
         const q = query(collection(db, "archivedStudents"));
@@ -56,12 +107,37 @@ async function loadArchivedStudents() {
             return;
         }
 
+        const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+        const expiredBatch = writeBatch(db);
+        let expiredCount = 0;
+
         querySnapshot.forEach((d) => {
             const data = d.data();
-            allArchived.push({ ...data, docId: d.id });
+            
+            // Calculate document age from archivedAt timestamp
+            let archivedTime = null;
+            if (data.archivedAt && typeof data.archivedAt.toDate === 'function') {
+                archivedTime = data.archivedAt.toDate().getTime();
+            } else if (data.archivedAt && data.archivedAt.seconds) {
+                archivedTime = data.archivedAt.seconds * 1000;
+            }
+
+            // Check if document age exceeds 7 days
+            if (archivedTime && (now - archivedTime > SEVEN_DAYS_MS)) {
+                expiredBatch.delete(doc(db, "archivedStudents", d.id));
+                expiredCount++;
+            } else {
+                allArchived.push({ ...data, docId: d.id });
+            }
         });
 
-        // This renders the data into the table
+        // Permanently purge expired records from Firestore
+        if (expiredCount > 0) {
+            await expiredBatch.commit();
+            console.log(`Auto-deleted ${expiredCount} expired archived record(s).`);
+        }
+
         renderTable(allArchived);
         
     } catch (error) {
@@ -135,6 +211,9 @@ document.getElementById('confirm-restore-btn').onclick = async function() {
 
         const row = document.getElementById(`row-${docId}`);
         if (row) row.remove();
+
+        allArchived = allArchived.filter(s => s.docId !== docId);
+        if (allArchived.length === 0) renderTable(allArchived);
         
         closeRestoreModal();
         alert("Student restored successfully!");
@@ -154,7 +233,6 @@ window.closeLogoutPopup = () => document.getElementById("logout-popup").style.di
 window.logoutUser = async () => {
     try {
         await signOut(auth);
-     
         window.location.href = '../index.html'; 
     } catch (error) {
         console.error("Logout error", error);
@@ -170,34 +248,10 @@ document.getElementById("search-archive")?.addEventListener("input", (e) => {
     );
     renderTable(filtered);
 });
-// Function to apply the theme
-function setTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme); // Saves the user's preference
-}
 
-// Function to toggle the theme
-function toggleTheme() {
-    const currentTheme = localStorage.getItem('theme') || 'light';
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-}
-
-
-document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    setTheme(savedTheme);
-
-
-    const themeBtn = document.getElementById('theme-toggle');
-    if (themeBtn) {
-        themeBtn.addEventListener('click', toggleTheme);
-    }
-});
+// --- THEME LOGIC ---
 function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    
-    // Update button icon if the button exists on the current page
     const themeToggleBtn = document.getElementById("theme-toggle");
     if (themeToggleBtn) {
         const icon = themeToggleBtn.querySelector("i");
@@ -205,11 +259,12 @@ function applyTheme(theme) {
             icon.className = (theme === "dark") ? "bi bi-sun-fill" : "bi bi-moon-stars-fill";
         }
     }
-}document.addEventListener('DOMContentLoaded', () => {
+}
+
+document.addEventListener('DOMContentLoaded', () => {
     const savedTheme = localStorage.getItem('dashboard-theme') || 'light';
     applyTheme(savedTheme);
 
-    // Event listener for the toggle button
     const themeBtn = document.getElementById('theme-toggle');
     if (themeBtn) {
         themeBtn.addEventListener('click', () => {
@@ -217,14 +272,13 @@ function applyTheme(theme) {
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             
             localStorage.setItem('dashboard-theme', newTheme);
-            applyTheme(newTheme); // Update current page
+            applyTheme(newTheme);
         });
     }
 });
 
 window.addEventListener('storage', (event) => {
     if (event.key === 'dashboard-theme') {
-        const newTheme = event.newValue;
-        applyTheme(newTheme); 
+        applyTheme(event.newValue); 
     }
-})
+});
