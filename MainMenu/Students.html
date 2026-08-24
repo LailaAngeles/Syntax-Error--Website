@@ -39,8 +39,16 @@
 <div class="main-content">
 <header class="header-container">
     <div class="header-title">
-        <h1>Student Progress Management</h1>
-        <p>Current Sections: <span id="user-section">Loading...</span></p>
+        <div class="student-progress-title-row">
+            <div>
+                <h1>Student Progress Management</h1>
+                <p>Current Sections: <span id="user-section">Loading...</span></p>
+            </div>
+            <button type="button" class="download-template-btn" onclick="downloadExcelTemplate()" title="Download the Excel format used for class-list importing">
+                <i class="bi bi-file-earmark-arrow-down"></i>
+                <span>Download Excel Template</span>
+            </button>
+        </div>
     </div>
 
    
@@ -48,14 +56,19 @@
         <select id="section-select">
             <option value="">Loading sections...</option>
         </select>
-        <input type="text" id="search-student" placeholder="Search by name or ID...">
+        
         
         <div class="action-group" style="display: flex; gap: 10px; align-items: center;">
             <input type="file" id="excel-input" accept=".xlsx, .xls" style="display: none;">
             <button onclick="document.getElementById('excel-input').click()" style="background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; cursor: pointer;">
                 <i class="bi bi-file-earmark-excel"></i> <span id="file-name-text">Choose File</span>
             </button>
-            <button onclick="importExcel()" style="background: #3b82f6; color: white;">Import Class List</button>
+            <button onclick="importExcel()" style="background: #3b82f6; color: white;">
+                <i class="bi bi-upload"></i> Import Class List
+            </button>
+            <button type="button" onclick="openAddStudentModal()" class="add-student-btn">
+                <i class="bi bi-person-plus"></i> Add Student
+            </button>
             <button onclick="handlePasswordReset()" style="background: #f59e0b; color: white; padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer;">
                 <i class="bi bi-shield-lock"></i> Reset Password
             </button>
@@ -114,25 +127,37 @@
 
 
 
-    <div class="card">
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Student ID</th>
-                        <th>Full Name</th>
-                        <th>Game Progress</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="students-table">
-                    <tr><td colspan="5" style="text-align:center;">Select a section to load students</td></tr>
-                </tbody>
-            </table>
-        </div>
+ <div class="card student-table-card">
+
+    <div class="student-table-search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+
+        <input type="text" id="search-student" placeholder="Search by name or ID...">
     </div>
 
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student ID</th>
+                    <th>Full Name</th>
+                    <th>Game Progress</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody id="students-table">
+                <tr>
+                    <td colspan="5" style="text-align:center;">
+                        Select a section to load students
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
     <div id="analysis-section" class="student-analysis-grid" style="display: none; margin-top: 30px;">
         <div class="analysis-box" id="student-info-card">
             <h4>Student Details</h4>
@@ -226,6 +251,65 @@
         <div style="display:flex; gap:10px; justify-content:flex-end;">
             <button onclick="closeEditModal()" style="background:#f1f5f9; color:#475569; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:600;">Cancel</button>
             <button id="save-edit-btn" style="background:#3b82f6; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:600;">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ADD STUDENT MODAL -->
+<div id="add-student-modal" class="modal-overlay add-student-modal" style="display:none;">
+    <div class="add-student-box">
+        <div class="add-student-modal-header">
+            <div>
+                <h3><i class="bi bi-person-plus"></i> Add Student Manually</h3>
+                <p>Enter the same information used by the Excel class-list template.</p>
+            </div>
+            <button type="button" onclick="closeAddStudentModal()" class="add-student-close" aria-label="Close">&times;</button>
+        </div>
+
+        <div class="add-student-section-note">
+            <i class="bi bi-info-circle"></i>
+            <span>Student will be added to: <strong id="add-student-section-name">Select a section first</strong></span>
+        </div>
+
+        <div class="add-student-form-grid">
+            <div class="add-student-field full-width">
+                <label for="add-student-id">STUDENT NUMBER <span>*</span></label>
+                <input type="text" id="add-student-id" placeholder="e.g. 2000252385" autocomplete="off">
+            </div>
+
+            <div class="add-student-field">
+                <label for="add-student-surname">SURNAME <span>*</span></label>
+                <input type="text" id="add-student-surname" placeholder="Surname" autocomplete="family-name">
+            </div>
+
+            <div class="add-student-field">
+                <label for="add-student-first-name">FIRST NAME <span>*</span></label>
+                <input type="text" id="add-student-first-name" placeholder="First name" autocomplete="given-name">
+            </div>
+
+            <div class="add-student-field full-width">
+                <label for="add-student-last-name">LAST NAME <span>*</span></label>
+                <input type="text" id="add-student-last-name" placeholder="Last name" autocomplete="additional-name">
+            </div>
+
+            <div class="add-student-field full-width">
+                <label for="add-student-email">STUDENT EMAIL <span>*</span></label>
+                <input type="email" id="add-student-email" placeholder="student@example.com" autocomplete="email">
+            </div>
+
+            <div class="add-student-field full-width">
+                <label for="add-student-birthday">BIRTHDAY <span>*</span></label>
+                <input type="date" id="add-student-birthday">
+                <small>Password will automatically use the birthday in YYYYMMDD format.</small>
+            </div>
+        </div>
+
+        <div class="add-student-actions">
+            <button type="button" onclick="closeAddStudentModal()" class="add-student-cancel">Cancel</button>
+            <button type="button" id="save-add-student-btn" onclick="saveManualStudent()" class="add-student-save">
+                <i class="bi bi-person-check"></i> Add Student
+            </button>
         </div>
     </div>
 </div>

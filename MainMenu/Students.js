@@ -911,7 +911,428 @@ function renderStudentChart(student) {
 
     renderAdvancedAnalysis(student);
 }
+window.downloadExcelTemplate = function () {
+    try {
+        const templateRows = [{
+            "Student Number": "",
+            "Full Name": "",
+            "Student Email": "",
+            "Birthday (mm/dd/yyyy)": ""
+        }];
 
+        const ws = XLSX.utils.json_to_sheet(templateRows, {
+            header: [
+                "Student Number",
+                "Full Name",
+                "Student Email",
+                "Birthday"
+            ]
+        });
+
+        ws["!cols"] = [
+            { wch: 20 },
+            { wch: 32 },
+            { wch: 38 },
+            { wch: 16 }
+        ];
+
+        const workbook = XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            ws,
+            "Class List Template"
+        );
+
+        XLSX.writeFile(
+            workbook,
+            "Student_Class_List_Template.xlsx"
+        );
+
+    } catch (error) {
+        console.error("Template download error:", error);
+        alert("Unable to download the Excel template.");
+    }
+};
+
+
+window.openAddStudentModal = function () {
+
+    const sectionSelect =
+        document.getElementById("section-select");
+
+    const selectedSection =
+        sectionSelect ? sectionSelect.value : "";
+
+    if (!selectedSection) {
+
+        alert(
+            "Please select a section first before adding a student manually."
+        );
+
+        if (sectionSelect) {
+            sectionSelect.focus();
+        }
+
+        return;
+    }
+
+    document.getElementById(
+        "add-student-section-name"
+    ).textContent = selectedSection;
+
+    document.getElementById(
+        "add-student-id"
+    ).value = "";
+
+    document.getElementById(
+        "add-student-surname"
+    ).value = "";
+
+    document.getElementById(
+        "add-student-first-name"
+    ).value = "";
+
+    document.getElementById(
+        "add-student-last-name"
+    ).value = "";
+
+    document.getElementById(
+        "add-student-email"
+    ).value = "";
+
+    document.getElementById(
+        "add-student-birthday"
+    ).value = "";
+
+    const saveBtn =
+        document.getElementById("save-add-student-btn");
+
+    saveBtn.disabled = false;
+
+    saveBtn.innerHTML =
+        '<i class="bi bi-person-check"></i> Add Student';
+
+    document.getElementById(
+        "add-student-modal"
+    ).style.display = "flex";
+
+    setTimeout(() => {
+
+        document
+            .getElementById("add-student-id")
+            ?.focus();
+
+    }, 50);
+};
+
+
+window.closeAddStudentModal = function () {
+
+    const modal =
+        document.getElementById("add-student-modal");
+
+    if (modal) {
+        modal.style.display = "none";
+    }
+};
+
+
+window.saveManualStudent = async function () {
+
+    const sectionSelect =
+        document.getElementById("section-select");
+
+    const selectedSectionName =
+        sectionSelect ? sectionSelect.value : "";
+
+    const parentDocId =
+        sectionDocMapping[selectedSectionName];
+
+    const id =
+        document.getElementById("add-student-id")
+            .value
+            .trim();
+
+    const surname =
+        document.getElementById("add-student-surname")
+            .value
+            .trim();
+
+    const firstName =
+        document.getElementById("add-student-first-name")
+            .value
+            .trim();
+
+    const lastName =
+        document.getElementById("add-student-last-name")
+            .value
+            .trim();
+
+    const email =
+        document.getElementById("add-student-email")
+            .value
+            .trim();
+
+    const birthday =
+        document.getElementById("add-student-birthday")
+            .value;
+
+
+    if (!selectedSectionName || !parentDocId) {
+
+        alert("Please select a valid section first.");
+
+        return;
+    }
+
+
+    if (
+        !id ||
+        !surname ||
+        !firstName ||
+        !lastName ||
+        !email ||
+        !birthday
+    ) {
+
+        alert("Please complete all student fields.");
+
+        return;
+    }
+
+
+    const emailInput =
+        document.getElementById("add-student-email");
+
+    if (
+        emailInput &&
+        !emailInput.checkValidity()
+    ) {
+
+        alert(
+            "Please enter a valid student email address."
+        );
+
+        emailInput.focus();
+
+        return;
+    }
+
+
+    if (!/^\d+$/.test(id)) {
+
+        alert(
+            "Student Number must contain numbers only."
+        );
+
+        document
+            .getElementById("add-student-id")
+            .focus();
+
+        return;
+    }
+
+
+    const fullName =
+        `${surname}, ${firstName} ${lastName}`
+            .replace(/\s+/g, " ")
+            .trim();
+
+
+    const saveBtn =
+        document.getElementById(
+            "save-add-student-btn"
+        );
+
+    saveBtn.disabled = true;
+
+    saveBtn.innerHTML =
+        '<i class="bi bi-hourglass-split"></i> Adding...';
+
+    toggleLoading(true);
+
+
+    try {
+
+        const selectedSectionStudents =
+            allStudents.filter(
+                s => s.section === selectedSectionName
+            );
+
+
+        if (
+            selectedSectionStudents.some(
+                s => String(s.id) === id
+            )
+        ) {
+
+            alert(
+                `Student Number ${id} already exists in ${selectedSectionName}.`
+            );
+
+            return;
+        }
+
+
+        /*
+         * Check archived students as well.
+         */
+        try {
+
+            const archiveSnap =
+                await getDocs(
+                    collection(
+                        db,
+                        "archivedStudents"
+                    )
+                );
+
+            if (
+                archiveSnap.docs.some(
+                    d => String(d.id) === id
+                )
+            ) {
+
+                alert(
+                    `Student Number ${id} already exists in the archive.`
+                );
+
+                return;
+            }
+
+        } catch (archiveError) {
+
+            console.warn(
+                "Could not check archived students:",
+                archiveError
+            );
+        }
+
+
+        /*
+         * Create the student inside:
+         *
+         * sections
+         *   └── selected section
+         *       └── classList
+         *           └── student number
+         */
+        const studentRef =
+            doc(
+                db,
+                "sections",
+                parentDocId,
+                "classList",
+                id
+            );
+
+
+        /*
+         * Birthday becomes the initial password.
+         *
+         * Example:
+         * 2005-01-14
+         *
+         * becomes:
+         * 20050114
+         */
+        const studentPassword =
+            formatBirthdayToPassword(
+                birthday
+            );
+
+
+        await setDoc(
+            studentRef,
+            {
+                id: id,
+
+                name: fullName,
+
+                email: email,
+
+                birthday: birthday,
+
+                password: studentPassword,
+
+                progress: 0,
+
+                idleTime: "0m",
+
+                difficulty: [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+
+                attempts: []
+            }
+        );
+
+
+        /*
+         * Close modal after successful save.
+         */
+        closeAddStudentModal();
+
+
+        /*
+         * Refresh the student data.
+         */
+        await fetchClassList();
+
+
+        /*
+         * Keep the teacher on the section
+         * they were working with.
+         */
+        const refreshedSectionSelect =
+            document.getElementById(
+                "section-select"
+            );
+
+
+        if (refreshedSectionSelect) {
+
+            refreshedSectionSelect.value =
+                selectedSectionName;
+
+            loadStudents(
+                selectedSectionName
+            );
+        }
+
+
+        alert(
+            `Student ${fullName} was added successfully to ${selectedSectionName}.`
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Manual student add error:",
+            error
+        );
+
+        alert(
+            "Failed to add the student. Please check your connection and try again."
+        );
+
+
+    } finally {
+
+        saveBtn.disabled = false;
+
+        saveBtn.innerHTML =
+            '<i class="bi bi-person-check"></i> Add Student';
+
+        toggleLoading(false);
+    }
+};
 function renderAdvancedAnalysis(student) {
     const container = document.getElementById("student-analysis");
     if (!container) return;

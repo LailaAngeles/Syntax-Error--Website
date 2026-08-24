@@ -1034,3 +1034,1275 @@ html:not([data-theme="dark"]) .loading-text {
         height: 220px !important;
     }
 }
+/* =========================================================
+   STUDENT PROGRESS MANAGEMENT - FINAL BUTTON UI
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   HEADER
+   --------------------------------------------------------- */
+
+.student-progress-title-row {
+    width: 100% !important;
+
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+
+    gap: 20px !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* Keep the title section on the left */
+
+.student-progress-title-row > div:first-child {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+
+
+/* ---------------------------------------------------------
+   DOWNLOAD EXCEL TEMPLATE
+   --------------------------------------------------------- */
+
+.download-template-btn {
+    flex: 0 0 auto !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    gap: 9px !important;
+
+    height: 44px !important;
+
+    min-width: 205px !important;
+
+    margin: 0 !important;
+    padding: 0 17px !important;
+
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+
+    border: none !important;
+    border-radius: 8px !important;
+
+    font-family: var(--font-primary) !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+
+    white-space: nowrap !important;
+
+    cursor: pointer !important;
+
+    box-shadow:
+        0 4px 10px rgba(59, 130, 246, 0.18) !important;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease !important;
+}
+
+.download-template-btn i {
+    font-size: 16px !important;
+}
+
+.download-template-btn:hover {
+    background: #2563eb !important;
+
+    transform: translateY(-1px) !important;
+
+    box-shadow:
+        0 6px 14px rgba(59, 130, 246, 0.25) !important;
+}
+
+.download-template-btn:active {
+    transform: translateY(0) !important;
+}
+
+
+/* ---------------------------------------------------------
+   STUDENT CONTROL BAR
+   --------------------------------------------------------- */
+
+.student-controls {
+    display: flex !important;
+
+    align-items: center !important;
+
+    gap: 12px !important;
+
+    width: 100% !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* ---------------------------------------------------------
+   SECTION SELECT
+   --------------------------------------------------------- */
+
+.student-controls #section-select {
+    flex: 0 0 260px !important;
+
+    width: 260px !important;
+    height: 48px !important;
+
+    margin: 0 !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* ---------------------------------------------------------
+   SEARCH
+   --------------------------------------------------------- */
+
+.student-controls #student-search {
+    flex: 1 1 250px !important;
+
+    min-width: 180px !important;
+
+    height: 48px !important;
+
+    margin: 0 !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* ---------------------------------------------------------
+   ACTION GROUP
+   --------------------------------------------------------- */
+
+.student-controls .action-group {
+    display: flex !important;
+
+    align-items: center !important;
+
+    gap: 10px !important;
+
+    flex: 0 0 auto !important;
+
+    margin: 0 !important;
+}
+
+
+/* ---------------------------------------------------------
+   ALL CONTROL BUTTONS
+   --------------------------------------------------------- */
+
+.student-controls button {
+    height: 48px !important;
+
+    min-height: 48px !important;
+
+    margin: 0 !important;
+
+    padding: 0 17px !important;
+
+    display: inline-flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    gap: 8px !important;
+
+    border-radius: 8px !important;
+
+    font-family: var(--font-primary) !important;
+
+    font-size: 0.78rem !important;
+
+    font-weight: 600 !important;
+
+    line-height: 1 !important;
+
+    white-space: nowrap !important;
+
+    box-sizing: border-box !important;
+
+    cursor: pointer !important;
+
+    transition:
+        transform 0.18s ease,
+        filter 0.18s ease,
+        box-shadow 0.18s ease !important;
+}
+
+
+/* Icons */
+
+.student-controls button i {
+    font-size: 15px !important;
+
+    line-height: 1 !important;
+
+    flex: 0 0 auto !important;
+}
+
+
+/* ---------------------------------------------------------
+   CHOOSE FILE
+   --------------------------------------------------------- */
+
+.student-controls .file-label,
+.student-controls label[for="file-input"] {
+    height: 48px !important;
+
+    min-height: 48px !important;
+
+    display: inline-flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    gap: 8px !important;
+
+    padding: 0 16px !important;
+
+    margin: 0 !important;
+
+    background: #0f131a !important;
+
+    color: #ffffff !important;
+
+    border: 1px solid #29313d !important;
+
+    border-radius: 8px !important;
+
+    font-family: var(--font-primary) !important;
+
+    font-size: 0.78rem !important;
+
+    font-weight: 600 !important;
+
+    white-space: nowrap !important;
+
+    cursor: pointer !important;
+
+    box-sizing: border-box !important;
+
+    transition:
+        background 0.18s ease,
+        border-color 0.18s ease,
+        transform 0.18s ease !important;
+}
+
+.student-controls .file-label:hover,
+.student-controls label[for="file-input"]:hover {
+    background: #171d26 !important;
+
+    border-color: #3b82f6 !important;
+
+    transform: translateY(-1px) !important;
+}
+
+
+/* ---------------------------------------------------------
+   IMPORT CLASS LIST
+   --------------------------------------------------------- */
+
+.student-controls button[onclick="importExcel()"] {
+    min-width: 190px !important;
+
+    background: #3b82f6 !important;
+
+    color: #ffffff !important;
+
+    border: none !important;
+
+    box-shadow:
+        0 4px 10px rgba(59, 130, 246, 0.16) !important;
+}
+
+.student-controls button[onclick="importExcel()"]:hover {
+    background: #2563eb !important;
+
+    transform: translateY(-1px) !important;
+
+    box-shadow:
+        0 6px 14px rgba(59, 130, 246, 0.22) !important;
+}
+
+
+/* ---------------------------------------------------------
+   ADD STUDENT
+   --------------------------------------------------------- */
+
+.student-controls .add-student-btn {
+    min-width: 165px !important;
+
+    background: #10b981 !important;
+
+    color: #ffffff !important;
+
+    border: none !important;
+
+    box-shadow:
+        0 4px 10px rgba(16, 185, 129, 0.16) !important;
+}
+
+.student-controls .add-student-btn:hover {
+    background: #059669 !important;
+
+    transform: translateY(-1px) !important;
+
+    box-shadow:
+        0 6px 14px rgba(16, 185, 129, 0.22) !important;
+}
+
+
+/* ---------------------------------------------------------
+   RESET PASSWORD
+   --------------------------------------------------------- */
+
+.student-controls button[onclick="handlePasswordReset()"] {
+    min-width: 180px !important;
+
+    background: #f59e0b !important;
+
+    color: #ffffff !important;
+
+    border: none !important;
+
+    box-shadow:
+        0 4px 10px rgba(245, 158, 11, 0.16) !important;
+}
+
+.student-controls button[onclick="handlePasswordReset()"]:hover {
+    background: #d97706 !important;
+
+    transform: translateY(-1px) !important;
+
+    box-shadow:
+        0 6px 14px rgba(245, 158, 11, 0.22) !important;
+}
+
+
+/* ---------------------------------------------------------
+   GENERAL HOVER
+   --------------------------------------------------------- */
+
+.student-controls button:hover {
+    filter: brightness(1.02);
+}
+
+.student-controls button:active {
+    transform: translateY(0) !important;
+}
+
+
+/* ---------------------------------------------------------
+   TABLET
+   --------------------------------------------------------- */
+
+@media (max-width: 1250px) {
+
+    .student-controls {
+        flex-wrap: wrap !important;
+    }
+
+    .student-controls #section-select {
+        flex: 1 1 220px !important;
+
+        width: auto !important;
+    }
+
+    .student-controls #student-search {
+        flex: 1 1 260px !important;
+    }
+
+    .student-controls .action-group {
+        width: 100% !important;
+
+        display: flex !important;
+
+        flex-wrap: wrap !important;
+    }
+
+}
+
+
+/* ---------------------------------------------------------
+   SMALLER SCREEN
+   --------------------------------------------------------- */
+
+@media (max-width: 800px) {
+
+    .student-progress-title-row {
+        flex-direction: column !important;
+
+        align-items: stretch !important;
+
+        gap: 14px !important;
+    }
+
+    .download-template-btn {
+        width: 100% !important;
+
+        min-width: 0 !important;
+    }
+
+
+    .student-controls {
+        flex-direction: column !important;
+
+        align-items: stretch !important;
+
+        gap: 10px !important;
+    }
+
+
+    .student-controls #section-select,
+    .student-controls #student-search {
+        width: 100% !important;
+
+        flex: none !important;
+    }
+
+
+    .student-controls .action-group {
+        width: 100% !important;
+
+        display: grid !important;
+
+        grid-template-columns: 1fr 1fr !important;
+
+        gap: 10px !important;
+    }
+
+
+    .student-controls .action-group button,
+    .student-controls .action-group .file-label,
+    .student-controls .action-group label[for="file-input"] {
+        width: 100% !important;
+
+        min-width: 0 !important;
+    }
+
+}
+
+
+/* ---------------------------------------------------------
+   MOBILE
+   --------------------------------------------------------- */
+
+@media (max-width: 520px) {
+
+    .student-controls .action-group {
+        grid-template-columns: 1fr !important;
+    }
+
+    .student-controls button,
+    .student-controls .file-label,
+    .student-controls label[for="file-input"] {
+        width: 100% !important;
+    }
+
+}/* =========================================================
+   ADD STUDENT MANUALLY MODAL - FINAL UI
+   ========================================================= */
+
+.add-student-modal {
+    position: fixed !important;
+    inset: 0 !important;
+
+    display: none;
+    align-items: center !important;
+    justify-content: center !important;
+
+    width: 100% !important;
+    height: 100% !important;
+
+    padding: 24px !important;
+
+    background: rgba(0, 0, 0, 0.72) !important;
+    backdrop-filter: blur(6px) !important;
+
+    z-index: 10001 !important;
+}
+
+
+/* ---------------------------------------------------------
+   MODAL CARD
+   --------------------------------------------------------- */
+
+.add-student-modal .add-student-box {
+    position: relative !important;
+
+    width: min(94vw, 620px) !important;
+    max-width: 620px !important;
+
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+
+    margin: 0 auto !important;
+    padding: 30px !important;
+
+    background: #ffffff !important;
+    color: #1f2937 !important;
+
+    border: none !important;
+    border-radius: 18px !important;
+
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.35),
+        0 8px 20px rgba(0, 0, 0, 0.15) !important;
+
+    animation: addStudentModalIn 0.22s ease-out !important;
+
+    font-family: var(--font-primary) !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* Modal animation */
+
+@keyframes addStudentModalIn {
+
+    from {
+        opacity: 0;
+        transform: translateY(15px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+}
+
+
+/* ---------------------------------------------------------
+   HEADER
+   --------------------------------------------------------- */
+
+.add-student-modal .add-student-modal-header {
+    display: flex !important;
+
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+
+    gap: 18px !important;
+
+    margin: 0 0 22px 0 !important;
+
+    padding: 0 !important;
+
+    border: none !important;
+}
+
+
+.add-student-modal .add-student-modal-header > div {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+
+.add-student-modal .add-student-modal-header h3 {
+    margin: 0 0 6px 0 !important;
+
+    padding: 0 !important;
+
+    color: #1f2937 !important;
+
+    font-family: var(--font-heading) !important;
+
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+
+    line-height: 1.35 !important;
+
+    letter-spacing: 0.2px !important;
+}
+
+
+.add-student-modal .add-student-modal-header h3 i {
+    margin-right: 7px !important;
+
+    color: #3b82f6 !important;
+}
+
+
+.add-student-modal .add-student-modal-header p {
+    margin: 0 !important;
+
+    color: #6b7280 !important;
+
+    font-family: var(--font-primary) !important;
+
+    font-size: 0.78rem !important;
+
+    line-height: 1.5 !important;
+}
+
+
+/* ---------------------------------------------------------
+   CLOSE BUTTON
+   --------------------------------------------------------- */
+
+.add-student-modal .add-student-close {
+    flex: 0 0 auto !important;
+
+    width: 36px !important;
+    height: 36px !important;
+
+    min-width: 36px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    background: #f3f4f6 !important;
+
+    color: #4b5563 !important;
+
+    border: 1px solid #e5e7eb !important;
+
+    border-radius: 9px !important;
+
+    font-family: Arial, sans-serif !important;
+
+    font-size: 20px !important;
+    font-weight: 500 !important;
+
+    line-height: 1 !important;
+
+    cursor: pointer !important;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease !important;
+}
+
+
+.add-student-modal .add-student-close:hover {
+    background: #e5e7eb !important;
+
+    color: #111827 !important;
+
+    transform: scale(1.04) !important;
+}
+
+
+/* ---------------------------------------------------------
+   SECTION INFORMATION
+   --------------------------------------------------------- */
+
+.add-student-modal .add-student-section-note {
+    display: flex !important;
+
+    align-items: center !important;
+
+    gap: 9px !important;
+
+    width: 100% !important;
+
+    margin: 0 0 22px 0 !important;
+
+    padding: 11px 13px !important;
+
+    background: #eff6ff !important;
+
+    color: #374151 !important;
+
+    border: 1px solid #bfdbfe !important;
+
+    border-radius: 9px !important;
+
+    box-sizing: border-box !important;
+
+    font-family: var(--font-primary) !important;
+
+    font-size: 0.78rem !important;
+
+    line-height: 1.4 !important;
+}
+
+
+.add-student-modal .add-student-section-note i {
+    flex: 0 0 auto !important;
+
+    color: #3b82f6 !important;
+
+    font-size: 15px !important;
+}
+
+
+.add-student-modal .add-student-section-note strong {
+    color: #1d4ed8 !important;
+}
+
+
+/* ---------------------------------------------------------
+   FORM GRID
+   --------------------------------------------------------- */
+
+.add-student-modal .add-student-form-grid {
+    display: grid !important;
+
+    grid-template-columns: 1fr 1fr !important;
+
+    gap: 17px 16px !important;
+
+    width: 100% !important;
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+}
+
+
+.add-student-modal .add-student-field {
+    display: block !important;
+
+    width: 100% !important;
+
+    min-width: 0 !important;
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+}
+
+
+.add-student-modal .add-student-field.full-width {
+    grid-column: 1 / -1 !important;
+}
+
+
+/* ---------------------------------------------------------
+   LABELS
+   --------------------------------------------------------- */
+
+.add-student-modal .add-student-field label {
+    display: block !important;
+
+    width: 100% !important;
+
+    margin: 0 0 7px 0 !important;
+
+    padding: 0 !important;
+
+    color: #64748b !important;
+
+    font-family: var(--font-primary) !important;
+
+    font-size: 0.72rem !important;
+
+    font-weight: 700 !important;
+
+    letter-spacing: 0.4px !important;
+
+    line-height: 1.3 !important;
+}
+
+
+.add-student-modal .add-student-field label span {
+    color: #ef4444 !important;
+
+    margin-left: 2px !important;
+}
+
+
+/* ---------------------------------------------------------
+   INPUTS
+   --------------------------------------------------------- */
+
+.add-student-modal .add-student-field input {
+    display: block !important;
+
+    width: 100% !important;
+    height: 44px !important;
+
+    margin: 0 !important;
+
+    padding: 0 13px !important;
+
+    background: #ffffff !important;
+
+    color: #1f2937 !important;
+
+    border: 1px solid #dbe2ea !important;
+
+    border-radius: 8px !important;
+
+    outline: none !important;
+
+    box-sizing: border-box !important;
+
+    font-family: var(--font-primary) !important;
+
+    font-size: 0.82rem !important;
+
+    line-height: 44px !important;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease !important;
+}
+
+
+.add-student-modal .add-student-field input::placeholder {
+    color: #9ca3af !important;
+
+    opacity: 1 !important;
+}
+
+
+.add-student-modal .add-student-field input:hover {
+    border-color: #b8c4d1 !important;
+}
+
+
+.add-student-modal .add-student-field input:focus {
+    border-color: #3b82f6 !important;
+
+    box-shadow:
+        0 0 0 3px rgba(59, 130, 246, 0.12) !important;
+
+    background: #ffffff !important;
+}
+
+
+/* Date input */
+
+.add-student-modal .add-student-field input[type="date"] {
+    color: #1f2937 !important;
+
+    line-height: normal !important;
+
+    padding-right: 12px !important;
+}
+
+
+/* Email */
+
+.add-student-modal .add-student-field input[type="email"] {
+    font-family: var(--font-primary) !important;
+}
+
+
+/* ---------------------------------------------------------
+   HELPER TEXT
+   --------------------------------------------------------- */
+
+.add-student-modal .add-student-field small {
+    display: block !important;
+
+    margin: 6px 0 0 0 !important;
+
+    padding: 0 !important;
+
+    color: #94a3b8 !important;
+
+    font-family: var(--font-primary) !important;
+
+    font-size: 0.67rem !important;
+
+    line-height: 1.4 !important;
+}
+
+
+/* ---------------------------------------------------------
+   BUTTON AREA
+   --------------------------------------------------------- */
+
+.add-student-modal .add-student-actions {
+    display: flex !important;
+
+    justify-content: flex-end !important;
+    align-items: center !important;
+
+    gap: 10px !important;
+
+    width: 100% !important;
+
+    margin: 25px 0 0 0 !important;
+
+    padding: 0 !important;
+
+    border: none !important;
+}
+
+
+/* ---------------------------------------------------------
+   CANCEL BUTTON
+   --------------------------------------------------------- */
+
+.add-student-modal .add-student-cancel {
+    display: inline-flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    height: 46px !important;
+
+    min-width: 112px !important;
+
+    padding: 0 20px !important;
+
+    background: #f1f5f9 !important;
+
+    color: #475569 !important;
+
+    border: 1px solid #e2e8f0 !important;
+
+    border-radius: 8px !important;
+
+    font-family: var(--font-primary) !important;
+
+    font-size: 0.82rem !important;
+
+    font-weight: 600 !important;
+
+    cursor: pointer !important;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease !important;
+}
+
+
+.add-student-modal .add-student-cancel:hover {
+    background: #e2e8f0 !important;
+
+    transform: translateY(-1px) !important;
+}
+
+
+/* ---------------------------------------------------------
+   SAVE BUTTON
+   --------------------------------------------------------- */
+
+.add-student-modal .add-student-save {
+    display: inline-flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    gap: 7px !important;
+
+    height: 46px !important;
+
+    min-width: 168px !important;
+
+    padding: 0 20px !important;
+
+    background: #3b82f6 !important;
+
+    color: #ffffff !important;
+
+    border: none !important;
+
+    border-radius: 8px !important;
+
+    font-family: var(--font-primary) !important;
+
+    font-size: 0.82rem !important;
+
+    font-weight: 600 !important;
+
+    cursor: pointer !important;
+
+    box-shadow:
+        0 4px 10px rgba(59, 130, 246, 0.22) !important;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease !important;
+}
+
+
+.add-student-modal .add-student-save:hover {
+    background: #2563eb !important;
+
+    transform: translateY(-1px) !important;
+
+    box-shadow:
+        0 6px 14px rgba(59, 130, 246, 0.28) !important;
+}
+
+
+.add-student-modal .add-student-save:disabled {
+    opacity: 0.65 !important;
+
+    cursor: not-allowed !important;
+
+    transform: none !important;
+}
+
+
+/* ---------------------------------------------------------
+   SCROLLBAR
+   --------------------------------------------------------- */
+
+.add-student-modal .add-student-box::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+
+.add-student-modal .add-student-box::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+
+.add-student-modal .add-student-box::-webkit-scrollbar-thumb {
+    background: #cbd5e1 !important;
+
+    border-radius: 10px !important;
+}
+
+
+/* ---------------------------------------------------------
+   MOBILE
+   --------------------------------------------------------- */
+
+@media (max-width: 650px) {
+
+    .add-student-modal {
+        padding: 14px !important;
+    }
+
+
+    .add-student-modal .add-student-box {
+        width: 100% !important;
+
+        max-width: 100% !important;
+
+        max-height: 94vh !important;
+
+        padding: 22px !important;
+
+        border-radius: 15px !important;
+    }
+
+
+    .add-student-modal .add-student-form-grid {
+        grid-template-columns: 1fr !important;
+
+        gap: 15px !important;
+    }
+
+
+    .add-student-modal .add-student-field.full-width {
+        grid-column: auto !important;
+    }
+
+
+    .add-student-modal .add-student-actions {
+        flex-direction: column-reverse !important;
+
+        align-items: stretch !important;
+    }
+
+
+    .add-student-modal .add-student-cancel,
+    .add-student-modal .add-student-save {
+        width: 100% !important;
+
+        min-width: 0 !important;
+    }
+
+}/* =========================================================
+   STUDENT TABLE SEARCH - FINAL UI
+   ========================================================= */
+
+.student-table-search {
+    width: 100% !important;
+
+    display: flex !important;
+    align-items: center !important;
+
+    position: relative !important;
+
+    margin: 0 0 18px 0 !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* Search icon */
+
+.student-table-search i {
+    position: absolute !important;
+
+    left: 16px !important;
+    top: 50% !important;
+
+    transform: translateY(-50%) !important;
+
+    z-index: 2 !important;
+
+    color: #94a3b8 !important;
+
+    font-size: 16px !important;
+
+    pointer-events: none !important;
+}
+
+
+/* Search input */
+
+.student-table-search input {
+    width: 100% !important;
+
+    height: 46px !important;
+
+    margin: 0 !important;
+
+    padding: 0 16px 0 44px !important;
+
+    box-sizing: border-box !important;
+
+    background: #0f141c !important;
+
+    color: #f8fafc !important;
+
+    border: 1px solid #2a3340 !important;
+
+    border-radius: 9px !important;
+
+    outline: none !important;
+
+    font-family: var(--font-primary) !important;
+
+    font-size: 0.82rem !important;
+
+    line-height: 46px !important;
+
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        box-shadow 0.2s ease !important;
+}
+
+
+/* Placeholder */
+
+.student-table-search input::placeholder {
+    color: #7f8da3 !important;
+
+    opacity: 1 !important;
+}
+
+
+/* Hover */
+
+.student-table-search input:hover {
+    border-color: #3a4655 !important;
+
+    background: #111822 !important;
+}
+
+
+/* Focus */
+
+.student-table-search input:focus {
+    border-color: #3b82f6 !important;
+
+    background: #101722 !important;
+
+    box-shadow:
+        0 0 0 3px rgba(59, 130, 246, 0.12) !important;
+}
+
+
+/* Change icon when input is focused */
+
+.student-table-search:focus-within i {
+    color: #60a5fa !important;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .student-table-search {
+        margin-bottom: 14px !important;
+    }
+
+    .student-table-search input {
+        height: 44px !important;
+
+        line-height: 44px !important;
+
+        padding-left: 42px !important;
+    }
+
+    .student-table-search i {
+        left: 15px !important;
+    }
+
+}
+/* =========================================================
+   STUDENT TABLE SEARCH - LIGHT / WHITE MODE
+   ========================================================= */
+
+html[data-theme="light"] .student-table-search input,
+body.light-mode .student-table-search input {
+    background: #ffffff !important;
+
+    color: #1f2937 !important;
+
+    border: 1px solid #d9e1ea !important;
+
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+
+html[data-theme="light"] .student-table-search input::placeholder,
+body.light-mode .student-table-search input::placeholder {
+    color: #94a3b8 !important;
+
+    opacity: 1 !important;
+}
+
+
+html[data-theme="light"] .student-table-search input:hover,
+body.light-mode .student-table-search input:hover {
+    background: #ffffff !important;
+
+    border-color: #c5cfdb !important;
+}
+
+
+html[data-theme="light"] .student-table-search input:focus,
+body.light-mode .student-table-search input:focus {
+    background: #ffffff !important;
+
+    color: #1f2937 !important;
+
+    border-color: #3b82f6 !important;
+
+    box-shadow:
+        0 0 0 3px rgba(59, 130, 246, 0.12) !important;
+}
+
+
+html[data-theme="light"] .student-table-search i,
+body.light-mode .student-table-search i {
+    color: #64748b !important;
+}
+
+
+html[data-theme="light"] .student-table-search:focus-within i,
+body.light-mode .student-table-search:focus-within i {
+    color: #3b82f6 !important;
+}
