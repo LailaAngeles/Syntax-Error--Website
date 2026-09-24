@@ -1,4 +1,3 @@
-
 :root {
     --bg-color: #0d0f12;
     --card-bg: #161a22;
@@ -29,7 +28,6 @@ body {
     position: relative;
 }
 
-
 .background-blobs {
     position: fixed;
     top: 0;
@@ -45,7 +43,7 @@ body {
     height: 500px;
     background: var(--sti-yellow);
     filter: blur(120px);
-    opacity: 0.05; /* Dropped opacity to fit dark theme seamlessly */
+    opacity: 0.05;
     border-radius: 50%;
 }
 
@@ -63,20 +61,23 @@ body {
     border: 2px solid var(--border);
     margin: 20px;
 }
-/* --- Forgot Password Options --- */
-.options {
-    text-align: right;
+
+/* --- SIDE-BY-SIDE OPTIONS ROW (Remember Me & Forgot Password) --- */
+.form-row-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
 }
 
-.options a {
+.form-row-options a {
     color: var(--text-muted);
     font-size: 12px;
     text-decoration: none;
     transition: color 0.2s;
 }
 
-.options a:hover {
+.form-row-options a:hover {
     color: var(--neon-green);
 }
 
@@ -94,6 +95,7 @@ body {
     color: var(--text-main) !important;
     border-color: var(--text-muted) !important;
 }
+
 /* --- HEADER SYSTEM --- */
 .header {
     text-align: center;
@@ -200,7 +202,7 @@ h1 {
     color: var(--text-main);
 }
 
-/* --- TERMS AND PRIVACY CHECKBOX LAYOUT --- */
+/* --- TERMS AND CHECKBOX LAYOUT --- */
 .terms-group {
     margin: 15px 0 20px;
     text-align: left;
@@ -209,7 +211,7 @@ h1 {
 .terms-label {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     font-size: 12px;
     color: var(--text-muted);
     cursor: pointer;
@@ -318,15 +320,12 @@ h1 {
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px); 
     z-index: 9999;
-    
-    
-    display: none;
     justify-content: center;
     align-items: center;
     padding: 20px;
 }
+
 .popup-content {
-    
     background: var(--card-bg);
     padding: 30px;
     border-radius: 12px;
@@ -397,6 +396,7 @@ h1 {
     margin-top: 5px;
     display: none;
 }
+
 /* Container for the Feedback Popup */
 #emailFeedbackPopup {
     position: fixed;
@@ -404,25 +404,13 @@ h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85); /* Dark overlay */
-    display: none; /* Hidden by default */
+    background: rgba(0, 0, 0, 0.85);
+    display: none;
     justify-content: center;
     align-items: center;
     z-index: 9999;
 }
 
-/* Sections inside the popup */
-#inputSection, #successSection {
-    background: #ffffff; /* Adjust to match your theme background */
-    padding: 30px;
-    border-radius: 15px;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-}
-
-/* Ensure consistent button styling */
 #sendResetBtn, #closeFeedbackBtn {
     margin-top: 20px;
     padding: 12px 20px;
@@ -436,8 +424,3 @@ h1 {
 
 #sendResetBtn { background-color: var(--neon-green); color: #000; }
 #closeFeedbackBtn { background-color: #333; color: #fff; }
-
-/* Hide success section initially */
-#successSection {
-    display: none;
-}
