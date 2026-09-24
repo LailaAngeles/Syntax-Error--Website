@@ -54,14 +54,36 @@
 <div class="top-controls">
     <h3>Archived Records</h3>
     <div style="display: flex; gap: 10px; align-items: center;">
-        <button id="delete-all-btn" class="danger-btn" style="background: #ef4444; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-            <i class="bi bi-trash-fill"></i> Delete All
-        </button>
-        <div class="search-container">
-            <i class="bi bi-search"></i>
-            <input type="text" id="search-archive" placeholder="Search archives by name or ID...">
-        </div>
-    </div>
+    <button id="delete-all-btn" class="danger-btn"
+        style="
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            white-space: nowrap;
+            font-size: 14px;
+            font-weight: 500;
+            height: 42px;
+        ">
+        <i class="bi bi-trash-fill"></i>
+        <span>Delete All</span>
+    </button>
+
+   <div class="search-container">
+    <i class="bi bi-search"></i>
+    <input 
+        type="text" 
+        id="search-archive" 
+        placeholder="Search archives by name or ID..."
+    >
+</div>
+</div>
 </div>
 
 <!-- Place this modal near your other modals at the bottom of the body -->

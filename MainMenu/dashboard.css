@@ -16,8 +16,8 @@ html[data-theme="light"] {
     --mastery-color: #10b981;
     --badge-text: #ffffff;
     --popup-overlay: rgba(0, 0, 0, 0.5);
-    --font-primary: 'Fira Code', monospace;
-    --font-heading: 'Orbitron', sans-serif;
+    --font-primary: 'Inter', 'Segoe UI', Arial, sans-serif;
+    --font-heading: 'Inter', 'Segoe UI', Arial, sans-serif;
     --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
@@ -39,8 +39,8 @@ html[data-theme="dark"] {
     --mastery-color: #39ff14; 
     --badge-text: #000000;    
     --popup-overlay: rgba(13, 15, 18, 0.8);
-    --font-primary: 'Fira Code', monospace;
-    --font-heading: 'Orbitron', sans-serif;
+    --font-primary: 'Inter', 'Segoe UI', Arial, sans-serif;
+    --font-heading: 'Inter', 'Segoe UI', Arial, sans-serif;
     --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
@@ -473,22 +473,45 @@ html[data-theme="dark"] .red-badge {
 }
 
 .search-container {
-    position: relative;
     display: flex;
     align-items: center;
-    width: 100%;
-    max-width: 350px;
+    width: 280px;
+    height: 42px;
+    background: #151820;
+    border: 1px solid #252b35;
+    border-radius: 7px;
+    padding: 0 12px;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-container i {
+    font-size: 16px;
+    color: #94a3b8;
+    margin-right: 9px;
+    flex-shrink: 0;
 }
 
 .search-container input {
     width: 100%;
-    padding: 10px 10px 10px 35px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background-color: var(--card-bg);
-    color: var(--text-main);
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #e5e7eb;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    padding: 0;
 }
 
+.search-container input::placeholder {
+    color: #64748b;
+}
+
+.search-container:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+}
 .empty-state {
     text-align: center;
     color: var(--text-muted);
