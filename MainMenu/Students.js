@@ -40,6 +40,8 @@ let sectionDocMapping = {};
 let difficultyChart;
 let sectionPieChartInstance = null;
 let overallColumnChartInstance = null;
+let modalAttemptProgressChart = null;
+let currentStudentForAttemptChart = null;
 function getSubjectContentWrongs(studentDoc) {
     const subjectContent = studentDoc["Subject Content"] || studentDoc.subjectContent;
     const categoryAffected = {};
@@ -616,6 +618,441 @@ window.toggleConceptDetail = function(detailsId, btnId) {
         : `<span>View Details</span> <i class="bi bi-chevron-down"></i>`;
 };
 
+// Extract the real learning structure from Firestore.
+// Structure used:
+// Subject Content -> Main Subject/Category -> Subtopic -> wrongAttempts
+function getStudentConceptDifficulty(studentData) {
+    const subjectContent = studentData?.["Subject Content"] || studentData?.subjectContent;
+    const categoryTotals = {};
+
+    if (!subjectContent || typeof subjectContent !== "object") {
+        return [];
+    }
+
+    // SUMMARY VIEW:
+    // Only use the MAIN SUBJECT/CATEGORY as the chart item.
+    // Do not show FirstAttempt, SecondAttempt, ThirdAttempt,
+    // or individual subtopics such as integer, boolean, printing, etc.
+    // All wrong attempts under the same main category are combined.
+    for (const mainCategory in subjectContent) {
+        const categoryData = subjectContent[mainCategory];
+        if (typeof categoryData !== "object" || categoryData === null) continue;
+
+        let totalWrongAttempts = 0;
+
+        function collectWrongAttempts(obj) {
+            for (const key in obj) {
+                const value = obj[key];
+
+                if (typeof value !== "object" || value === null || value instanceof Date) {
+                    continue;
+                }
+
+                if (Object.prototype.hasOwnProperty.call(value, "wrongAttempts")) {
+                    totalWrongAttempts += Math.max(0, Number(value.wrongAttempts) || 0);
+                } else {
+                    collectWrongAttempts(value);
+                }
+            }
+        }
+
+        collectWrongAttempts(categoryData);
+
+        // One chart item per MAIN SUBJECT only.
+        const score = Math.min(totalWrongAttempts, 10);
+
+        let difficultyLabel = "Easy";
+        if (score >= 7) {
+            difficultyLabel = "Hard";
+        } else if (score >= 4) {
+            difficultyLabel = "Moderate";
+        }
+
+        categoryTotals[mainCategory] = {
+            mainCategory,
+            wrongAttempts: totalWrongAttempts,
+            score,
+            difficultyLabel
+        };
+    }
+
+    return Object.values(categoryTotals);
+}
+
+function getDifficultyColor(score) {
+    if (score >= 7) return "#ef4444";
+    if (score >= 4) return "#f59e0b";
+    return "#10b981";
+}
+
+
+// ================================================================
+// STUDENT ATTEMPT PROGRESS CHART
+// Shows ONLY main subjects in the dropdown, while the chart uses
+// FirstAttemp / SecondAttemp / ThirdAttemp data underneath that subject.
+// This is separate from the existing Concept Difficulty chart.
+// ================================================================
+function normalizeAttemptKey(key) {
+    return String(key || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function getAttemptNumber(key) {
+    const normalized = normalizeAttemptKey(key);
+    if (normalized === "firstattemp" || normalized === "firstattempt") return 1;
+    if (normalized === "secondattemp" || normalized === "secondattempt") return 2;
+    if (normalized === "thirdattemp" || normalized === "thirdattempt") return 3;
+    return 0;
+}
+
+function sumWrongAttemptsDeep(obj) {
+    let total = 0;
+    if (!obj || typeof obj !== "object") return 0;
+
+    for (const key in obj) {
+        const value = obj[key];
+        if (typeof value !== "object" || value === null || value instanceof Date) continue;
+
+        if (Object.prototype.hasOwnProperty.call(value, "wrongAttempts")) {
+            total += Math.max(0, Number(value.wrongAttempts) || 0);
+        }
+
+        // Continue searching because an attempt can contain multiple activities.
+        total += sumWrongAttemptsDeep(value);
+    }
+
+    return total;
+}
+
+function formatMainSubjectName(subject) {
+    return String(subject || "")
+        .replace(/[_-]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .replace(/\b\w/g, char => char.toUpperCase());
+}
+
+function getStudentMainSubjects(studentData) {
+    const subjectContent = studentData?.["Subject Content"] || studentData?.subjectContent;
+    if (!subjectContent || typeof subjectContent !== "object") return [];
+
+    return Object.keys(subjectContent).filter(key => {
+        return subjectContent[key] && typeof subjectContent[key] === "object" && !Array.isArray(subjectContent[key]);
+    });
+}
+
+function getMainSubjectAttemptData(studentData, mainSubject) {
+    const subjectContent = studentData?.["Subject Content"] || studentData?.subjectContent;
+    const subjectData = subjectContent?.[mainSubject];
+
+    const attempts = {
+        1: { wrongAttempts: 0, found: false },
+        2: { wrongAttempts: 0, found: false },
+        3: { wrongAttempts: 0, found: false }
+    };
+
+    if (!subjectData || typeof subjectData !== "object") return attempts;
+
+    function walk(obj) {
+        if (!obj || typeof obj !== "object" || obj instanceof Date) return;
+
+        for (const key in obj) {
+            const value = obj[key];
+            if (!value || typeof value !== "object" || value instanceof Date) continue;
+
+            const attemptNumber = getAttemptNumber(key);
+            if (attemptNumber > 0) {
+                attempts[attemptNumber].found = true;
+                attempts[attemptNumber].wrongAttempts += sumWrongAttemptsDeep(value);
+                // Do not walk this same attempt again or its wrongAttempts would be double-counted.
+                continue;
+            }
+
+            walk(value);
+        }
+    }
+
+    walk(subjectData);
+    return attempts;
+}
+
+function updateAttemptProgressSummary(attempts) {
+    const values = [1, 2, 3].map(n => attempts[n]?.found ? attempts[n].wrongAttempts : null);
+    const ids = ["first-attempt-wrongs", "second-attempt-wrongs", "third-attempt-wrongs"];
+
+    ids.forEach((id, index) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = values[index] === null ? "--" : values[index];
+    });
+
+    const message = document.getElementById("attempt-improvement-summary");
+    if (!message) return;
+
+    message.classList.remove("is-improving", "is-increasing", "is-neutral");
+
+    const recorded = values.filter(v => v !== null);
+    if (recorded.length < 2) {
+        message.textContent = recorded.length === 0
+            ? "No attempt data has been recorded for this subject yet."
+            : "Only one attempt is recorded, so improvement cannot be compared yet.";
+        message.classList.add("is-neutral");
+        return;
+    }
+
+    const first = values.find(v => v !== null);
+    const latest = [...values].reverse().find(v => v !== null);
+
+    if (first === null || latest === null) return;
+
+    if (latest < first) {
+        const improvement = first > 0 ? Math.round(((first - latest) / first) * 100) : 0;
+        message.textContent = `Improvement: wrong attempts decreased by ${improvement}% (${first} → ${latest}).`;
+        message.classList.add("is-improving");
+    } else if (latest > first) {
+        const increase = first > 0 ? Math.round(((latest - first) / first) * 100) : 0;
+        message.textContent = `Wrong attempts increased by ${increase}% (${first} → ${latest}).`;
+        message.classList.add("is-increasing");
+    } else {
+        message.textContent = `No change in wrong attempts (${first} → ${latest}).`;
+        message.classList.add("is-neutral");
+    }
+}
+
+function renderStudentAttemptProgressChart(studentData, selectedSubject = "") {
+    const canvas = document.getElementById("attemptProgressChart");
+    const select = document.getElementById("attempt-subject-select");
+    if (!canvas || !select) return;
+
+    currentStudentForAttemptChart = studentData;
+
+    if (modalAttemptProgressChart instanceof Chart) {
+        modalAttemptProgressChart.destroy();
+        modalAttemptProgressChart = null;
+    }
+
+    const subjects = getStudentMainSubjects(studentData);
+    const previousValue = selectedSubject || select.value;
+
+    select.innerHTML = `<option value="">Select a subject...</option>`;
+    subjects.forEach(subject => {
+        const option = document.createElement("option");
+        option.value = subject;
+        option.textContent = formatMainSubjectName(subject);
+        select.appendChild(option);
+    });
+
+    const subjectToUse = subjects.includes(previousValue) ? previousValue : (subjects[0] || "");
+    select.value = subjectToUse;
+
+    if (!subjectToUse) {
+        updateAttemptProgressSummary({
+            1: { found: false, wrongAttempts: 0 },
+            2: { found: false, wrongAttempts: 0 },
+            3: { found: false, wrongAttempts: 0 }
+        });
+        return;
+    }
+
+    const attempts = getMainSubjectAttemptData(studentData, subjectToUse);
+    updateAttemptProgressSummary(attempts);
+
+    const values = [1, 2, 3].map(number => attempts[number].found ? attempts[number].wrongAttempts : null);
+    const labels = ["1st Attempt", "2nd Attempt", "3rd Attempt"];
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const theme = document.documentElement.getAttribute("data-theme") || "light";
+    const isDark = theme === "dark";
+    const chartTextColor = getComputedStyle(document.documentElement)
+        .getPropertyValue("--text-muted").trim() || (isDark ? "#8b949e" : "#64748b");
+    const chartGridColor = isDark ? "rgba(148, 163, 184, 0.12)" : "rgba(148, 163, 184, 0.18)";
+    const chartBorderColor = isDark ? "#007aff" : "#3b82f6";
+    const chartFillColor = isDark ? "rgba(0, 122, 255, 0.14)" : "rgba(59, 130, 246, 0.12)";
+
+    modalAttemptProgressChart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels,
+            datasets: [{
+                label: "Wrong Attempts",
+                data: values,
+                borderColor: chartBorderColor,
+                backgroundColor: chartFillColor,
+                pointBackgroundColor: chartBorderColor,
+                pointBorderColor: isDark ? "#161a22" : "#ffffff",
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                borderWidth: 3,
+                tension: 0.25,
+                fill: true,
+                spanGaps: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: "index",
+                intersect: false
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: items => items.length ? labels[items[0].dataIndex] : "",
+                        label: context => {
+                            const value = context.raw;
+                            return value === null || value === undefined
+                                ? " No data recorded"
+                                : ` Wrong Attempts: ${value}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: "Wrong Attempts", color: chartTextColor },
+                    ticks: { color: chartTextColor, stepSize: 1 },
+                    grid: { color: chartGridColor }
+                },
+                x: {
+                    ticks: { color: chartTextColor },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+}
+
+function setupAttemptProgressDropdown() {
+    const select = document.getElementById("attempt-subject-select");
+    if (!select || select.dataset.bound === "true") return;
+
+    select.dataset.bound = "true";
+    select.addEventListener("change", function() {
+        if (currentStudentForAttemptChart) {
+            renderStudentAttemptProgressChart(currentStudentForAttemptChart, this.value);
+        }
+    });
+}
+
+function renderConceptDifficultyChart(studentData) {
+    const canvas = document.getElementById("modalDifficultyChart");
+    if (!canvas) return null;
+
+    if (window.modalDifficultyChart instanceof Chart) {
+        window.modalDifficultyChart.destroy();
+    }
+
+    const concepts = getStudentConceptDifficulty(studentData);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+
+    if (concepts.length === 0) {
+        const parent = canvas.parentElement;
+        if (parent) {
+            parent.innerHTML = `
+                <div style="height:100%; min-height:260px; display:flex; align-items:center; justify-content:center; text-align:center; color:#94a3b8; padding:20px;">
+                    No detailed concept difficulty data is available for this student yet.
+                </div>
+            `;
+        }
+        return null;
+    }
+
+    // SUMMARY CHART: one bar for each MAIN SUBJECT only.
+    const labels = concepts.map(item =>
+        String(item.mainCategory).replace(/_/g, " ")
+    );
+
+    const values = concepts.map(item => item.score);
+    const backgroundColors = values.map(getDifficultyColor);
+
+    // Keep the summary compact even when Firebase contains many attempts/subtopics.
+    const chartBox = canvas.parentElement;
+    if (chartBox) {
+        chartBox.style.minHeight = `${Math.max(260, concepts.length * 70)}px`;
+    }
+
+    window.modalDifficultyChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels,
+            datasets: [{
+                label: "Difficulty",
+                data: values,
+                borderRadius: 6,
+                borderSkipped: false,
+                backgroundColor: backgroundColors,
+                barThickness: 24
+            }]
+        },
+        options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: "nearest",
+                intersect: true
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: function(items) {
+                            if (!items.length) return "";
+                            const concept = concepts[items[0].dataIndex];
+                            return String(concept.mainCategory).replace(/_/g, " ");
+                        },
+                        label: function(context) {
+                            const concept = concepts[context.dataIndex];
+                            return [
+                                ` Difficulty: ${concept.difficultyLabel}`,
+                                ` Wrong Attempts: ${concept.wrongAttempts}`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 10,
+                    ticks: {
+                        stepSize: 1
+                    },
+                    title: {
+                        display: true,
+                        text: "Difficulty Score"
+                    },
+                    grid: {
+                        color: "rgba(148, 163, 184, 0.18)"
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        autoSkip: false,
+                        padding: 8,
+                        font: function(context) {
+                            return {
+                                size: 12,
+                                weight: Array.isArray(context.tick?.label) ? 500 : 400
+                            };
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    return concepts;
+}
+
 window.viewStudent = function(studentId) {
     const student = allStudents.find(s => s.id === studentId);
     if (!student) return;
@@ -631,22 +1068,28 @@ window.viewStudent = function(studentId) {
     document.getElementById("modal-idle").textContent = (student.idleTime || "0") + "m";
     renderConceptBreakdown(student);
 
-    const topics = [
-        "C# Basic Concepts",
-        "Conditionals and Loops",
-        "Methods",
-        "Classes and Objects",
-        "Arrays and Strings",
-        "Advanced Class Concepts",
-        "Inheritance & Polymorphism"
-    ];
+    // NEW: populate the main-subject dropdown and attempt improvement chart.
+    setupAttemptProgressDropdown();
+    renderStudentAttemptProgressChart(student);
 
-    const difficulty = student.difficulty || [0, 0, 0, 0, 0, 0, 0];
-    const highest = Math.max(...difficulty);
-    const weakestIndex = difficulty.indexOf(highest);
+    // Use the actual Firebase Subject Content hierarchy for the difficulty view.
+    const concepts = renderConceptDifficultyChart(student) || [];
+
+    const hardestConcept = concepts.length > 0
+        ? concepts.reduce((hardest, current) => {
+            return current.score > hardest.score ? current : hardest;
+        }, concepts[0])
+        : null;
+
+    const highest = hardestConcept ? hardestConcept.score : 0;
+    // Since the chart is a MAIN SUBJECT summary, the weakest item is also
+    // reported as the main subject only (no attempt/subtopic path).
+    const weakestTopic = hardestConcept
+        ? String(hardestConcept.mainCategory).replace(/_/g, " ")
+        : "--";
 
     document.getElementById("modal-difficulty").textContent = `${highest}/10`;
-    document.getElementById("modal-weakest-topic").textContent = topics[weakestIndex] || "--";
+    document.getElementById("modal-weakest-topic").textContent = weakestTopic;
 
     const statusBox = document.getElementById("status-card");
     const statusTitle = document.getElementById("modal-status-title");
@@ -666,9 +1109,9 @@ window.viewStudent = function(studentId) {
         if (analysisBox) {
             analysisBox.innerHTML = `
                 <div style="border-left: 4px solid #ef4444; padding: 10px; background: #fef2f2;">
-                    <strong style="color: #b91c1c;">Gap Detected: ${topics[weakestIndex]}</strong>
+                    <strong style="color: #b91c1c;">Gap Detected: ${weakestTopic}</strong>
                     <p style="font-size: 0.85rem; margin-top: 5px; color: #b91c1c;">
-                        Repeated incorrect attempts in ${topics[weakestIndex]}. Recommend review of Laboratory Activity 1-3.
+                        Repeated incorrect attempts were recorded in ${weakestTopic}.
                     </p>
                 </div>`;
         }
@@ -687,43 +1130,20 @@ window.viewStudent = function(studentId) {
                 <div style="border-left: 4px solid #10b981; padding: 10px; background: #f0fdf4;">
                     <strong style="color: #15803d;">Performance: On Track</strong>
                     <p style="font-size: 0.85rem; margin-top: 5px; color: #15803d;">
-                        Student demonstrates strong understanding. Ready for 1st Periodical Examination.
+                        Student demonstrates strong understanding across the recorded concepts.
                     </p>
                 </div>`;
         }
-    }
-
-    const ctx = document.getElementById("modalDifficultyChart")?.getContext("2d");
-    if (ctx) {
-        if (window.modalDifficultyChart instanceof Chart) {
-            window.modalDifficultyChart.destroy();
-        }
-
-        window.modalDifficultyChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ["Basics", "Logic", "Methods", "Classes", "Arrays", "Adv. Class", "OOP"],
-                datasets: [{
-                    data: difficulty,
-                    borderRadius: 6,
-                    backgroundColor: difficulty.map(v => v >= 7 ? '#ef4444' : (v >= 4 ? '#f59e0b' : '#10b981'))
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } },
-                    x: { grid: { display: false } }
-                }
-            }
-        });
     }
 };
 
 window.closeStudentModal = function(){
     document.getElementById("student-details-modal").style.display = "none";
+    if (modalAttemptProgressChart instanceof Chart) {
+        modalAttemptProgressChart.destroy();
+        modalAttemptProgressChart = null;
+    }
+    currentStudentForAttemptChart = null;
 };
 function updateRecommendations(conceptMapOverall, totalStudentsCount) {
     const container = document.getElementById("recommendations-container");
@@ -1811,6 +2231,13 @@ function applyTheme(theme) {
         if (icon) {
             icon.className = (theme === "dark") ? "bi bi-sun-fill" : "bi bi-moon-stars-fill";
         }
+    }
+
+    // Refresh the attempt chart colors when the dashboard theme changes.
+    const attemptSelect = document.getElementById("attempt-subject-select");
+    const attemptCanvas = document.getElementById("attemptProgressChart");
+    if (attemptSelect && attemptCanvas && currentStudentForAttemptChart) {
+        renderStudentAttemptProgressChart(currentStudentForAttemptChart, attemptSelect.value);
     }
 }
 

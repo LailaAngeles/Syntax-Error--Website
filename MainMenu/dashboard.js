@@ -22,19 +22,18 @@ const auth = getAuth(app);
 let allStudentsData = [];
 let mySections = [];
 let trendChart;
-let distChart;
 
-
+// Dynamic Concepts list fallback
 const concepts = [
-    "C# Basic Concepts (Variables, I/O)",   // Week 1-2 [cite: 8]
-    "Conditionals and Loops",               // Week 3-4 [cite: 8]
-    "Methods (Overloading, Recursion)",     // Week 5-6 [cite: 10]
-    "Classes and Objects",                  // Week 7-8 [cite: 10]
-    "Arrays and Strings",                   // Week 10-11 
-    "Advanced Classes (Static, Indexers)",  // Week 12 
-    "Inheritance and Polymorphism",         // Week 13-14 
-    "Exceptions and Files",                 // Week 15 [cite: 12]
-    "Generics and Collections"              // Week 16 [cite: 12]
+    "C# Basic Concepts (Variables, I/O)",
+    "Conditionals and Loops",
+    "Methods (Overloading, Recursion)",
+    "Classes and Objects",
+    "Arrays and Strings",
+    "Advanced Classes (Static, Indexers)",
+    "Inheritance and Polymorphism",
+    "Exceptions and Files",
+    "Generics and Collections"
 ];
 
 // ----------------------------
@@ -42,17 +41,17 @@ const concepts = [
 // ----------------------------
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
-        window.location.href = "dashboard.html";
+        window.location.href = "../index.html";
         return;
     }
     await loadTeacherDashboard(user);
 });
-// --- DYNAMIC MATRIX THEME ENGINE INITIALIZATION ---
+
+// --- THEME ENGINE INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {
     const themeToggleBtn = document.getElementById("theme-toggle");
     const htmlElement = document.documentElement;
 
-    // Load saved preference state, fallback to system mode default
     const savedTheme = localStorage.getItem("dashboard-theme") || "light";
     htmlElement.setAttribute("data-theme", savedTheme);
     updateToggleIcon(savedTheme);
@@ -69,44 +68,37 @@ document.addEventListener("DOMContentLoaded", () => {
     function updateToggleIcon(theme) {
         const icon = themeToggleBtn?.querySelector("i");
         if (icon) {
-            if (theme === "dark") {
-                icon.className = "bi bi-sun-fill";
-            } else {
-                icon.className = "bi bi-moon-stars-fill";
-            }
+            icon.className = theme === "dark" ? "bi bi-sun-fill" : "bi bi-moon-stars-fill";
         }
     }
 });
+
 async function loadTeacherDashboard(user) {
-   
     const loader = document.getElementById("loading-overlay");
     if (loader) loader.style.display = "flex";
 
     try {
-       
         const q = query(collection(db, "approvedUsers"), where("email", "==", user.email));
         const userSnap = await getDocs(q);
         userSnap.forEach(doc => { mySections = doc.data().section || []; });
 
-        document.getElementById("user-section-display").textContent = mySections.join(", ");
+        const sectionDisplay = document.getElementById("user-section-display");
+        if (sectionDisplay) sectionDisplay.textContent = mySections.join(", ");
 
-        // Fetch ClassList from each assigned section
         const sectionSnap = await getDocs(collection(db, "sections"));
         const select = document.getElementById("section-select");
 
-        // Reset data for fresh load
         allStudentsData = [];
         if (select) select.innerHTML = '<option value="">All My Sections</option>';
         
         for (const sDoc of sectionSnap.docs) {
             const sName = sDoc.data().name;
             if (mySections.includes(sName)) {
-                // Populate Dropdown
                 const opt = document.createElement("option");
-                opt.value = sName; opt.textContent = sName;
+                opt.value = sName; 
+                opt.textContent = sName;
                 if (select) select.appendChild(opt);
 
-                // Fetch subcollection: sections/[id]/classList
                 const classSnap = await getDocs(collection(db, "sections", sDoc.id, "classList"));
                 classSnap.forEach(student => {
                     allStudentsData.push({ ...student.data(), section: sName });
@@ -120,9 +112,33 @@ async function loadTeacherDashboard(user) {
     } catch (error) {
         console.error("Dashboard Load Error:", error);
     } finally {
-        // 2. HIDE LOADING OVERLAY
         if (loader) loader.style.display = "none";
     }
+}
+
+// Helper to extract whole-number metrics safely from Firestore nested maps
+function extractNumericMetrics(obj) {
+    let total = 0;
+    let count = 0;
+
+    function recurse(node) {
+        if (node === null || node === undefined) return;
+        if (typeof node === "number" && node >= 1 && node <= 10) {
+            total += node;
+            count++;
+        } else if (typeof node === "string") {
+            const parsed = parseFloat(node);
+            if (!isNaN(parsed) && parsed >= 1 && parsed <= 10) {
+                total += parsed;
+                count++;
+            }
+        } else if (typeof node === "object") {
+            Object.values(node).forEach(val => recurse(val));
+        }
+    }
+
+    recurse(obj);
+    return count > 0 ? Math.round(total / count) : 3;
 }
 
 // ----------------------------
@@ -135,97 +151,165 @@ function renderAnalytics(filterSection) {
 
     const students = filterSection ? allStudentsData.filter(s => s.section === filterSection) : allStudentsData;
     
-    // Preparation for Charts & Stats
     let criticalCount = 0;
     let masteryCount = 0;
     let reviewCount = 0;
     const avgScores = [];
+    const dynamicTopicsMap = {};
 
-    concepts.forEach((concept, i) => {
-        let totalScore = 0;
-        let count = 0;
-
-        students.forEach(s => {
-            // Difficulty array from game corresponds to the lesson index
-            if (s.difficulty && s.difficulty[i] !== undefined) {
-                totalScore += s.difficulty[i];
-                count++;
-            }
-        });
-
-        const avg = count > 0 ? parseFloat((totalScore / count).toFixed(1)) : 0;
-        avgScores.push(avg);
-
-        let status, badgeClass;
-        if (avg >= 7.5) {
-            status = "Hardest Topic"; 
-            badgeClass = "red-badge";
-            criticalCount++;
-        } else if (avg >= 4.5) {
-            status = "Needs Review";
-            badgeClass = "orange-badge";
-            reviewCount++;
-        } else {
-            status = "Mastered";
-            badgeClass = "green-badge";
-            masteryCount++;
+    students.forEach(s => {
+        const subContent = s["Subject Content"] || s.subjectContent;
+        if (subContent && typeof subContent === "object") {
+            Object.keys(subContent).forEach(mainCat => {
+                const catData = subContent[mainCat];
+                if (!dynamicTopicsMap[mainCat]) {
+                    dynamicTopicsMap[mainCat] = { total: 0, count: 0 };
+                }
+                const metric = extractNumericMetrics(catData);
+                dynamicTopicsMap[mainCat].total += (metric > 0 ? metric : 3);
+                dynamicTopicsMap[mainCat].count += 1;
+            });
         }
-
-        // Inject Row with Curriculum Lesson Name
-        table.innerHTML += `
-            <tr>
-                <td><strong>Module ${i+1}:</strong> ${concept}</td>
-                <td>${avg} / 10</td>
-                <td><span class="status-dot ${badgeClass}">${status}</span></td>
-            </tr>
-        `;
     });
 
-    // Update Summary Cards
+    const dynamicKeys = Object.keys(dynamicTopicsMap);
+    
+    if (dynamicKeys.length > 0) {
+        dynamicKeys.forEach((topicLabel) => {
+            const stats = dynamicTopicsMap[topicLabel];
+            const avg = stats.count > 0 ? Math.round(stats.total / stats.count) : 0;
+            avgScores.push(avg);
+
+            let status, badgeClass;
+            if (avg >= 8) {
+                status = "Hardest Topic"; 
+                badgeClass = "red-badge";
+                criticalCount++;
+            } else if (avg >= 5) {
+                status = "Needs Review";
+                badgeClass = "orange-badge";
+                reviewCount++;
+            } else {
+                status = "Mastered";
+                badgeClass = "green-badge";
+                masteryCount++;
+            }
+
+            table.innerHTML += `
+                <tr>
+                    <td><strong>${topicLabel}</strong></td>
+                    <td>${avg} / 10</td>
+                    <td><span class="status-dot ${badgeClass}">${status}</span></td>
+                </tr>
+            `;
+        });
+    } else {
+        concepts.forEach((concept, i) => {
+            let totalScore = 0;
+            let count = 0;
+
+            students.forEach(s => {
+                if (s.difficulty && s.difficulty[i] !== undefined) {
+                    totalScore += Number(s.difficulty[i]);
+                    count++;
+                }
+            });
+
+            const avg = count > 0 ? Math.round(totalScore / count) : 0;
+            avgScores.push(avg);
+
+            let status, badgeClass;
+            if (avg >= 8) {
+                status = "Hardest Topic"; badgeClass = "red-badge"; criticalCount++;
+            } else if (avg >= 5) {
+                status = "Needs Review"; badgeClass = "orange-badge"; reviewCount++;
+            } else {
+                status = "Mastered"; badgeClass = "green-badge"; masteryCount++;
+            }
+
+            table.innerHTML += `
+                <tr>
+                    <td><strong>Module ${i+1}:</strong> ${concept}</td>
+                    <td>${avg} / 10</td>
+                    <td><span class="status-dot ${badgeClass}">${status}</span></td>
+                </tr>
+            `;
+        });
+    }
+
     document.getElementById("total-students").textContent = students.length;
     document.getElementById("at-risk-count").textContent = criticalCount;
-    const rate = students.length > 0 ? Math.round((masteryCount / concepts.length) * 100) : 0;
+    const totalConceptsTracked = dynamicKeys.length > 0 ? dynamicKeys.length : concepts.length;
+    const rate = students.length > 0 && totalConceptsTracked > 0 ? Math.round((masteryCount / totalConceptsTracked) * 100) : 0;
     document.getElementById("mastery-rate").textContent = rate + "%";
 
-    // Update Visualizations
-    updateTrendChart(avgScores);
-    updateDistributionChart(criticalCount, reviewCount, masteryCount);
+    updateTrendChart(avgScores, dynamicKeys.length > 0 ? dynamicKeys : concepts.map((_, i) => `Mod ${i+1}`));
+    updateMasteryDistributionList(students);
 }
 
 // ----------------------------
-// 3. CHARTS (CHART.JS)
+// 3. CHARTS & LEADERBOARDS
 // ----------------------------
-function updateTrendChart(dataValues) {
+function updateTrendChart(dataValues, labelsList) {
     const canvas = document.getElementById("overallDifficultyChart");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (trendChart) trendChart.destroy();
 
     trendChart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
-            labels: concepts.map((_, i) => `Mod ${i+1}`),
+            labels: labelsList,
             datasets: [{
                 label: 'Avg Difficulty Score',
                 data: dataValues,
-                borderColor: '#1f2937',
-                backgroundColor: 'rgba(31, 41, 55, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 5
+                backgroundColor: 'rgba(59, 130, 246, 0.75)',
+                borderColor: '#3b82f6',
+                borderWidth: 1,
+                borderRadius: 4,
+                barPercentage: 0.65
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true, max: 10 } }
+            plugins: {
+                legend: {
+                    display: false 
+                }
+            },
+            scales: { 
+                y: { 
+                    beginAtZero: true, 
+                    max: 10,
+                    ticks: {
+                        stepSize: 1
+                    },
+                    grid: {
+                        color: 'rgba(200, 200, 200, 0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        maxRotation: 30,
+                        minRotation: 0,
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            }
         }
     });
 }
+
 function updateLeaderboard(sectionId) {
     const leaderboardList = document.getElementById('leaderboard-list');
+    if (!leaderboardList) return;
     
-    // Default Look: If no section is selected
     if (!sectionId) {
         leaderboardList.innerHTML = `
             <li class="leaderboard-item empty-state">
@@ -238,9 +322,8 @@ function updateLeaderboard(sectionId) {
     leaderboardList.innerHTML = ''; 
 
     const filteredStudents = allStudentsData.filter(s => s.section === sectionId);
-    
     const topStudents = filteredStudents
-        .sort((a, b) => b.score - a.score) 
+        .sort((a, b) => (b.score || 0) - (a.score || 0)) 
         .slice(0, 5);
 
     if (topStudents.length === 0) {
@@ -252,8 +335,8 @@ function updateLeaderboard(sectionId) {
         const li = document.createElement('li');
         li.className = 'leaderboard-item';
         li.innerHTML = `
-            <span>${index + 1}. ${student.name}</span>
-            <span>${student.score} pts</span>
+            <span>${index + 1}. ${student.name || student.email || 'Student'}</span>
+            <span>${Math.round(student.score || 0)} pts</span>
         `;
         leaderboardList.appendChild(li);
     });
@@ -261,7 +344,9 @@ function updateLeaderboard(sectionId) {
 
 function initLeaderboardDropdown() {
     const select = document.getElementById('leaderboard-section-select');
+    if (!select) return;
     
+    select.innerHTML = '<option value="">Select Section</option>';
     mySections.forEach(section => {
         const option = document.createElement('option');
         option.value = section;
@@ -273,29 +358,72 @@ function initLeaderboardDropdown() {
         updateLeaderboard(e.target.value);
     });
 }
-function updateDistributionChart(red, orange, green) {
-    const canvas = document.getElementById("distributionChart");
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (distChart) distChart.destroy();
 
-    distChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Hardest', 'Review', 'Mastered'],
-            datasets: [{
-                data: [red, orange, green],
-                backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
+function updateMasteryDistributionList(students) {
+    const listContainer = document.getElementById("mastery-distribution-list");
+    if (!listContainer) return;
+
+    listContainer.innerHTML = "";
+    const topicStats = {};
+
+    students.forEach(student => {
+        const subContent = student["Subject Content"] || student.subjectContent;
+
+        if (subContent && typeof subContent === "object") {
+            Object.keys(subContent).forEach(mainCategory => {
+                const categoryData = subContent[mainCategory];
+                if (categoryData && typeof categoryData === "object") {
+                    Object.keys(categoryData).forEach(subTopic => {
+                        const topicKey = `${mainCategory} › ${subTopic}`;
+                        if (!topicStats[topicKey]) {
+                            topicStats[topicKey] = { totalScore: 0, count: 0 };
+                        }
+                        const scoreVal = extractNumericMetrics(categoryData[subTopic]) || 3;
+                        topicStats[topicKey].totalScore += scoreVal;
+                        topicStats[topicKey].count += 1;
+                    });
+                }
+            });
         }
+    });
+
+    const rankedTopics = Object.keys(topicStats).map(key => {
+        const stats = topicStats[key];
+        const avg = stats.count > 0 ? stats.totalScore / stats.count : 0;
+        return { name: key, average: Math.round(avg) };
+    });
+
+    rankedTopics.sort((a, b) => b.average - a.average);
+
+    if (rankedTopics.length === 0) {
+        listContainer.innerHTML = `
+            <li class="leaderboard-item empty-state">
+                <span>No topic difficulty data available</span>
+            </li>
+        `;
+        return;
+    }
+
+    const maxScore = Math.max(...rankedTopics.map(t => t.average), 1);
+
+    rankedTopics.forEach(topic => {
+        const percentage = Math.min(Math.round((topic.average / maxScore) * 100), 100);
+        const li = document.createElement("li");
+        li.className = "leaderboard-item";
+        li.style.flexDirection = "column";
+        li.style.alignItems = "stretch";
+        li.style.gap = "6px";
+        
+        li.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">${topic.name}</span>
+                <span style="font-family: 'Fira Code', monospace; font-weight: 700; color: var(--stat-icon);">${topic.average}</span>
+            </div>
+            <div style="width: 100%; background: var(--border); height: 6px; border-radius: 3px; overflow: hidden;">
+                <div style="width: ${percentage}%; background: var(--stat-icon); height: 100%; border-radius: 3px;"></div>
+            </div>
+        `;
+        listContainer.appendChild(li);
     });
 }
 
@@ -306,18 +434,9 @@ document.getElementById("section-select")?.addEventListener("change", (e) => {
     renderAnalytics(e.target.value);
 });
 
-/*window.logoutUser = () => {
-    signOut(auth).then(() => {
-        window.location.href = '../Components/LogIn.html';
-    }).catch((error) => {
-        console.error("Logout Error:", error);
-        window.location.href = '../Components/LogIn.html';
-    });
-};*/
 window.logoutUser = async () => {
     try {
         await signOut(auth);
-     
         window.location.href = '../index.html'; 
     } catch (error) {
         console.error("Logout error", error);
@@ -333,25 +452,3 @@ window.showLogoutPopup = () => {
     const popup = document.getElementById("logout-popup");
     if (popup) popup.style.display = "flex";
 };
-document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('dashboard-theme') || 'light';
-    applyTheme(savedTheme);
-
-    const themeBtn = document.getElementById('theme-toggle');
-    if (themeBtn) {
-        themeBtn.addEventListener('click', () => {
-            const currentTheme = localStorage.getItem('dashboard-theme') || 'light';
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
-            localStorage.setItem('dashboard-theme', newTheme);
-            applyTheme(newTheme); 
-        });
-    }
-});
-
-window.addEventListener('storage', (event) => {
-    if (event.key === 'dashboard-theme') {
-        const newTheme = event.newValue;
-        applyTheme(newTheme); 
-    }
-})

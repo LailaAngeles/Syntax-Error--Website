@@ -247,7 +247,13 @@ header #user-section-display {
     margin-bottom: 30px;
     margin-top: 30px;
 }
-
+#mastery-distribution-list::-webkit-scrollbar {
+    width: 4px;
+}
+#mastery-distribution-list::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
 .card.stat {
     display: flex;
     align-items: center;
@@ -2328,4 +2334,184 @@ body.light-mode .student-table-search i {
 html[data-theme="light"] .student-table-search:focus-within i,
 body.light-mode .student-table-search:focus-within i {
     color: #3b82f6 !important;
+}
+
+/* ==========================================================================\n   STUDENT ATTEMPT PROGRESS\n   Theme-aware styles for the Firebase Subject Content attempt summary.\n   ========================================================================== */
+.attempt-progress-section {
+    margin-top: 20px;
+}
+
+.attempt-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.attempt-progress-title h3 {
+    margin: 0 0 4px 0;
+    color: var(--text-main);
+    font-size: 1.05rem;
+}
+
+.attempt-progress-title p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.attempt-subject-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.attempt-subject-control label {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+#attempt-subject-select {
+    min-width: 190px;
+    max-width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-main);
+    font-family: var(--font-primary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    outline: none;
+    box-shadow: none;
+}
+
+#attempt-subject-select:hover,
+#attempt-subject-select:focus {
+    border-color: var(--stat-border);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+#attempt-subject-select option {
+    background: var(--card-bg);
+    color: var(--text-main);
+}
+
+.attempt-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.attempt-summary-card {
+    background: var(--table-header);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px;
+    min-width: 0;
+    box-shadow: none;
+}
+
+.attempt-summary-card .attempt-card-label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.attempt-summary-card .attempt-card-value {
+    display: block;
+    font-size: 1.4rem;
+    line-height: 1.2;
+    margin-bottom: 2px;
+}
+
+.attempt-summary-card small {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+}
+
+.attempt-first-card { border-left: 4px solid #ef4444; }
+.attempt-second-card { border-left: 4px solid #f59e0b; }
+.attempt-third-card { border-left: 4px solid #10b981; }
+
+.attempt-first-card .attempt-card-value { color: #ef4444; }
+.attempt-second-card .attempt-card-value { color: #f59e0b; }
+.attempt-third-card .attempt-card-value { color: #10b981; }
+
+.attempt-improvement-summary {
+    margin-top: 12px;
+    padding: 11px 13px;
+    border-radius: 9px;
+    background: var(--table-header);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
+.attempt-improvement-summary.is-improving {
+    color: var(--mastery-color);
+    border-color: rgba(16, 185, 129, 0.35);
+}
+
+.attempt-improvement-summary.is-increasing {
+    color: var(--risk-color);
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+.attempt-improvement-summary.is-neutral {
+    color: var(--text-muted);
+}
+
+.attempt-chart-box {
+    position: relative;
+    height: 300px !important;
+    width: 100% !important;
+    margin-top: 15px;
+    margin-bottom: 0;
+}
+
+#attemptProgressChart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+@media (max-width: 650px) {
+    .attempt-progress-header {
+        align-items: stretch;
+    }
+
+    .attempt-subject-control {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .attempt-subject-control label {
+        white-space: normal;
+    }
+
+    #attempt-subject-select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .attempt-summary-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+html[data-theme="dark"] .attempt-summary-card {
+    background: rgba(255, 255, 255, 0.025);
+}
+
+html[data-theme="dark"] #attempt-subject-select:focus {
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.16);
 }

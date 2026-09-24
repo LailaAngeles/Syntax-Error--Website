@@ -68,12 +68,18 @@
             </div>
         </div>
 
-        <div class="card">
-            <h3>Mastery Distribution</h3>
-            <div class="chart-container">
-                <canvas id="distributionChart"></canvas>
-            </div>
-        </div>
+       <div class="card">
+    <div class="top-controls" style="margin-bottom: 12px;">
+        <h3>Topic Difficulty Ranking</h3>
+        <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Hardest to Easiest</span>
+    </div>
+    <div id="mastery-distribution-list" class="leaderboard-list" style="max-height: 260px; overflow-y: auto;">
+        <!-- Dynamically populated from Firestore data -->
+        <li class="leaderboard-item empty-state">
+            <span>Loading topic analytics...</span>
+        </li>
+    </div>
+</div>
         <div class="card">
     <div class="top-controls">
         <h3>Top 5 Performers</h3>
