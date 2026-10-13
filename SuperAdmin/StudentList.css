@@ -220,3 +220,267 @@ select, input { padding: 10px; border-radius: 8px; border: 1px solid var(--borde
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* ===========================================================
+   RESPONSIVE ENHANCEMENTS - MOBILE/TABLET ONLY
+   The original desktop styles and HTML structure are retained.
+   =========================================================== */
+@media (max-width: 900px) {
+  html { -webkit-text-size-adjust: 100%; }
+  body { max-width: 100%; overflow-x: hidden; }
+  .dashboard, .content, .main-content, .main-container,
+  .panel, .panelL, .card, .header { min-width: 0; max-width: 100%; }
+  .sidebar { min-width: 0; }
+  .sidebar ul { min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .sidebar ul a { white-space: nowrap; }
+  .main-container, .content, .main-content { min-width: 0; }
+  img, svg, canvas { max-width: 100%; }
+  .table-container, .table-responsive, .table-scroll-wrapper {
+    max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  .table-container table, .table-responsive table, .table-scroll-wrapper table { width: 100%; }
+  th, td { white-space: normal; overflow-wrap: anywhere; }
+  .modal, .modal-overlay, .logout-modal { padding: 12px; overflow-x: hidden; overflow-y: auto; }
+  .modal-box, .admin-modal-box, .logout-box, .popup-content {
+    max-width: min(100%, 540px); max-height: calc(100dvh - 24px);
+    overflow-x: hidden; overflow-y: auto; box-sizing: border-box;
+  }
+  input, select, textarea, button { max-width: 100%; }
+  input, select, textarea { min-width: 0; }
+}
+@media (max-width: 768px) {
+  .dashboard { height: auto; min-height: 100dvh; overflow: visible; flex-direction: column; }
+  body:has(> .sidebar) { flex-direction: column; }
+  .sidebar {
+    width: 100% !important; max-width: 100%; height: auto;
+    flex-shrink: 0; padding: 12px 14px; border-right: 0;
+  }
+  .sidebar-header { gap: 12px; margin-bottom: 12px; }
+  .sidebar ul {
+    display: flex; flex-direction: row; gap: 8px;
+    overflow-x: auto; overflow-y: hidden; padding-bottom: 6px;
+    flex-grow: 0; scrollbar-width: thin;
+  }
+  .sidebar li { flex: 0 0 auto; margin-bottom: 0; }
+  .sidebar li a { padding: 10px 12px; font-size: .88rem; }
+  .content, .main-content {
+    width: 100% !important; flex: 1 1 auto; padding: 16px !important;
+    overflow-x: hidden; overflow-y: visible;
+  }
+  .main-container { padding: 12px 0 !important; gap: 16px; }
+  .header, .panel-header { flex-wrap: wrap; gap: 12px; }
+  .panel, .panelL, .card { max-width: 100%; padding: 16px; }
+  .actions-bar, .controls, .controls-wrapper, .btn-group { max-width: 100%; flex-wrap: wrap; }
+  .controls > *, .controls-wrapper > * { min-width: 0; }
+  .modal-actions, .logout-btns, .modal-footer { flex-wrap: wrap; }
+  .modal-actions > button, .logout-btns > button { min-width: 100px; }
+  table { min-width: 580px; }
+  .table-container, .table-responsive, .table-scroll-wrapper { width: 100%; }
+  input:not([type=checkbox]):not([type=radio]), select, textarea { font-size: 16px; }
+}
+@media (max-width: 480px) {
+  .content, .main-content { padding: 12px !important; }
+  .main-container { padding: 8px 0 !important; }
+  .header { padding: 14px !important; }
+  .header h1, .main-content h1, .content h1 { font-size: clamp(1.25rem, 5vw, 1.65rem); line-height: 1.25; }
+  .panel, .panelL, .card { padding: 12px; border-radius: 12px; }
+  .modal, .modal-overlay, .logout-modal { padding: 8px; }
+  .modal-box, .admin-modal-box, .logout-box, .popup-content {
+    width: 100% !important; max-width: 100% !important;
+    padding: 16px !important; margin: 0 auto;
+    max-height: calc(100dvh - 16px);
+  }
+  .modal-actions, .logout-btns { gap: 8px; }
+  .modal-actions button, .logout-btns button { flex: 1 1 auto; }
+  .sidebar .logo { font-size: 18px; }
+  .sidebar li a { padding: 10px; }
+  .actions-bar button { width: 100%; }
+}
+
+/* STUDENT SUMMARY: consistent with dashboard.css light/dark tokens */
+.super-student-summary{min-width:0;width:100%;color:var(--text-main)}
+.summary-topline{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.summary-topline h2{font-size:clamp(1.2rem,2.5vw,1.65rem);margin:4px 0}
+.summary-topline p,.summary-help{color:var(--text-muted);font-size:.86rem;line-height:1.5}
+.summary-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.08em;color:#3b82f6}
+.summary-close{background:var(--card-bg);color:var(--text-main);border:1px solid var(--border);padding:10px 14px;border-radius:8px;cursor:pointer}
+.summary-layout{display:grid;grid-template-columns:minmax(250px,1fr) minmax(0,1.85fr);gap:18px;align-items:start}
+.summary-left,.summary-right{display:grid;gap:16px;min-width:0}
+.super-student-summary .card{margin:0;background:var(--card-bg)!important;min-width:0}
+.super-student-summary .card h3{font-size:1rem;margin-bottom:12px}
+.summary-profile-field{display:flex;flex-direction:column;gap:4px;padding:11px 0;border-bottom:1px solid var(--border)}
+.summary-profile-field:last-child{border-bottom:0}
+.summary-profile-field span,.summary-stat>span{font-size:.76rem;color:var(--text-muted);font-weight:600;text-transform:uppercase}
+.summary-profile-field strong{overflow-wrap:anywhere;line-height:1.5}
+.summary-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.summary-card-head span,.summary-stat small{color:var(--text-muted);font-size:.74rem}
+.summary-topic-list{display:grid;gap:10px;margin-top:14px}
+.summary-topic{display:grid;gap:9px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg-color)}
+.summary-topic-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;font-size:.86rem}
+.summary-topic-head span{overflow-wrap:anywhere;min-width:0}
+.summary-topic-head strong{flex-shrink:0}
+.summary-topic small{font-size:.75rem;color:var(--text-muted)}
+.summary-track{height:8px;background:var(--border);border-radius:30px;overflow:hidden}
+.summary-track>div{height:100%;border-radius:inherit;transition:width .2s}
+.summary-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.summary-stat{display:flex;flex-direction:column;gap:10px}
+.summary-stat strong{font-size:clamp(1.3rem,3vw,1.9rem)}
+#summary-progress-fill{background:#3b82f6}
+.summary-chart-wrap{height:clamp(230px,33vw,370px);position:relative;margin-top:12px}
+.summary-chart-wrap canvas{width:100%!important;height:100%!important}
+#summary-chart-empty{color:var(--text-muted);padding:35px 8px;text-align:center}
+.summary-insight p{margin:9px 0;color:var(--text-main);line-height:1.6;overflow-wrap:anywhere}
+@media(max-width:950px){.summary-layout{grid-template-columns:1fr}.summary-stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.summary-stats{grid-template-columns:1fr}.super-student-summary .card{padding:16px}.summary-layout{gap:12px}.summary-topline{align-items:flex-start}.summary-chart-wrap{height:260px}}
+
+
+/* Student Details popup — retains existing desktop and mobile summary cards */
+body.summary-modal-open { overflow: hidden !important; }
+#analysis-section.summary-modal-overlay {
+    position: fixed !important;
+    inset: 0;
+    z-index: 11000;
+    width: 100%;
+    height: 100dvh;
+    max-width: none;
+    padding: clamp(12px, 3vw, 28px);
+    margin: 0 !important;
+    background: rgba(0, 0, 0, .72);
+    backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+#analysis-section .summary-dialog-panel {
+    box-sizing: border-box;
+    width: min(1200px, 100%);
+    max-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--bg-color);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    box-shadow: 0 24px 80px rgba(0,0,0,.42);
+    border-radius: 18px;
+    padding: clamp(16px, 2.5vw, 30px);
+    -webkit-overflow-scrolling: touch;
+}
+#analysis-section .summary-topline {
+    position: relative;
+    background: var(--bg-color);
+}
+#analysis-section .summary-close { min-height: 44px; white-space: nowrap; }
+@media (max-width: 600px) {
+    #analysis-section.summary-modal-overlay { padding: 0; align-items: stretch; }
+    #analysis-section .summary-dialog-panel {
+        width: 100%;
+        max-height: 100dvh;
+        border-radius: 0;
+        border: 0;
+        padding: 16px;
+    }
+    #analysis-section .summary-topline { gap: 12px; }
+    #analysis-section .summary-close { width: auto; }
+}
+
+/* ===========================================================
+   STUDENT DETAILS POPUP — DASHBOARD.CSS THEME ALIGNMENT
+   Keeps the popup fully scrollable but hides its scrollbar.
+   =========================================================== */
+html[data-theme="light"] {
+  --logo-color: #ffc107;
+  --sidebar-text: rgba(255,255,255,.8);
+  --active-bg: #ffc107;
+  --active-text: #002e5f;
+  --risk-color: #ef4444;
+  --mastery-color: #10b981;
+  --stat-icon: #3b82f6;
+  --summary-popup-backdrop: rgba(0,0,0,.5);
+}
+html[data-theme="dark"] {
+  --logo-color: #fff200;
+  --sidebar-text: #8b949e;
+  --active-bg: #21262d;
+  --active-text: #fff;
+  --risk-color: #ff3333;
+  --mastery-color: #39ff14;
+  --stat-icon: #007aff;
+  --summary-popup-backdrop: rgba(13,15,18,.8);
+}
+
+/* Match the teacher dashboard light/dark font and surface palette. */
+#analysis-section.summary-modal-overlay {
+  background: var(--summary-popup-backdrop);
+}
+#analysis-section .summary-dialog-panel {
+  background: var(--bg-color);
+  color: var(--text-main);
+  border-color: var(--border);
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Legacy Microsoft browsers */
+}
+#analysis-section .summary-dialog-panel::-webkit-scrollbar {
+  display: none; /* Chrome, Edge, Safari, iOS */
+  width: 0;
+  height: 0;
+}
+#analysis-section .super-student-summary,
+#analysis-section .summary-topline,
+#analysis-section .summary-topline h2,
+#analysis-section .summary-profile-field strong,
+#analysis-section .summary-stat strong,
+#analysis-section .summary-topic-head {
+  color: var(--text-main);
+}
+#analysis-section .summary-topline {
+  background: var(--bg-color);
+}
+#analysis-section .super-student-summary .card {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border);
+  box-shadow: var(--card-shadow);
+}
+#analysis-section .summary-topic {
+  background: var(--bg-color);
+  border-color: var(--border);
+  color: var(--text-main);
+}
+#analysis-section .summary-track {
+  background: var(--border);
+}
+#analysis-section .summary-topline p,
+#analysis-section .summary-help,
+#analysis-section .summary-profile-field span,
+#analysis-section .summary-stat > span,
+#analysis-section .summary-stat small,
+#analysis-section .summary-card-head span,
+#analysis-section .summary-topic small {
+  color: var(--text-muted);
+}
+#analysis-section .summary-close {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+}
+#analysis-section .summary-close:hover {
+  background: var(--table-header);
+}
+#analysis-section .summary-eyebrow {
+  color: var(--stat-icon);
+}
+#analysis-section #summary-progress-fill {
+  background: var(--stat-icon);
+}
+/* Prevent nested scrollbars within the details panel without removing scrolling. */
+#analysis-section .summary-dialog-panel .summary-topic-list,
+#analysis-section .summary-dialog-panel .summary-left,
+#analysis-section .summary-dialog-panel .summary-right {
+  scrollbar-width: none;
+}
+#analysis-section .summary-dialog-panel .summary-topic-list::-webkit-scrollbar,
+#analysis-section .summary-dialog-panel .summary-left::-webkit-scrollbar,
+#analysis-section .summary-dialog-panel .summary-right::-webkit-scrollbar {
+  display: none;
+}

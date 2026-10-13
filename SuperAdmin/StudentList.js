@@ -165,53 +165,110 @@ function renderTable(filterSection) {
     }
 }
 // ----------------------------
-// 3. ANALYSIS & CHART
+// 3. STUDENT-SPECIFIC SUMMARY (Firestore-based)
 // ----------------------------
-window.viewAnalysis = function(firebaseId) {
-    const student = allStudents.find(s => s.firebaseId === firebaseId);
-    if (!student) return;
-
-    const analysisSec = document.getElementById("analysis-section");
-    if (analysisSec) analysisSec.style.display = "grid";
-
-    document.getElementById("student-details-content").innerHTML = `
-        <div style="display: flex; flex-direction: column; gap: 10px; padding: 10px;">
-            <div><label style="color:#64748b; font-size:0.8rem; text-transform:uppercase; font-weight:bold;">Full Name</label><div style="font-weight:600;">${student.name}</div></div>
-            <div><label style="color:#64748b; font-size:0.8rem; text-transform:uppercase; font-weight:bold;">Student Number</label><div style="font-weight:600;">${student.id}</div></div>
-            <div><label style="color:#64748b; font-size:0.8rem; text-transform:uppercase; font-weight:bold;">Section</label><div style="font-weight:600;">${student.sectionName}</div></div>
-            <div><label style="color:#64748b; font-size:0.8rem; text-transform:uppercase; font-weight:bold;">Idle Time</label><div style="font-weight:600;">${student.idleTime || "0m"}</div></div>
-        </div>
-    `;
-
-    renderChart(student.difficulty || [0, 0, 0, 0, 0]);
-    if (analysisSec) analysisSec.scrollIntoView({ behavior: 'smooth' });
-};
-
-function renderChart(data) {
-    const canvas = document.getElementById("difficultyChart");
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (difficultyChart) difficultyChart.destroy();
-    
-    difficultyChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['L1', 'L2', 'L3', 'L4', 'L5'],
-            datasets: [{
-                label: 'Difficulty Score',
-                data: data,
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
+const safeText = value => String(value ?? "--").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const numberOrNull = value => value === '' || value == null || !Number.isFinite(Number(value)) ? null : Number(value);
+const topicColor = value => value >= 7 ? '#ef4444' : value >= 4 ? '#f59e0b' : '#10b981';
+function studentTopics(student) {
+    const content = student['Subject Content'] || student.subjectContent;
+    if (content && typeof content === 'object' && !Array.isArray(content)) {
+        return Object.entries(content).filter(([,v]) => v && typeof v === 'object').map(([name, value]) => {
+            let wrongs = 0, found = false;
+            function collect(node) {
+                if (!node || typeof node !== 'object') return;
+                if (Object.prototype.hasOwnProperty.call(node, 'wrongAttempts')) {
+                    const n = numberOrNull(node.wrongAttempts);
+                    if (n !== null && n >= 0) { wrongs += n; found = true; }
+                    return;
+                }
+                Object.values(node).forEach(collect);
+            }
+            collect(value);
+            return found ? {name:name.replace(/_/g,' '), wrongs, score:Math.min(10, wrongs)} : null;
+        }).filter(Boolean).sort((a,b)=> b.wrongs-a.wrongs || a.name.localeCompare(b.name));
+    }
+    // Legacy fallback only if real Subject Content is absent.
+    if (Array.isArray(student.difficulty)) return student.difficulty.map((v,i)=> {
+        const n = numberOrNull(v);
+        return n===null ? null : {name:`Level ${i+1}`,wrongs:null,score:Math.max(0,Math.min(10,n))};
+    }).filter(Boolean).sort((a,b)=>b.score-a.score);
+    return [];
+}
+function renderTopicSummary(topics) {
+    const list = document.getElementById('summary-topic-list');
+    list.replaceChildren();
+    if (!topics.length) { list.textContent='No topic difficulty records available yet.'; return; }
+    topics.forEach((topic, index) => {
+        const item = document.createElement('div'); item.className='summary-topic';
+        const heading=document.createElement('div'); heading.className='summary-topic-head';
+        const name=document.createElement('span'); name.textContent=`${index+1}. ${topic.name}`;
+        const score=document.createElement('strong'); score.textContent=`${topic.score}/10`; score.style.color=topicColor(topic.score);
+        heading.append(name,score);
+        const track=document.createElement('div'); track.className='summary-track';
+        const fill=document.createElement('div'); fill.style.width=`${topic.score*10}%`; fill.style.backgroundColor=topicColor(topic.score);
+        track.append(fill);
+        const note=document.createElement('small'); note.textContent=topic.wrongs===null ? 'Legacy level score' : `${topic.wrongs} recorded wrong attempts`;
+        item.append(heading,track,note); list.append(item);
     });
 }
+window.viewAnalysis = function(firebaseId) {
+    const student = allStudents.find(s=>String(s.firebaseId)===String(firebaseId));
+    if (!student) return;
+    const panel=document.getElementById('analysis-section');
+    panel.style.display='flex';
+    document.body.classList.add('summary-modal-open');
+    document.getElementById('summary-description').textContent=`${student.name || 'Student'} · ${student.sectionName || 'No Section'}`;
+    const profile=document.getElementById('student-details-content');
+    const fields=[['Full Name',student.name],['Student Number',student.id],['Section',student.sectionName],['Idle Time',student.idleTime ?? 'Not recorded']];
+    profile.innerHTML=fields.map(([label,value])=>`<div class="summary-profile-field"><span>${label}</span><strong>${safeText(value)}</strong></div>`).join('');
+    const progress=numberOrNull(student.progress);
+    const progressValue=progress===null?null:Math.max(0,Math.min(100,progress));
+    document.getElementById('summary-progress').textContent=progressValue===null?'--':`${Math.round(progressValue)}%`;
+    document.getElementById('summary-progress-fill').style.width=`${progressValue??0}%`;
+    const topics=studentTopics(student);
+    renderTopicSummary(topics);
+    const highest=topics.length?Math.max(...topics.map(t=>t.score)):null;
+    const totals=topics.filter(t=>t.wrongs!==null);
+    const wrongs=totals.length?totals.reduce((sum,t)=>sum+t.wrongs,0):null;
+    document.getElementById('summary-difficulty').textContent=highest===null?'--':`${highest}/10`;
+    document.getElementById('summary-wrongs').textContent=wrongs===null?'--':String(wrongs);
+    const insight=document.getElementById('summary-insight-content');
+    if (!topics.length) insight.textContent='No attempt records available yet. More data will appear after the student completes learning activities.';
+    else {
+        const hardest=topics[0];
+        const progressPhrase=progressValue===null?'Game progress is not yet recorded.':`Game progress: ${Math.round(progressValue)}%.`;
+        insight.innerHTML=`<p><strong>Highest recorded difficulty:</strong> ${safeText(hardest.name)} (${hardest.score}/10).</p><p>${progressPhrase}</p><p>This summary reflects recorded errors and does not directly measure understanding.</p>`;
+    }
+    renderChart(topics);
+    panel.focus({preventScroll:true});
+};
+function renderChart(topics) {
+    const canvas=document.getElementById('difficultyChart');
+    if (!canvas) return;
+    if (difficultyChart) { difficultyChart.destroy(); difficultyChart=null; }
+    document.getElementById('summary-chart-empty').hidden=topics.length>0;
+    canvas.hidden=topics.length===0;
+    if (!topics.length || typeof Chart==='undefined') return;
+    difficultyChart=new Chart(canvas.getContext('2d'),{
+        type:'bar',
+        data:{labels:topics.map(t=>t.name),datasets:[{label:'Difficulty Score',data:topics.map(t=>t.score),backgroundColor:topics.map(t=>topicColor(t.score)),borderRadius:5}]},
+        options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{afterLabel:(ctx)=>topics[ctx.dataIndex].wrongs===null?'Legacy score':`${topics[ctx.dataIndex].wrongs} recorded wrong attempts`}}},scales:{x:{beginAtZero:true,max:10,ticks:{stepSize:2}},y:{ticks:{autoSkip:false}}}}
+    });
+}
+function closeStudentSummary() {
+    const panel = document.getElementById('analysis-section');
+    if (!panel || panel.style.display === 'none') return;
+    panel.style.display = 'none';
+    document.body.classList.remove('summary-modal-open');
+}
+document.getElementById('close-analysis')?.addEventListener('click', closeStudentSummary);
+document.getElementById('analysis-section')?.addEventListener('click', event => {
+    if (event.target === event.currentTarget) closeStudentSummary();
+});
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeStudentSummary();
+});
 
 // ----------------------------
 // 4. INITIALIZE & EVENTS
