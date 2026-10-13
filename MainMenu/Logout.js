@@ -10,4 +10,4 @@ function closeLogoutPopup(){
 function logoutUser() {
     // redirect to login page inside components folder
     window.location.href = "/components/login.html";
-}
+}   

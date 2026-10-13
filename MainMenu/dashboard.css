@@ -2515,3 +2515,240 @@ html[data-theme="dark"] .attempt-summary-card {
 html[data-theme="dark"] #attempt-subject-select:focus {
     box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.16);
 }
+
+/* INDIVIDUAL STUDENT TOPIC RANKING — separate from the global dashboard */
+.student-topic-ranking { min-width: 0; background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-top: 12px; }
+.student-topic-ranking-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.student-topic-ranking-head h3 { font-size: 1rem; line-height:1.4; margin:0 0 5px; color:var(--text-main); overflow-wrap:anywhere; }
+.student-topic-ranking-head h3 i { margin-right:6px; color:#3b82f6; }
+.student-topic-ranking-head p { font-size:.78rem; color:var(--text-muted); margin:0; }
+.student-topic-ranking-sort { font-size:.69rem; letter-spacing:.045em; font-weight:700; text-transform:uppercase; white-space:normal; background:rgba(59,130,246,.11); color:#60a5fa; padding:6px 9px; border-radius:7px; }
+html[data-theme="light"] .student-topic-ranking-sort {color:#1d4ed8;}
+.student-topic-ranking-list { display:flex; flex-direction:column; gap:10px; max-height:340px; overflow-y:auto; padding-right:3px; }
+.student-topic-ranking-item { border:1px solid var(--border); border-radius:10px; padding:12px; background:var(--bg-color); min-width:0; }
+.student-topic-ranking-row { display:flex; align-items:flex-start; gap:9px; min-width:0; }
+.student-topic-ranking-index { flex-shrink:0; width:23px; height:23px; display:grid; place-items:center; font-size:.71rem; border-radius:6px; background:var(--card-bg); color:var(--text-muted); font-weight:750; }
+.student-topic-ranking-name { font-size:.83rem; font-weight:650; color:var(--text-main); line-height:1.4; overflow-wrap:anywhere; flex:1; min-width:0; }
+.student-topic-ranking-count { flex-shrink:0; font-size:.75rem; font-weight:700; font-variant-numeric: tabular-nums; }
+.student-topic-ranking-track { margin-top:10px; background:var(--border); height:7px; border-radius:10px; overflow:hidden; }
+.student-topic-ranking-fill { height:100%; border-radius:10px; }
+.student-topic-ranking-foot { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-top:7px; gap:6px; color:var(--text-muted); font-size:.7rem; }
+.student-topic-ranking-empty { margin:0; font-size:.85rem; color:var(--text-muted); line-height:1.5; }
+@media (max-width:900px) { .student-topic-ranking { padding:14px; } .student-topic-ranking-sort { font-size:.65rem; } }
+
+/* Student-only ranking stays beneath Difficulty Score inside the left sidebar. */
+.modal-left-col .student-topic-ranking {
+    grid-column: auto;
+    width: 100%;
+    margin-top: 18px;
+    padding: 14px 12px;
+    background: rgba(5, 22, 48, .38);
+    border: 1px solid rgba(255,255,255,.19);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .10);
+}
+.modal-left-col .student-topic-ranking-head { gap: 8px; }
+.modal-left-col .student-topic-ranking-head h3 { color: #fff; font-size: .92rem; }
+.modal-left-col .student-topic-ranking-head p { color: #c9dbef; }
+.modal-left-col .student-topic-ranking-sort { color: #dbebff; background: rgba(255,255,255,.13); }
+.modal-left-col .student-topic-ranking-list { max-height: 350px; }
+.modal-left-col .student-topic-ranking-item { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.15); padding: 10px; }
+.modal-left-col .student-topic-ranking-name { color: #fff; font-size: .79rem; }
+.modal-left-col .student-topic-ranking-index { color: #e5f1ff; background: rgba(0,0,0,.2); }
+.modal-left-col .student-topic-ranking-foot, .modal-left-col .student-topic-ranking-empty { color: #c9dbef; }
+.modal-left-col .student-topic-ranking-track { background: rgba(255,255,255,.18); }
+@media (max-width: 1024px) {
+    .modal-left-col .student-topic-ranking { max-width: 100%; }
+}
+
+
+/* ================================================================
+   STUDENT DETAILS: RESPONSIVE VERTICAL TOPIC RANKING (FINAL OVERRIDE)
+   All items stay within the modal's LEFT COLUMN below Difficulty Score.
+   ================================================================ */
+.student-modal-box .modal-grid-container {
+    grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+    align-items: start;
+}
+.student-modal-box .modal-left-col {
+    min-width: 0;
+    width: 100%;
+    height: auto;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+}
+.student-modal-box .modal-left-col .student-topic-ranking {
+    display: block !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 15px 12px !important;
+    margin: 14px 0 0 !important;
+    background: rgba(1, 23, 50, .50) !important;
+    border: 1px solid rgba(203, 226, 255, .25) !important;
+    border-radius: 13px !important;
+}
+.student-modal-box .modal-left-col .student-topic-ranking-head {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 7px !important;
+    margin: 0 0 15px !important;
+    width: 100%;
+}
+.student-modal-box .modal-left-col .student-topic-ranking-head h3 {
+    display: block !important;
+    width: 100%;
+    margin: 0 !important;
+    color: #fff !important;
+    font-size: 15px !important;
+    font-weight: 700;
+    line-height: 1.45 !important;
+    letter-spacing: 0 !important;
+    overflow-wrap: anywhere;
+}
+.student-modal-box .modal-left-col .student-topic-ranking-head h3 i {
+    display: inline-block;
+    margin-right: 7px;
+}
+.student-modal-box .modal-left-col .student-topic-ranking-head p {
+    display: block;
+    margin: 0 !important;
+    color: #c6dcf6 !important;
+    font-size: 12px !important;
+    line-height: 1.55 !important;
+}
+.student-modal-box .modal-left-col .student-topic-ranking-sort {
+    display: inline-block !important;
+    align-self: flex-start !important;
+    max-width: 100%;
+    padding: 6px 9px !important;
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+    color: #e4f1ff !important;
+    background: rgba(117, 177, 249, .20) !important;
+    border-radius: 6px;
+    white-space: normal;
+}
+.student-modal-box .modal-left-col .student-topic-ranking-list {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+    max-height: 390px;
+    overflow-x: hidden !important;
+    overflow-y: auto;
+    padding: 0 3px 0 0 !important;
+    margin: 0 !important;
+    list-style: none !important;
+}
+.student-modal-box .modal-left-col .student-topic-ranking-item {
+    display: block !important;
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 12px 10px !important;
+    box-sizing: border-box;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, .10) !important;
+    border: 1px solid rgba(255,255,255,.17) !important;
+}
+.student-modal-box .modal-left-col .student-topic-ranking-row {
+    display: grid !important;
+    grid-template-columns: 25px minmax(0, 1fr) auto !important;
+    align-items: start !important;
+    gap: 8px !important;
+    width: 100% !important;
+}
+.student-modal-box .modal-left-col .student-topic-ranking-index {
+    display: grid !important;
+    place-items: center !important;
+    width: 25px !important;
+    height: 25px !important;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, .25) !important;
+    color: #fff !important;
+    font-size: 11px !important;
+}
+.student-modal-box .modal-left-col .student-topic-ranking-name {
+    display: block !important;
+    min-width: 0 !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: #fff !important;
+    line-height: 1.5 !important;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+.student-modal-box .modal-left-col .student-topic-ranking-count {
+    display: block !important;
+    white-space: nowrap !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 1.5 !important;
+    font-variant-numeric: tabular-nums;
+}
+.student-modal-box .modal-left-col .student-topic-ranking-track {
+    display: block !important;
+    width: 100% !important;
+    height: 7px !important;
+    margin: 11px 0 8px !important;
+    background: rgba(255,255,255,.18) !important;
+    overflow: hidden !important;
+    border-radius: 7px !important;
+}
+.student-modal-box .modal-left-col .student-topic-ranking-fill {
+    display: block !important;
+    height: 100% !important;
+    border-radius: 7px;
+}
+.student-modal-box .modal-left-col .student-topic-ranking-foot {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    gap: 3px !important;
+    margin: 0 !important;
+    color: #c6dcf6 !important;
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+    overflow-wrap: anywhere;
+}
+.student-modal-box .modal-left-col .student-topic-ranking-empty {
+    font-size: 12px !important;
+    line-height: 1.6 !important;
+    color: #c6dcf6 !important;
+}
+@media (max-width: 1024px) {
+    .student-modal-box .modal-grid-container {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+    .student-modal-box .modal-left-col {
+        height: auto !important;
+    }
+    .student-modal-box .modal-left-col .student-topic-ranking-list {
+        max-height: 320px;
+    }
+}
+@media (max-width: 480px) {
+    .student-modal-box {
+        width: calc(100vw - 16px) !important;
+        max-width: calc(100vw - 16px) !important;
+        max-height: 94dvh !important;
+        padding: 10px !important;
+    }
+    .student-modal-box .modal-left-col {
+        padding: 14px 12px !important;
+    }
+    .student-modal-box .modal-left-col .student-topic-ranking {
+        padding: 12px 10px !important;
+    }
+    .student-modal-box .modal-left-col .student-topic-ranking-name {
+        font-size: 12px !important;
+    }
+}
+    

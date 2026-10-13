@@ -32,6 +32,12 @@ const mockStudent = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const VERIFIED_KEY = "syntaxerror_verified_uid";
+function hasVerifiedSession(user) {
+    return user && (localStorage.getItem(VERIFIED_KEY) === user.uid ||
+        sessionStorage.getItem(VERIFIED_KEY) === user.uid);
+}
+
 
 // Global Variables
 let allStudents = [];
@@ -84,7 +90,7 @@ function getSubjectContentWrongs(studentDoc) {
 function renderDashboardCharts(sectionStudents) {
     const conceptMapSection = {};
     const conceptMapOverall = {};
-    updateRecommendations(conceptMapOverall, allStudents.length);
+    // Class difficulty charts are retained; recommendations card was removed.
     // 1. Count affected students in selected section
     sectionStudents.forEach(s => {
         const affectedCategories = getSubjectContentWrongs(s);
@@ -227,7 +233,7 @@ function renderStudentInsights(students) {
 
 // 2. DATA INITIALIZATION
 onAuthStateChanged(auth, async (user) => {
-    if (!user) {
+    if (!hasVerifiedSession(user)) {
         window.location.href = "../Login/Login.html";
         return;
     }
@@ -310,7 +316,29 @@ function loadStudents(section) {
         return matchesSection && matchesSearch;
     });
 
-    filtered.sort((a, b) => a.name.localeCompare(b.name));
+    const getProgress = s => Math.min(100, Math.max(0, Number(s.progress) || 0));
+    const progressFilter = document.getElementById("progress-filter")?.value || "all";
+    filtered = filtered.filter(s => {
+        const value = getProgress(s);
+        return progressFilter === "all" ||
+            (progressFilter === "complete" && value === 100) ||
+            (progressFilter === "inprogress" && value > 0 && value < 100) ||
+            (progressFilter === "notstarted" && value === 0);
+    });
+    const sort = document.getElementById("student-sort")?.value || "name";
+    filtered.sort((a, b) => {
+        if (sort === "progress-desc") return getProgress(b) - getProgress(a) || String(a.name || "").localeCompare(String(b.name || ""));
+        if (sort === "progress-asc") return getProgress(a) - getProgress(b) || String(a.name || "").localeCompare(String(b.name || ""));
+        if (sort === "online") return Number(b.isOnline === true || b.isOnline === "true") - Number(a.isOnline === true || a.isOnline === "true") || String(a.name || "").localeCompare(String(b.name || ""));
+        return String(a.name || "").localeCompare(String(b.name || ""));
+    });
+    const displayText = (value) => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
+    const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+    setText("overview-total", filtered.length);
+    setText("overview-average", filtered.length ? Math.round(filtered.reduce((n, s) => n + getProgress(s), 0) / filtered.length) + "%" : "0%");
+    setText("overview-completed", filtered.filter(s => getProgress(s) === 100).length);
+    setText("overview-in-progress", filtered.filter(s => getProgress(s) > 0 && getProgress(s) < 100).length);
+    setText("table-results", `Showing ${filtered.length} of ${allStudents.length} students`);
 
     // Update Card Stats
     const totalStudentsEl = document.getElementById("card-total-students");
@@ -330,6 +358,8 @@ function loadStudents(section) {
 
     if (filtered.length === 0) {
         if(emptyState) emptyState.style.display = "block";
+        if (table) table.innerHTML = `<tr><td colspan="5" class="no-students">No students match your current filters.</td></tr>`;
+        renderDashboardCharts([]);
         return;
     } else {
         if(emptyState) emptyState.style.display = "none";
@@ -338,6 +368,9 @@ function loadStudents(section) {
     if(table) {
         table.innerHTML = filtered.map(s => {
             const isOnline = s.isOnline === true || s.isOnline === "true";
+            const progress = getProgress(s);
+            const progressLabel = progress === 100 ? "Completed" : progress > 0 ? "In progress" : "Not started";
+            const progressClass = progress === 100 ? "is-complete" : progress > 0 ? "is-active" : "is-new";
 
             const statusBadge = isOnline 
                 ? `<span style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
@@ -348,14 +381,12 @@ function loadStudents(section) {
                    </span>`;
 
             return `
-            <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 15px;"><strong>${s.id}</strong></td>
-                <td style="padding: 15px;">${s.name}</td>
+            <tr>
+                <td><strong>${displayText(s.id)}</strong></td>
+                <td><div class="student-name-cell"><span class="student-avatar">${displayText(String(s.name || "?").trim().charAt(0).toUpperCase())}</span><span><strong>${displayText(s.name)}</strong><small>${displayText(s.section)}</small></span></div></td>
                 <td style="padding: 15px;">
-                    <div style="width:100px; background:#e5e7eb; border-radius:10px; height:8px; margin-bottom:4px;">
-                        <div style="width:${s.progress || 0}%; background:#3b82f6; height:100%; border-radius:10px;"></div>
-                    </div>
-                    <small style="color:#64748b;">${s.progress || 0}% Complete</small>
+                    <div class="progress-label-row"><strong>${progress}%</strong><span class="progress-state ${progressClass}">${progressLabel}</span></div>
+                    <div class="progress-track" role="progressbar" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100" aria-label="Student progress"><div class="progress-fill ${progressClass}" style="width:${progress}%"></div></div>
                 </td>
                 <td style="padding: 15px;">${statusBadge}</td>
                 <td style="padding: 15px;">
@@ -953,14 +984,21 @@ function renderConceptDifficultyChart(studentData) {
     if (concepts.length === 0) {
         const parent = canvas.parentElement;
         if (parent) {
-            parent.innerHTML = `
-                <div style="height:100%; min-height:260px; display:flex; align-items:center; justify-content:center; text-align:center; color:#94a3b8; padding:20px;">
-                    No detailed concept difficulty data is available for this student yet.
-                </div>
-            `;
+            canvas.style.display = "none";
+            let message = parent.querySelector(".student-concept-empty");
+            if (!message) {
+                message = document.createElement("div");
+                message.className = "student-concept-empty";
+                message.style.cssText = "min-height:260px;display:flex;align-items:center;justify-content:center;text-align:center;color:#94a3b8;padding:20px;";
+                parent.appendChild(message);
+            }
+            message.textContent = "No detailed concept difficulty data is available for this student yet.";
         }
         return null;
     }
+
+    canvas.style.display = "block";
+    canvas.parentElement?.querySelector(".student-concept-empty")?.remove();
 
     // SUMMARY CHART: one bar for each MAIN SUBJECT only.
     const labels = concepts.map(item =>
@@ -1053,6 +1091,67 @@ function renderConceptDifficultyChart(studentData) {
     return concepts;
 }
 
+
+// Topic ranking uses only the selected student — never the classwide dashboard.
+function renderStudentTopicRanking(student) {
+    const list = document.getElementById("student-topic-ranking-list");
+    if (!list) return;
+
+    const topics = getStudentConceptDifficulty(student)
+        .sort((a, b) => b.wrongAttempts - a.wrongAttempts ||
+            String(a.mainCategory).localeCompare(String(b.mainCategory)));
+
+    list.replaceChildren();
+    if (!topics.length) {
+        const empty = document.createElement("p");
+        empty.className = "student-topic-ranking-empty";
+        empty.textContent = "No topic difficulty records are available for this student yet.";
+        list.appendChild(empty);
+        return;
+    }
+
+    // The 0–10 difficulty score is the same capped wrong-attempt score used in
+    // the student concept chart. Raw attempt counts remain visible for clarity.
+    topics.forEach((topic, index) => {
+        const item = document.createElement("article");
+        item.className = "student-topic-ranking-item";
+        const row = document.createElement("div");
+        row.className = "student-topic-ranking-row";
+        const rank = document.createElement("span");
+        rank.className = "student-topic-ranking-index";
+        rank.textContent = String(index + 1);
+        const name = document.createElement("span");
+        name.className = "student-topic-ranking-name";
+        name.textContent = formatMainSubjectName(topic.mainCategory);
+        const count = document.createElement("span");
+        count.className = "student-topic-ranking-count";
+        count.textContent = `${topic.score}/10`;
+        count.style.color = getDifficultyColor(topic.score);
+        row.append(rank, name, count);
+        const track = document.createElement("div");
+        track.className = "student-topic-ranking-track";
+        track.setAttribute("role", "meter");
+        track.setAttribute("aria-label", `${name.textContent} difficulty`);
+        track.setAttribute("aria-valuemin", "0");
+        track.setAttribute("aria-valuemax", "10");
+        track.setAttribute("aria-valuenow", String(topic.score));
+        const fill = document.createElement("div");
+        fill.className = "student-topic-ranking-fill";
+        fill.style.width = `${topic.score * 10}%`;
+        fill.style.backgroundColor = getDifficultyColor(topic.score);
+        track.appendChild(fill);
+        const foot = document.createElement("div");
+        foot.className = "student-topic-ranking-foot";
+        const level = document.createElement("span");
+        level.textContent = topic.difficultyLabel;
+        const wrongs = document.createElement("span");
+        wrongs.textContent = `${topic.wrongAttempts} recorded wrong attempt${topic.wrongAttempts === 1 ? "" : "s"}`;
+        foot.append(level, wrongs);
+        item.append(row, track, foot);
+        list.appendChild(item);
+    });
+}
+
 window.viewStudent = function(studentId) {
     const student = allStudents.find(s => s.id === studentId);
     if (!student) return;
@@ -1074,6 +1173,7 @@ window.viewStudent = function(studentId) {
 
     // Use the actual Firebase Subject Content hierarchy for the difficulty view.
     const concepts = renderConceptDifficultyChart(student) || [];
+    renderStudentTopicRanking(student);
 
     const hardestConcept = concepts.length > 0
         ? concepts.reduce((hardest, current) => {
@@ -1145,62 +1245,6 @@ window.closeStudentModal = function(){
     }
     currentStudentForAttemptChart = null;
 };
-function updateRecommendations(conceptMapOverall, totalStudentsCount) {
-    const container = document.getElementById("recommendations-container");
-    if (!container) return;
-
-    // Find concept with highest student struggle count
-    let maxCount = 0;
-    let topTroubleConcept = null;
-
-    for (const [concept, count] of Object.entries(conceptMapOverall)) {
-        if (count > maxCount) {
-            maxCount = count;
-            topTroubleConcept = concept;
-        }
-    }
-
-    if (!topTroubleConcept || maxCount === 0) {
-        container.innerHTML = `
-            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px;">
-                <strong style="color: #15803d; font-size: 0.9rem;">✨ Excellent Class Performance</strong>
-                <p style="font-size: 0.8rem; color: #166534; margin-top: 4px;">
-                    No major learning roadblocks detected. Students are progressing smoothly.
-                </p>
-            </div>
-        `;
-        return;
-    }
-
-    const percentage = totalStudentsCount > 0 
-        ? Math.round((maxCount / totalStudentsCount) * 100) 
-        : 0;
-
-    const formattedConceptName = topTroubleConcept.replace(/_/g, ' ').toUpperCase();
-
-    container.innerHTML = `
-        <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 10px 12px; border-radius: 8px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="color: #b91c1c; font-size: 0.85rem;">⚠️ High Risk Category</strong>
-                <span style="background: #ef4444; color: white; border-radius: 12px; padding: 2px 8px; font-size: 0.75rem; font-weight: bold;">
-                    ${maxCount} Students (${percentage}%)
-                </span>
-            </div>
-            <p style="font-size: 0.8rem; color: #991b1b; margin-top: 4px; font-weight: 600;">
-                Focus Area: ${formattedConceptName}
-            </p>
-        </div>
-
-        <div style="background: var(--bg-secondary, #f8fafc); border-left: 4px solid #3b82f6; padding: 10px 12px; border-radius: 4px;">
-            <strong style="font-size: 0.82rem; color: var(--text-main, #1e293b);">💡 Recommended Actions:</strong>
-            <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.78rem; color: var(--text-muted, #475569); line-height: 1.4;">
-                <li>Conduct a quick 10-minute recap session focusing on <strong>${formattedConceptName}</strong>.</li>
-                <li>Provide step-by-step visual tracing exercises before coding.</li>
-                <li>Assign pair programming or guided practice activities to support struggling learners.</li>
-            </ul>
-        </div>
-    `;
-}
 function renderGapChart(data) {
     const ctx = document.getElementById("gapChart")?.getContext("2d");
     if (!ctx) return;
@@ -2198,6 +2242,8 @@ function updateInstructorSummary(filteredStudents) {
 window.logoutUser = async () => {
     try {
         await signOut(auth);
+        localStorage.removeItem(VERIFIED_KEY);
+        sessionStorage.removeItem(VERIFIED_KEY);
         window.location.href = '../index.html'; 
     } catch (error) {
         console.error("Logout error", error);
@@ -2251,7 +2297,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentTheme = localStorage.getItem('dashboard-theme') || 'light';
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             
-            localStorage.setItem('dashboard-theme', newTheme);
+            localStorage.setItezzm('dashboard-theme', newTheme);
             applyTheme(newTheme);
         });
     }
@@ -2263,3 +2309,7 @@ window.addEventListener('storage', (event) => {
         applyTheme(newTheme);
     }
 });
+
+// Additional presentation controls: use the existing section/search filtering pipeline.
+document.getElementById("progress-filter")?.addEventListener("change", () => loadStudents(document.getElementById("section-select")?.value || ""));
+document.getElementById("student-sort")?.addEventListener("change", () => loadStudents(document.getElementById("section-select")?.value || ""));

@@ -17,6 +17,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const VERIFIED_KEY = "syntaxerror_verified_uid";
+function hasVerifiedSession(user) {
+    return user && (localStorage.getItem(VERIFIED_KEY) === user.uid ||
+        sessionStorage.getItem(VERIFIED_KEY) === user.uid);
+}
+
 
 const deleteAllModal = document.getElementById('delete-all-modal');
 const deleteAllBtn = document.getElementById('delete-all-btn');
@@ -84,7 +90,7 @@ if (confirmDeleteAllBtn) {
 
 // --- AUTH OBSERVER ---
 onAuthStateChanged(auth, async (user) => {
-    if (user) {
+    if (hasVerifiedSession(user)) {
         toggleLoading(true);
         await loadArchivedStudents();
         toggleLoading(false);
@@ -233,6 +239,8 @@ window.closeLogoutPopup = () => document.getElementById("logout-popup").style.di
 window.logoutUser = async () => {
     try {
         await signOut(auth);
+        localStorage.removeItem(VERIFIED_KEY);
+        sessionStorage.removeItem(VERIFIED_KEY);
         window.location.href = '../index.html'; 
     } catch (error) {
         console.error("Logout error", error);
@@ -281,4 +289,4 @@ window.addEventListener('storage', (event) => {
     if (event.key === 'dashboard-theme') {
         applyTheme(event.newValue); 
     }
-});
+}); 

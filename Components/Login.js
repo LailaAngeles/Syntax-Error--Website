@@ -4,7 +4,13 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/fireba
 import { 
     getAuth, 
     signInWithEmailAndPassword,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    setPersistence,
+    inMemoryPersistence,
+    browserLocalPersistence,
+    browserSessionPersistence,
+    onAuthStateChanged,
+    signOut
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
 import { 
@@ -32,6 +38,32 @@ const email = document.getElementById("email");
 const password = document.getElementById("password");
 const togglePassword = document.getElementById("togglePassword");
 const loginForm = document.getElementById("loginForm");
+const rememberMe = document.getElementById("rememberMe");
+const VERIFIED_KEY = "syntaxerror_verified_uid";
+const DASHBOARD_URL = "../MainMenu/dashboard.html";
+let otpExpiresAt = 0;
+let loginInProgress = false;
+
+// Resume only sessions that have successfully completed the email PIN step.
+onAuthStateChanged(auth, async (user) => {
+    if (loginInProgress || !user) return;
+    const verifiedUid = localStorage.getItem(VERIFIED_KEY) || sessionStorage.getItem(VERIFIED_KEY);
+    if (verifiedUid !== user.uid) return;
+    try {
+        const archived = await getDocs(query(collection(db, "archivedUsers"), where("email", "==", user.email)));
+        if (!archived.empty) {
+            localStorage.removeItem(VERIFIED_KEY);
+            sessionStorage.removeItem(VERIFIED_KEY);
+            await signOut(auth);
+            showPopup("Your account has been archived. You cannot log in.");
+            return;
+        }
+        window.location.replace(DASHBOARD_URL);
+    } catch (error) {
+        console.error("Unable to check remembered session:", error);
+        // Do not redirect if the archive check cannot be completed.
+    }
+});
 const popup = document.getElementById("popup");
 const popupMessage = document.getElementById("popup-message");
 const popupClose = document.getElementById("popup-close");
@@ -112,7 +144,12 @@ loginForm?.addEventListener("submit", async function (e) {
 
     if (hasError) return;
 
+    loginInProgress = true;
     try {
+        // Do not persist an authenticated session until PIN verification succeeds.
+        await setPersistence(auth, inMemoryPersistence);
+        localStorage.removeItem(VERIFIED_KEY);
+        sessionStorage.removeItem(VERIFIED_KEY);
         const archiveRef = collection(db, "archivedUsers");
         const q = query(archiveRef, where("email", "==", email.value));
         const snapshot = await getDocs(q);
@@ -129,6 +166,7 @@ loginForm?.addEventListener("submit", async function (e) {
         await handleLoginAttempt(email.value);
 
     } catch (error) {
+        await signOut(auth).catch(() => {});
         console.error("Login error:", error.code);
         switch (error.code) {
             case "auth/invalid-credential":
@@ -144,6 +182,8 @@ loginForm?.addEventListener("submit", async function (e) {
             default:
                 showPopup("Login failed. Please try again.");
         }
+    } finally {
+        loginInProgress = false;
     }
 });
 
@@ -197,6 +237,7 @@ emailjs.init({ publicKey: "SZvtmcDCW3hy4qm5v" });
 
 async function handleLoginAttempt(userEmail) {
     generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpExpiresAt = Date.now() + 15 * 60 * 1000;
     try {
         await emailjs.send("service_ixe2e5j", "template_kvlen8d", {
             email: userEmail,
@@ -206,15 +247,40 @@ async function handleLoginAttempt(userEmail) {
      document.getElementById("otpPopup").style.display = "flex";
     } catch (error) {
         console.error("Email failed:", error);
+        await signOut(auth).catch(() => {});
+        generatedOtp = "";
         showPopup("Failed to send PIN. Please check your internet.");
     }
 }
 
-document.getElementById("verifyOtpBtn").addEventListener("click", () => {
-    const userEnteredOtp = document.getElementById("otpInput").value;
-    if (userEnteredOtp === generatedOtp) {
-        window.location.href = "../MainMenu/dashboard.html";
-    } else {
+document.getElementById("verifyOtpBtn")?.addEventListener("click", async () => {
+    const verifyButton = document.getElementById("verifyOtpBtn");
+    const entered = document.getElementById("otpInput").value.trim();
+    if (!generatedOtp || !auth.currentUser || Date.now() > otpExpiresAt) {
+        alert("The PIN expired. Please sign in again.");
+        await signOut(auth);
+        document.getElementById("otpPopup").style.display = "none";
+        return;
+    }
+    if (entered !== generatedOtp) {
         alert("Invalid PIN. Please try again.");
+        return;
+    }
+
+    verifyButton.disabled = true;
+    try {
+        const shouldRemember = rememberMe?.checked === true;
+        await setPersistence(auth, shouldRemember ? browserLocalPersistence : browserSessionPersistence);
+        const storage = shouldRemember ? localStorage : sessionStorage;
+        localStorage.removeItem(VERIFIED_KEY);
+        sessionStorage.removeItem(VERIFIED_KEY);
+        storage.setItem(VERIFIED_KEY, auth.currentUser.uid);
+        generatedOtp = "";
+        window.location.replace(DASHBOARD_URL);
+    } catch (error) {
+        console.error("Unable to finish login:", error);
+        showPopup("Could not save your login session. Please try again.");
+    } finally {
+        verifyButton.disabled = false;
     }
 });
