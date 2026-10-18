@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import { getFirestore, collection, getDocs, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
 // ----------------------------
@@ -22,6 +22,27 @@ const auth = getAuth(app);
 let allStudentsData = [];
 let mySections = [];
 let trendChart;
+let unsubscribeTeacher = null;
+let unsubscribeSections = null;
+const teacherClassListeners = new Map();
+const teacherClassData = new Map();
+
+function stopTeacherListeners() {
+    if (unsubscribeTeacher) { unsubscribeTeacher(); unsubscribeTeacher = null; }
+    if (unsubscribeSections) { unsubscribeSections(); unsubscribeSections = null; }
+    teacherClassListeners.forEach(stop => stop());
+    teacherClassListeners.clear();
+    teacherClassData.clear();
+}
+
+function renderLiveTeacherData() {
+    allStudentsData = Array.from(teacherClassData.values()).flat();
+    const selected = document.getElementById("section-select")?.value || "";
+    const leaderboardSection = document.getElementById("leaderboard-section-select")?.value || "";
+    updateLeaderboard(leaderboardSection);
+    renderAnalytics(selected);
+}
+
 
 // Dynamic Concepts list fallback
 const concepts = [
@@ -41,6 +62,7 @@ const concepts = [
 // ----------------------------
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
+        stopTeacherListeners();
         window.location.href = "../index.html";
         return;
     }
@@ -74,46 +96,80 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function loadTeacherDashboard(user) {
+    stopTeacherListeners();
     const loader = document.getElementById("loading-overlay");
     if (loader) loader.style.display = "flex";
 
-    try {
-        const q = query(collection(db, "approvedUsers"), where("email", "==", user.email));
-        const userSnap = await getDocs(q);
-        userSnap.forEach(doc => { mySections = doc.data().section || []; });
+    let assignedSections = [];
+    let sectionsSnapshot = null;
 
-        const sectionDisplay = document.getElementById("user-section-display");
-        if (sectionDisplay) sectionDisplay.textContent = mySections.join(", ");
-
-        const sectionSnap = await getDocs(collection(db, "sections"));
+    function syncTeacherSections() {
+        if (!sectionsSnapshot) return;
         const select = document.getElementById("section-select");
-
-        allStudentsData = [];
+        const previousSelection = select?.value || "";
         if (select) select.innerHTML = '<option value="">All My Sections</option>';
-        
-        for (const sDoc of sectionSnap.docs) {
-            const sName = sDoc.data().name;
-            if (mySections.includes(sName)) {
-                const opt = document.createElement("option");
-                opt.value = sName; 
-                opt.textContent = sName;
-                if (select) select.appendChild(opt);
+        const wanted = new Map();
 
-                const classSnap = await getDocs(collection(db, "sections", sDoc.id, "classList"));
-                classSnap.forEach(student => {
-                    allStudentsData.push({ ...student.data(), section: sName });
-                });
+        sectionsSnapshot.forEach(sDoc => {
+            const name = sDoc.data().name;
+            if (!assignedSections.includes(name)) return;
+            wanted.set(sDoc.id, name);
+            if (select) {
+                const opt = document.createElement("option");
+                opt.value = name;
+                opt.textContent = name;
+                select.appendChild(opt);
             }
+        });
+        if (select && [...select.options].some(option => option.value === previousSelection)) {
+            select.value = previousSelection;
         }
+        teacherClassListeners.forEach((stop, id) => {
+            if (!wanted.has(id)) {
+                stop();
+                teacherClassListeners.delete(id);
+                teacherClassData.delete(id);
+            }
+        });
+        wanted.forEach((name, id) => {
+            // A section name change should also update its displayed students.
+            if (teacherClassListeners.has(id)) return;
+            const stop = onSnapshot(collection(db, "sections", id, "classList"), snap => {
+                teacherClassData.set(id, snap.docs.map(student => ({
+                    ...student.data(), section: wanted.get(id) || name
+                })));
+                renderLiveTeacherData();
+            }, error => console.error("Teacher class listener error:", error));
+            teacherClassListeners.set(id, stop);
+        });
+        teacherClassData.forEach((students, id) => {
+            const name = wanted.get(id);
+            if (name) students.forEach(student => { student.section = name; });
+        });
+        const leaderboardSelect = document.getElementById("leaderboard-section-select");
+        const previousLeaderboard = leaderboardSelect?.value || "";
         initLeaderboardDropdown();
-        updateLeaderboard("");
-        renderAnalytics(""); 
-        
-    } catch (error) {
-        console.error("Dashboard Load Error:", error);
-    } finally {
+        if (leaderboardSelect && [...leaderboardSelect.options].some(opt => opt.value === previousLeaderboard)) {
+            leaderboardSelect.value = previousLeaderboard;
+        }
+        renderLiveTeacherData();
         if (loader) loader.style.display = "none";
     }
+
+    const q = query(collection(db, "approvedUsers"), where("email", "==", user.email));
+    unsubscribeTeacher = onSnapshot(q, snap => {
+        assignedSections = [];
+        snap.forEach(d => { assignedSections = d.data().section || []; });
+        mySections = assignedSections;
+        const display = document.getElementById("user-section-display");
+        if (display) display.textContent = mySections.join(", ");
+        syncTeacherSections();
+    }, error => { console.error("Teacher permission listener error:", error); if (loader) loader.style.display = "none"; });
+
+    unsubscribeSections = onSnapshot(collection(db, "sections"), snap => {
+        sectionsSnapshot = snap;
+        syncTeacherSections();
+    }, error => { console.error("Teacher sections listener error:", error); if (loader) loader.style.display = "none"; });
 }
 
 // Helper to extract whole-number metrics safely from Firestore nested maps
@@ -354,9 +410,9 @@ function initLeaderboardDropdown() {
         select.appendChild(option);
     });
 
-    select.addEventListener('change', (e) => {
+    select.onchange = (e) => {
         updateLeaderboard(e.target.value);
-    });
+    };
 }
 
 function updateMasteryDistributionList(students) {
@@ -435,6 +491,7 @@ document.getElementById("section-select")?.addEventListener("change", (e) => {
 });
 
 window.logoutUser = async () => {
+    stopTeacherListeners();
     try {
         await signOut(auth);
         window.location.href = '../index.html'; 

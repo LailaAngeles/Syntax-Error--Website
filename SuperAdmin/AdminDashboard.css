@@ -560,3 +560,170 @@ html[data-theme] select, html[data-theme] textarea {
 @media (max-width:360px) {
   .sidebar ul li a {padding:10px 5px !important;gap:4px;font-size:11px !important}
 }
+
+
+
+/* ================================================================
+   FINAL INSPIRATION-MATCHED THEME AND STICKY MOBILE NAVIGATION
+   Added after the original stylesheet: no original CSS was removed.
+   Layout matches the reference: logo/theme button above a single-row
+   navigation; on mobile this header stays visible while page scrolls.
+   ================================================================ */
+html[data-theme="light"] {
+    --bg-color:#f0f2f5; --bg-main:#f0f2f5;
+    --card-bg:#ffffff; --bg-panel:#ffffff;
+    --sidebar-bg:#002e5f;
+    --sidebar-text:rgba(255,255,255,.78);
+    --logo-color:#ffc107; --active-bg:rgba(255,255,255,.11);
+    --active-text:#ffffff;
+    --text-main:#1f2937; --text-primary:#1f2937;
+    --text-muted:#6b7280; --text-secondary:#6b7280;
+    --border:#e5e7eb; --border-color:#e5e7eb;
+    --table-header:#f9fafb; --risk-color:#ef4444;
+    --mastery-color:#10b981; --btn-primary:#3b82f6;
+    --stat-icon:#3b82f6; --stat-border:#3b82f6;
+    --badge-text:#ffffff;
+    --card-shadow:0 4px 14px rgba(0,0,0,.065);
+}
+html[data-theme="dark"] {
+    --bg-color:#0d0f12; --bg-main:#0d0f12;
+    --card-bg:#161a22; --bg-panel:#161a22;
+    --sidebar-bg:#171b22;
+    --sidebar-text:#8b949e;
+    --logo-color:#fff200; --active-bg:#242a33;
+    --active-text:#ffffff;
+    --text-main:#ffffff; --text-primary:#ffffff;
+    --text-muted:#8b949e; --text-secondary:#8b949e;
+    --border:#21262d; --border-color:#21262d;
+    --table-header:rgba(255,255,255,.025);
+    --risk-color:#ff3333; --mastery-color:#39ff14;
+    --btn-primary:#3b82f6; --stat-icon:#007aff;
+    --stat-border:#00529b; --badge-text:#000000;
+    --card-shadow:0 10px 30px rgba(0,0,0,.32);
+}
+/* Default theme tokens before JavaScript applies data-theme. */
+:root {
+    --logo-color:#fff200;
+    --sidebar-text:#8b949e;
+    --active-bg:#242a33;
+    --active-text:#ffffff;
+}
+.sidebar .logo .sti-text { color:var(--logo-color); }
+.sidebar .logo .game-title { color:var(--risk-color); }
+.sidebar .theme-btn, .sidebar .theme-btn i,
+.sidebar #themeToggle, .sidebar #themeToggle i,
+.sidebar #theme-toggle, .sidebar #theme-toggle i {
+    color:var(--logo-color) !important;
+}
+.sidebar .theme-btn, .sidebar #themeToggle, .sidebar #theme-toggle {
+    background:transparent;
+    border:1px solid rgba(255,255,255,.09);
+    border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+}
+.sidebar li.active, .sidebar li.active:hover {
+    background:var(--active-bg);
+    box-shadow:none;
+}
+.sidebar li.active a { color:var(--active-text); }
+.sidebar li:not(.active) a { color:var(--sidebar-text); }
+.sidebar li:not(.active):hover a { color:#ffffff; }
+.sidebar { background-color:var(--sidebar-bg); }
+/* Preserve original modal visibility controlled by JS or inline styles. */
+@media (max-width:768px) {
+    html { max-width:100%; -webkit-text-size-adjust:100%; }
+    body, body:has(> .sidebar) {
+        display:flex; flex-direction:column;
+        width:100%; min-height:100dvh;
+        overflow-x:clip; overflow-y:visible;
+    }
+    .dashboard {
+        display:flex; flex-direction:column;
+        height:auto !important; min-height:100dvh;
+        overflow:visible !important;
+    }
+    /* The top navigation is sticky; keep its parent non-scrolling. */
+    .sidebar {
+        position:sticky !important;
+        top:0; z-index:1050;
+        align-self:stretch;
+        width:100% !important; max-width:100%; min-width:0;
+        height:auto !important; flex:0 0 auto;
+        padding:20px 20px 13px !important;
+        display:flex; flex-direction:column;
+        background:var(--sidebar-bg) !important;
+        border-right:0;
+        border-bottom:1px solid var(--border);
+        box-shadow:0 4px 16px rgba(0,0,0,.10);
+        -webkit-backdrop-filter:blur(14px);
+        backdrop-filter:blur(14px);
+    }
+    .sidebar-header {
+        display:flex; flex-direction:row;
+        align-items:center; justify-content:space-between;
+        width:100%; gap:12px;
+        margin:0 0 14px 0 !important;
+    }
+    .sidebar .logo {
+        margin:0; font-size:24px; font-weight:900;
+        letter-spacing:.5px; line-height:1.1;
+    }
+    .sidebar .logo .game-title {
+        display:block; margin-top:5px;
+        font-size:15px; font-weight:800;
+        letter-spacing:.6px;
+    }
+    .sidebar .theme-btn, .sidebar #themeToggle, .sidebar #theme-toggle {
+        width:50px !important; height:50px !important;
+        padding:0 !important;
+        font-size:23px !important;
+    }
+    .sidebar .theme-btn i, .sidebar #themeToggle i,
+    .sidebar #theme-toggle i { font-size:23px !important; }
+    .sidebar ul {
+        width:100%; max-width:100%; min-width:0;
+        display:flex !important; flex-flow:row nowrap !important;
+        align-items:center; justify-content:flex-start;
+        gap:7px; margin:0; padding:0 0 3px;
+        flex-grow:0;
+        overflow-x:auto !important; overflow-y:hidden !important;
+        white-space:nowrap;
+        scrollbar-width:none;
+        -webkit-overflow-scrolling:touch;
+    }
+    .sidebar ul::-webkit-scrollbar { display:none; }
+    .sidebar li {
+        margin:0 !important; flex:0 0 auto;
+        border-radius:13px;
+    }
+    .sidebar li a {
+        display:flex; flex-direction:row; align-items:center;
+        justify-content:center; gap:9px;
+        padding:12px 13px !important;
+        min-height:44px;
+        font-size:14px !important; font-weight:600;
+        white-space:nowrap; border-radius:13px;
+    }
+    .sidebar li a i { flex-shrink:0; }
+    .content, .main-content {
+        width:100% !important; max-width:100%; min-width:0;
+        flex:1 1 auto;
+        overflow:visible !important;
+        padding:16px !important;
+    }
+    .main-container { min-width:0; max-width:100%; }
+    .table-responsive, .table-scroll-wrapper, .table-container {
+        width:100%; max-width:100%;
+        overflow-x:auto; -webkit-overflow-scrolling:touch;
+    }
+    .panel, .panelL, .card { min-width:0; max-width:100%; }
+    .modal, .modal-overlay, .logout-modal { z-index:2000; }
+}
+@media (max-width:420px) {
+    .sidebar { padding:16px 14px 12px !important; }
+    .sidebar li a { padding:11px 12px !important; font-size:13px !important; }
+    .sidebar ul { gap:5px; }
+    .sidebar .logo { font-size:23px; }
+    .content, .main-content { padding:12px !important; }
+}

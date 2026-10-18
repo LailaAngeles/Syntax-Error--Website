@@ -1,6 +1,7 @@
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { 
-    getFirestore, collection, getDocs, query, doc, setDoc, deleteDoc, serverTimestamp, writeBatch 
+    getFirestore, collection, getDocs, query, doc, setDoc, deleteDoc, serverTimestamp, writeBatch, onSnapshot 
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
@@ -32,6 +33,7 @@ const confirmDeleteAllBtn = document.getElementById('confirm-delete-all-btn');
 const archivedTableBody = document.getElementById('archived-students-table');
 let allArchived = [];
 let pendingRestoreId = null;
+let unsubscribeArchives = null;
 
 // --- UI HELPER ---
 const toggleLoading = (show) => {
@@ -92,18 +94,20 @@ if (confirmDeleteAllBtn) {
 onAuthStateChanged(auth, async (user) => {
     if (hasVerifiedSession(user)) {
         toggleLoading(true);
-        await loadArchivedStudents();
+        loadArchivedStudents();
         toggleLoading(false);
     } else {
+        if (unsubscribeArchives) { unsubscribeArchives(); unsubscribeArchives = null; }
         window.location.href = '../Login/Login.html';
     }
 });
 
 // --- LOAD ARCHIVES & AUTO-CLEANUP (7 DAYS) ---
-async function loadArchivedStudents() {
+function loadArchivedStudents() {
+    if (unsubscribeArchives) unsubscribeArchives();
+    const q = query(collection(db, "archivedStudents"));
+    unsubscribeArchives = onSnapshot(q, async (querySnapshot) => {
     try {
-        const q = query(collection(db, "archivedStudents"));
-        const querySnapshot = await getDocs(q);
         
         allArchived = [];
         archivedTableBody.innerHTML = ''; 
@@ -150,6 +154,10 @@ async function loadArchivedStudents() {
         console.error("Error fetching archives:", error);
         archivedTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error loading archives.</td></tr>';
     }
+    }, (error) => {
+        console.error("Archive listener error:", error);
+        archivedTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error loading archives.</td></tr>';
+    });
 }
 
 function renderTable(data) {
@@ -237,6 +245,7 @@ document.getElementById('confirm-restore-btn').onclick = async function() {
 window.showLogoutPopup = () => document.getElementById("logout-popup").style.display = "flex";
 window.closeLogoutPopup = () => document.getElementById("logout-popup").style.display = "none";
 window.logoutUser = async () => {
+    if (unsubscribeArchives) { unsubscribeArchives(); unsubscribeArchives = null; }
     try {
         await signOut(auth);
         localStorage.removeItem(VERIFIED_KEY);

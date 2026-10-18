@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { 
-    getFirestore, collection, getDocs, query, where, writeBatch, doc, updateDoc, deleteDoc, setDoc, serverTimestamp 
+    getFirestore, collection, getDocs, onSnapshot, query, where, writeBatch, doc, updateDoc, deleteDoc, setDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
@@ -42,7 +42,25 @@ function hasVerifiedSession(user) {
 // Global Variables
 let allStudents = [];
 let currentUserSection = []; 
-let sectionDocMapping = {}; 
+let sectionDocMapping = {};
+let unsubscribeStudentUser = null;
+let unsubscribeStudentSections = null;
+const studentClassListeners = new Map();
+const studentClassSnapshots = new Map();
+
+function stopStudentRealtimeListeners() {
+    if (unsubscribeStudentUser) { unsubscribeStudentUser(); unsubscribeStudentUser = null; }
+    if (unsubscribeStudentSections) { unsubscribeStudentSections(); unsubscribeStudentSections = null; }
+    studentClassListeners.forEach(stop => stop());
+    studentClassListeners.clear();
+    studentClassSnapshots.clear();
+}
+
+function renderRealtimeStudents() {
+    allStudents = [...studentClassSnapshots.values()].flat();
+    loadStudents(document.getElementById("section-select")?.value || "");
+}
+ 
 let difficultyChart;
 let sectionPieChartInstance = null;
 let overallColumnChartInstance = null;
@@ -234,6 +252,7 @@ function renderStudentInsights(students) {
 // 2. DATA INITIALIZATION
 onAuthStateChanged(auth, async (user) => {
     if (!hasVerifiedSession(user)) {
+        stopStudentRealtimeListeners();
         window.location.href = "../Login/Login.html";
         return;
     }
@@ -244,59 +263,72 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 async function getUserData(user) {
+    stopStudentRealtimeListeners();
     const select = document.getElementById("section-select");
-    if (select) select.innerHTML = '<option value="">-- All My Sections --</option>';
-    
-    sectionDocMapping = {};
-    currentUserSection = [];
+    let sectionSnapshot = null;
 
-    try {
-        const q = query(collection(db, "approvedUsers"), where("email", "==", user.email));
-        const userSnap = await getDocs(q);
-        userSnap.forEach(doc => {
-            currentUserSection = doc.data().section || [];
-        });
-
-        if(document.getElementById("user-section")) {
-            document.getElementById("user-section").textContent = currentUserSection.join(", ");
-        }
-
-        const sectionSnap = await getDocs(collection(db, "sections"));
-        sectionSnap.forEach(d => {
-            const sectionName = d.data().name;
-            sectionDocMapping[sectionName] = d.id;
-            
-            if (currentUserSection.includes(sectionName) && select) {
+    function syncAssignedSections() {
+        if (!sectionSnapshot) return;
+        const selected = select?.value || "";
+        sectionDocMapping = {};
+        if (select) select.innerHTML = '<option value="">-- All My Sections --</option>';
+        sectionSnapshot.forEach(d => {
+            const name = d.data().name;
+            sectionDocMapping[name] = d.id;
+            if (currentUserSection.includes(name) && select) {
                 const opt = document.createElement("option");
-                opt.value = sectionName;
-                opt.textContent = sectionName;
+                opt.value = name;
+                opt.textContent = name;
                 select.appendChild(opt);
             }
         });
-
-    } catch (error) {
-        console.error("Error fetching user data:", error);
+        if (select && [...select.options].some(opt => opt.value === selected)) select.value = selected;
+        fetchClassList();
     }
+
+    const q = query(collection(db, "approvedUsers"), where("email", "==", user.email));
+    unsubscribeStudentUser = onSnapshot(q, snap => {
+        currentUserSection = [];
+        snap.forEach(d => { currentUserSection = d.data().section || []; });
+        const display = document.getElementById("user-section");
+        if (display) display.textContent = currentUserSection.join(", ");
+        syncAssignedSections();
+    }, error => console.error("Error listening for user sections:", error));
+
+    unsubscribeStudentSections = onSnapshot(collection(db, "sections"), snap => {
+        sectionSnapshot = snap;
+        syncAssignedSections();
+    }, error => console.error("Error listening for sections:", error));
 }
 
 async function fetchClassList() {
-    allStudents = [];
+    const wanted = new Map();
     for (const sectionName of currentUserSection) {
-        const docId = sectionDocMapping[sectionName];
-        if (!docId) continue;
-        
-        const classRef = collection(db, "sections", docId, "classList");
-        const snap = await getDocs(classRef);
-        
-        snap.forEach(sDoc => {
-            allStudents.push({ 
-                ...sDoc.data(), 
-                section: sectionName, 
-                parentDocId: docId 
-            });
-        });
+        const id = sectionDocMapping[sectionName];
+        if (id) wanted.set(id, sectionName);
     }
-    loadStudents("");
+    studentClassListeners.forEach((stop, id) => {
+        if (!wanted.has(id)) {
+            stop();
+            studentClassListeners.delete(id);
+            studentClassSnapshots.delete(id);
+        }
+    });
+    wanted.forEach((sectionName, docId) => {
+        if (studentClassListeners.has(docId)) return;
+        const stop = onSnapshot(collection(db, "sections", docId, "classList"), snap => {
+            studentClassSnapshots.set(docId, snap.docs.map(sDoc => ({
+                ...sDoc.data(), section: wanted.get(docId) || sectionName, parentDocId: docId
+            })));
+            renderRealtimeStudents();
+        }, error => console.error("Class list listener error:", error));
+        studentClassListeners.set(docId, stop);
+    });
+    studentClassSnapshots.forEach((students, id) => {
+        const name = wanted.get(id);
+        if (name) students.forEach(student => { student.section = name; });
+    });
+    renderRealtimeStudents();
 }
 
 // 3. TABLE LOADING & STAT UPDATES
@@ -2240,6 +2272,7 @@ function updateInstructorSummary(filteredStudents) {
 }
 
 window.logoutUser = async () => {
+    stopStudentRealtimeListeners();
     try {
         await signOut(auth);
         localStorage.removeItem(VERIFIED_KEY);
