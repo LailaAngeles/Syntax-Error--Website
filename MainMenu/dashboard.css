@@ -2752,3 +2752,27 @@ html[data-theme="light"] .student-topic-ranking-sort {color:#1d4ed8;}
     }
 }
     
+
+/* Student detail indicators: Firebase-supported explanation */
+.key-indicators-card .indicator-evidence {
+    margin-top: 16px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--stat-icon);
+    border-radius: 14px;
+    background: var(--table-header);
+    color: var(--text-main);
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+}
+.key-indicators-card .indicator-evidence[data-status="risk"] { border-left-color: var(--risk-color); }
+.key-indicators-card .indicator-evidence[data-status="on-track"] { border-left-color: var(--mastery-color); }
+.key-indicators-card .indicator-evidence[data-status="unknown"] { border-left-color: var(--text-muted); }
+.key-indicators-card .indicator-evidence p { margin: 0 0 8px; font-size: 0.89rem; }
+.key-indicators-card .indicator-evidence small { color: var(--text-muted); font-size: 0.76rem; display: block; }
+.key-indicators-card .indicator-method-row { font-size: 0.75rem; color: var(--text-muted); gap: 18px; }
+.key-indicators-card .indicator-method-row span:last-child { text-align: right; }
+@media (max-width: 560px) {
+    .key-indicators-card .indicator-method-row { flex-wrap: wrap; }
+    .key-indicators-card .indicator-method-row span:last-child { text-align: left; }
+}

@@ -1,0 +1,69 @@
+/* SyntaxError Student Portal – UI refinement, CSS only.
+   Scrollbars are visually hidden; scrolling remains enabled. */
+:root{--ui-radius:20px;--ui-pace:cubic-bezier(.22,1,.36,1)}
+/* Preserve scrollbar-free scrolling on every dashboard scroll region */
+html,body,.sidebar,.sidebar ul,.main-content,.student-modal-box,
+#student-details-modal,.modal-left-col,.modal-right-col,
+.student-topic-ranking-list,.student-level-attempts-list,
+.concept-scroll-box,.table-responsive,.student-table-card,
+#attempts-list,#student-details-content,#modal-concept-breakdown,
+.modal-overlay,.confirm-box,.add-student-box,
+#mastery-distribution-list{scrollbar-width:none!important;-ms-overflow-style:none!important}
+html::-webkit-scrollbar,body::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar,.sidebar ul::-webkit-scrollbar,
+.main-content::-webkit-scrollbar,.student-modal-box::-webkit-scrollbar,
+#student-details-modal::-webkit-scrollbar,.modal-left-col::-webkit-scrollbar,
+.modal-right-col::-webkit-scrollbar,.student-topic-ranking-list::-webkit-scrollbar,
+.student-level-attempts-list::-webkit-scrollbar,.concept-scroll-box::-webkit-scrollbar,
+.table-responsive::-webkit-scrollbar,.student-table-card::-webkit-scrollbar,
+#attempts-list::-webkit-scrollbar,#student-details-content::-webkit-scrollbar,
+#modal-concept-breakdown::-webkit-scrollbar,.modal-overlay::-webkit-scrollbar,
+.confirm-box::-webkit-scrollbar,.add-student-box::-webkit-scrollbar,
+#mastery-distribution-list::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+/* Hide all scrollbar tracks inside the analysis modal, including dynamically created cards. */
+#student-details-modal *{scrollbar-width:none!important;-ms-overflow-style:none!important}
+#student-details-modal *::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+/* Base cards & readable, adaptive backgrounds */
+html[data-theme="light"]{--ui-glow:rgba(37,99,235,.14);--ui-accent:#2563eb;--ui-surface:#fff;--ui-soft:#f6f9ff;--ui-deep:#f1f6ff}
+html[data-theme="dark"]{--ui-glow:rgba(34,211,238,.12);--ui-accent:#38bdf8;--ui-surface:#141d2d;--ui-soft:#0e1726;--ui-deep:#142840}
+.main-content{background:radial-gradient(ellipse 90% 350px at 70% -120px,var(--ui-glow),transparent 85%);}
+.main-content > header{padding:clamp(18px,2.1vw,27px);border:1px solid var(--border);border-radius:22px;background:linear-gradient(115deg,var(--card-bg),var(--ui-soft));box-shadow:0 10px 28px rgba(0,0,0,.045)}
+.card:not(.stat),.analysis-box,.student-table-card{border-radius:20px;box-shadow:0 12px 30px rgba(0,0,0,.055);transition:border-color .3s,box-shadow .3s,transform .3s var(--ui-pace)}
+.card:not(.stat):hover{border-color:color-mix(in srgb,var(--ui-accent) 32%,var(--border));box-shadow:0 16px 38px rgba(0,0,0,.085)}
+button,input,select{transition:border-color .22s,box-shadow .22s,background .22s,transform .22s var(--ui-pace)}
+button:hover:not(:disabled){filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--ui-accent);outline-offset:3px}
+/* Polished, still fully scrollable analysis dialog */
+#student-details-modal{background:rgba(4,10,23,.78)!important;backdrop-filter:blur(16px) saturate(1.15)!important}
+#student-details-modal .student-modal-box{background:var(--bg-color)!important;border:1px solid color-mix(in srgb,var(--ui-accent) 28%,var(--border))!important;border-radius:28px!important;box-shadow:0 36px 120px rgba(0,0,0,.42)!important;overflow-y:auto!important;overscroll-behavior:contain}
+#student-details-modal .analysis-overview-banner{border-radius:23px;background:linear-gradient(115deg,color-mix(in srgb,var(--ui-accent) 13%,var(--card-bg)),var(--card-bg) 72%)!important;border-color:color-mix(in srgb,var(--ui-accent) 23%,var(--border))!important;box-shadow:0 8px 28px rgba(0,0,0,.04)}
+#student-details-modal .analysis-overview-banner:after{content:'</>';position:absolute;right:30px;top:30px;font:800 clamp(2rem,5vw,4rem)/1 'Fira Code',monospace;color:var(--ui-accent);opacity:.10;pointer-events:none}
+#student-details-modal .analysis-overview-eyebrow{color:var(--ui-accent);font-weight:800}
+#student-details-modal .analysis-jump-links button{background:color-mix(in srgb,var(--ui-accent) 7%,var(--card-bg));border:1px solid color-mix(in srgb,var(--ui-accent) 25%,var(--border));font-weight:650;min-height:40px}
+#student-details-modal .analysis-jump-links button:hover{background:color-mix(in srgb,var(--ui-accent) 15%,var(--card-bg));transform:translateY(-2px);box-shadow:0 8px 18px var(--ui-glow)}
+#student-details-modal .close-student-btn{width:42px;height:42px;display:grid;place-items:center;border-radius:14px!important;background:var(--card-bg)!important;backdrop-filter:blur(12px);transition:transform .25s,background .25s}
+#student-details-modal .close-student-btn:hover{transform:rotate(90deg);background:var(--ui-deep)!important}
+/* Topic ranking & levels are distinct groups; avoid competing strong colors */
+#student-details-modal .modal-left-col{background:linear-gradient(160deg,#0c3156,#092849 65%,#071d38)!important;box-shadow:0 15px 45px rgba(0,0,0,.16)!important;border:1px solid rgba(170,217,255,.18)!important;border-radius:23px!important}
+#student-details-modal .modal-left-col :is(.student-topic-ranking,.student-level-attempts){background:rgba(2,17,36,.36)!important;box-shadow:0 8px 26px rgba(0,0,0,.09);border-color:rgba(156,206,251,.19)!important}
+#student-details-modal .student-topic-ranking-list{overflow-y:auto!important;overscroll-behavior:contain;scroll-behavior:smooth}
+#student-details-modal .student-level-attempts-list{overflow-y:auto!important;overscroll-behavior:contain;scroll-behavior:smooth}
+#student-details-modal .student-topic-ranking-item{background:rgba(255,255,255,.065);border:1px solid rgba(255,255,255,.13);padding:14px!important;border-radius:15px!important}
+#student-details-modal .student-topic-ranking-item:hover{background:rgba(255,255,255,.11)!important;transform:translateY(-2px)}
+#student-details-modal .student-level-row{box-shadow:0 5px 14px rgba(0,0,0,.08);transition:background .25s,border-color .25s,transform .25s}
+#student-details-modal .student-level-row:hover{transform:translateX(2px);border-color:rgba(140,202,255,.56)!important}
+#student-details-modal .student-level-row[open]{box-shadow:0 12px 20px rgba(0,0,0,.13)}
+#student-details-modal .student-level-row summary{cursor:pointer;outline-offset:-3px}
+#student-details-modal .modal-right-col :is(.chart-section,.analysis-card){background:var(--card-bg);border:1px solid var(--border);border-radius:22px!important;box-shadow:0 8px 28px rgba(0,0,0,.045)!important}
+#student-details-modal .modal-right-col :is(.chart-section,.analysis-card):hover{border-color:color-mix(in srgb,var(--ui-accent) 24%,var(--border))}
+#student-details-modal .attempt-summary-card{position:relative;overflow:hidden;background:linear-gradient(160deg,var(--card-bg),var(--ui-soft))!important;border:1px solid var(--border)!important;border-top:3px solid var(--stat-border)!important;box-shadow:0 7px 19px rgba(0,0,0,.04);transition:transform .25s var(--ui-pace)}
+#student-details-modal .attempt-summary-card:hover{transform:translateY(-3px)}
+#student-details-modal .attempt-first-card{border-top-color:#f87171!important}#student-details-modal .attempt-second-card{border-top-color:#fbbf24!important}#student-details-modal .attempt-third-card{border-top-color:#34d399!important}
+#student-details-modal .attempt-card-value{letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+/* Responsive layout: no forced horizontal clipping of analysis text. */
+#student-details-modal .modal-grid-container{min-width:0}
+#student-details-modal :is(.student-info-header,.student-topic-ranking,.student-level-attempts,.modal-right-col){min-width:0}
+#student-details-modal :is(h2,h3,.student-topic-ranking-name){overflow-wrap:anywhere}
+@media(max-width:850px){#student-details-modal .student-modal-box{max-height:96dvh!important;border-radius:18px!important}#student-details-modal .modal-grid-container{grid-template-columns:minmax(0,1fr)!important}#student-details-modal .analysis-overview-banner:after{display:none}}
+@media(max-width:520px){#student-details-modal{padding:5px!important}#student-details-modal .student-modal-box{padding:12px!important;width:100%!important}#student-details-modal .analysis-jump-links{gap:6px}#student-details-modal .analysis-jump-links button{font-size:.69rem;padding:8px 10px}}
+@media(prefers-reduced-motion:reduce){#student-details-modal *,#student-details-modal *::before,#student-details-modal *::after{animation:none!important;scroll-behavior:auto!important;transition:none!important}}

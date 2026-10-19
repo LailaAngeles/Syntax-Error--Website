@@ -1,0 +1,22 @@
+
+/* Student modal: level attempts under Topic Difficulty Ranking */
+.student-level-attempts{margin-top:18px;padding:16px;border:1px solid var(--border);border-radius:17px;background:var(--card-bg);color:var(--text-main)}
+.student-level-heading h3{font-size:1rem;display:flex;align-items:center;gap:9px}
+.student-level-heading p{font-size:.76rem;color:var(--text-muted);margin:8px 0 15px}
+.student-level-attempts-list{max-height:540px;overflow:auto;display:grid;gap:8px;scrollbar-width:thin}
+.student-level-row{border:1px solid var(--border);border-radius:11px;overflow:hidden;background:var(--table-header)}
+.student-level-row summary{list-style:none;cursor:pointer;padding:12px;display:flex;align-items:center;gap:9px;font-size:.82rem}
+.student-level-row summary::-webkit-details-marker{display:none}
+.student-level-row summary b{margin-right:auto}
+.student-level-row summary span{color:var(--text-muted);font-size:.73rem;text-align:right}
+.student-level-row[open] summary i{transform:rotate(180deg)}
+.student-attempt-body{border-top:1px solid var(--border);padding:12px;display:grid;gap:9px;font-size:.77rem}
+.student-attempt-line{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.student-attempt-line strong{color:var(--text-main);text-align:right}
+.level-time-note{color:var(--text-muted);font-size:.72rem}
+.level-time-fields{list-style:none;padding:0;margin:4px 0;display:grid;gap:5px}
+.level-time-fields li{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--text-muted);font-size:.72rem}
+.level-time-fields strong{color:var(--text-main)}
+.level-no-data{color:var(--text-muted)}
+.student-topic-ranking-foot{gap:10px;flex-wrap:wrap}
+@media(max-width:640px){.student-level-attempts{padding:11px}.student-level-row summary{padding:10px}}

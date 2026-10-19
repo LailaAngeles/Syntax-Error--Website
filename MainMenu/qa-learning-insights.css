@@ -1,0 +1,72 @@
+/* Focused overview appears across both modal columns, outside Key Indicators. */
+#student-details-modal .qa-top-section{width:100%;margin:16px 0 24px;min-width:0;clear:both}
+#student-details-modal .qa-anchor{width:100%;min-width:0;margin:0}
+#student-details-modal .qa-insights{padding:clamp(18px,2.5vw,30px);background:var(--card-bg,#151d2a);border:1px solid var(--border,#334155);border-radius:22px;color:var(--text-main,#e9eef6);box-shadow:0 12px 36px #00000012;min-width:0}
+#student-details-modal .qa-clear-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
+#student-details-modal .qa-clear-heading h3{font-size:clamp(1.18rem,2vw,1.55rem);line-height:1.25;margin:0 0 6px;font-weight:800}
+#student-details-modal .qa-clear-heading p{color:var(--text-muted,#94a3b8);font-size:.84rem;line-height:1.5;margin:0;max-width:720px}
+#student-details-modal .qa-live-tag{color:#13b87c;border:1px solid #13b87c55;background:#13b87c13;border-radius:100px;padding:8px 12px;font-size:.72rem;font-weight:700;white-space:nowrap}
+#student-details-modal .qa-clear-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px}
+#student-details-modal .qa-kpi{padding:17px;background:var(--table-header,var(--card-bg));border:1px solid var(--border);border-radius:16px;min-width:0;display:flex;flex-direction:column;gap:5px;transition:transform .2s}
+#student-details-modal .qa-kpi:hover{transform:translateY(-2px)}
+#student-details-modal .qa-kpi-icon{font-size:1.15rem;color:var(--stat-icon,#3b82f6)}
+#student-details-modal .qa-kpi-label{font-size:.77rem;color:var(--text-muted,#94a3b8);overflow-wrap:anywhere}
+#student-details-modal .qa-kpi-value{font-size:clamp(1.35rem,2.5vw,2.1rem);font-weight:800;line-height:1.2;font-variant-numeric:tabular-nums}
+#student-details-modal .qa-kpi-sub{font-size:.71rem;color:var(--text-muted,#94a3b8)}
+#student-details-modal .qa-clear-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
+#student-details-modal .qa-clear-panel{background:var(--table-header,var(--card-bg));border:1px solid var(--border);padding:clamp(16px,2vw,24px);border-radius:17px;min-width:0}
+#student-details-modal .qa-clear-panel h4{font-size:1.05rem;font-weight:800;margin:0 0 6px}
+#student-details-modal .qa-short-info{color:var(--text-muted,#94a3b8);font-size:.73rem;margin:0 0 19px;line-height:1.5}
+#student-details-modal .qa-topic-row{margin:0 0 20px}
+#student-details-modal .qa-topic-head{display:flex;justify-content:space-between;align-items:start;gap:14px;font-size:.83rem;margin-bottom:9px}
+#student-details-modal .qa-topic-head strong{overflow-wrap:anywhere}
+#student-details-modal .qa-topic-head span{font-size:.73rem;color:var(--text-muted,#94a3b8);text-align:right;flex-shrink:0}
+#student-details-modal .qa-topic-track,#student-details-modal .qa-viz-track{width:100%;height:10px;border-radius:99px;background:var(--border,#334155);overflow:hidden}
+#student-details-modal .qa-topic-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#ff9c44,#ee5959);transition:width .25s}
+#student-details-modal .qa-viz-line{margin:0 0 21px}
+#student-details-modal .qa-viz-line-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:.82rem}
+#student-details-modal .qa-viz-line-head strong{font-variant-numeric:tabular-nums}
+#student-details-modal .qa-viz-fill{height:100%;border-radius:99px;background:#8697aa}
+#student-details-modal .qa-viz-fill.good{background:#10b981}#student-details-modal .qa-viz-fill.risk{background:#ef6262}#student-details-modal .qa-viz-fill.neutral{background:#8194b2}
+#student-details-modal .qa-no-records{padding:28px 12px;color:var(--text-muted,#94a3b8);font-size:.82rem;text-align:center}
+#student-details-modal .qa-simple-footer,#student-details-modal .qa-data-note{font-size:.72rem;color:var(--text-muted,#94a3b8)}
+#student-details-modal .qa-data-note{margin:14px 0 0;line-height:1.5}
+#student-details-modal .qa-insights *{scrollbar-width:none}#student-details-modal .qa-insights *::-webkit-scrollbar{display:none}
+@media(max-width:850px){#student-details-modal .qa-clear-grid{grid-template-columns:1fr}}
+@media(max-width:540px){#student-details-modal .qa-clear-heading{flex-direction:column}#student-details-modal .qa-clear-stats{grid-template-columns:1fr 1fr}#student-details-modal .qa-clear-stats .qa-kpi:last-child{grid-column:1/-1}#student-details-modal .qa-topic-head{flex-wrap:wrap}#student-details-modal .qa-topic-head span{text-align:left}}
+@media(prefers-reduced-motion:reduce){#student-details-modal .qa-insights *{transition:none!important}}
+
+/* Accessible donut with a transparent source-of-data explanation */
+#student-details-modal .qa-attempt-panel{display:flex;flex-direction:column}
+#student-details-modal .qa-donut-layout{display:grid;grid-template-columns:minmax(145px,190px) minmax(0,1fr);gap:clamp(14px,2vw,27px);align-items:center;margin:8px 0 22px}
+#student-details-modal .qa-donut{width:100%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;flex:none}
+#student-details-modal .qa-donut-hole{width:72%;height:72%;border-radius:50%;background:var(--card-bg,#151d2a);border:1px solid var(--border,#334155);display:flex;align-items:center;justify-content:center;flex-direction:column;color:var(--text-main);box-shadow:inset 0 3px 10px #00000018}
+#student-details-modal .qa-donut-number{font-size:clamp(2rem,3vw,2.8rem);font-variant-numeric:tabular-nums;line-height:1.1}
+#student-details-modal .qa-donut-sub{font-size:.72rem;color:var(--text-muted,#94a3b8)}
+#student-details-modal .qa-donut-legend{display:grid;gap:14px}
+#student-details-modal .qa-donut-legend-row,#student-details-modal .qa-donut-legend-label{display:flex;align-items:center;gap:9px}
+#student-details-modal .qa-donut-legend-row{justify-content:space-between;flex-wrap:wrap;font-size:.8rem}
+#student-details-modal .qa-donut-legend-row strong{font-size:.83rem;font-variant-numeric:tabular-nums}
+#student-details-modal .qa-donut-dot{width:12px;height:12px;border-radius:50%;flex:none}
+#student-details-modal .qa-data-source{border:1px solid var(--border,#334155);border-radius:12px;overflow:hidden;margin-top:auto;font-size:.77rem}
+#student-details-modal .qa-data-source summary{padding:12px 14px;cursor:pointer;color:var(--text-main);font-weight:700;list-style-position:inside}
+#student-details-modal .qa-data-source summary:hover{background:var(--border,#334155)}
+#student-details-modal .qa-data-source-body{padding:0 14px 14px;color:var(--text-muted,#94a3b8)}
+#student-details-modal .qa-data-source-body p{margin:9px 0;line-height:1.6;overflow-wrap:anywhere}
+#student-details-modal .qa-data-source-list{max-height:230px;overflow:auto;scrollbar-width:none}
+#student-details-modal .qa-data-source-list::-webkit-scrollbar{display:none}
+#student-details-modal .qa-data-source-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(74px,auto) 56px;gap:8px;align-items:center;padding:9px 0;border-top:1px solid var(--border,#334155);font-size:.73rem}
+#student-details-modal .qa-source-activity{overflow-wrap:anywhere;color:var(--text-main)}
+#student-details-modal .qa-source-values{white-space:nowrap;font-variant-numeric:tabular-nums}
+#student-details-modal .qa-source-change{font-weight:700}
+#student-details-modal .qa-source-change.fewer{color:#12bd88}
+#student-details-modal .qa-source-change.more{color:#f06a70}
+#student-details-modal .qa-source-change.same{color:var(--text-muted,#94a3b8)}
+@media(max-width:550px){#student-details-modal .qa-donut-layout{grid-template-columns:1fr;justify-items:center}#student-details-modal .qa-donut{width:min(190px,70%)}#student-details-modal .qa-donut-legend{width:100%}}
+
+/* Topic-based comparison additions */
+#student-details-modal .qa-topic-summary{padding:14px 16px;border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;gap:5px;background:var(--card-bg)}
+#student-details-modal .qa-topic-summary span{font-size:.75rem;color:var(--text-muted)}
+#student-details-modal .qa-topic-summary strong{font-size:1rem;overflow-wrap:anywhere}
+#student-details-modal .qa-kpi-value{overflow-wrap:anywhere;font-size:clamp(1rem,1.7vw,1.6rem)}
+#student-details-modal .qa-donut-sub{text-align:center;padding:0 8px}

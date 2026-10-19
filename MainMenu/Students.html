@@ -13,6 +13,11 @@
         <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Orbitron:wght@700;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
         <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="student-level-attempts.css">
+    <link rel="stylesheet" href="student-analysis-modern.css">
+    <link rel="stylesheet" href="modern-enhancements.css">
+    <link rel="stylesheet" href="student-ui-polish.css">
+    <link rel="stylesheet" href="qa-learning-insights.css">
 
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
@@ -20,6 +25,9 @@
 
         <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
+        <script defer src="student-level-attempts.js"></script>
+        <script defer src="qa-learning-insights.js"></script>
+        <script defer src="student-analysis-modern.js"></script>
         <script type="module" src="Students.js"></script>
 
     </head>
@@ -736,6 +744,8 @@
 
 
 
+            <div class="analysis-overview-banner"><span class="analysis-overview-eyebrow"><i class="bi bi-activity"></i> STUDENT PERFORMANCE / LIVE FIRESTORE</span><h2>Learning Insights</h2><p>Review progress, difficulty by C# topic, and changes across recorded attempts.</p><div class="analysis-jump-links"><button type="button" data-jump="student-topic-ranking-title"><i class="bi bi-list-ol"></i> Topic ranking</button><button type="button" data-jump="student-level-attempts-list"><i class="bi bi-clock-history"></i> Level history</button><button type="button" data-jump="attemptProgressChart"><i class="bi bi-graph-up-arrow"></i> Attempt trends</button></div></div>
+            <section class="qa-top-section" aria-label="Student learning analysis"><div class="qa-anchor"><div id="qa-learning-insights" class="qa-insights" aria-live="polite"><p>Open a student record to review evidence quality.</p></div></div></section>
             <div class="modal-grid-container">
 
 
@@ -802,54 +812,12 @@
 
 
 
-                    <!-- Idle Time Card -->
-
-                    <div class="side-stat-card">
-
-                        <div class="icon-wrap text-blue">
-
-                            <i class="bi bi-clock"></i>
-
-                        </div>
-
-                        <div>
-
-                            <span>Idle Time</span>
-
-                            <h4 id="modal-idle">0m</h4>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- Difficulty Card -->
-
-                    <div class="side-stat-card">
-
-                        <div class="icon-wrap text-orange">
-
-                            <i class="bi bi-bar-chart"></i>
-
-                        </div>
-
-                        <div>
-
-                            <span>Difficulty Score</span>
-
-                            <h4 id="modal-difficulty">0/10</h4>
-
-                        </div>
-
-                    </div>
-
                 <!-- Ranking for this student, directly below Difficulty Score -->
                 <section class="student-topic-ranking" aria-labelledby="student-topic-ranking-title">
                                         <div class="student-topic-ranking-head">
                                             <div>
                                                 <h3 id="student-topic-ranking-title"><i class="bi bi-bar-chart-steps"></i> Topic Difficulty Ranking</h3>
-                                                <p>Individual student's recorded C# topics</p>
+                                                <p>Difficulty score and incorrect submissions per topic (latest recorded attempts)</p>
                                             </div>
                                             <span class="student-topic-ranking-sort">Hardest to Easiest</span>
                                         </div>
@@ -857,6 +825,14 @@
                                             <p class="student-topic-ranking-empty">Select a student to view topic ranking.</p>
                                         </div>
                                     </section>
+
+                <section class="student-level-attempts" aria-label="Individual student level attempt times">
+                    <div class="student-level-heading">
+                        <h3><i class="bi bi-clock-history"></i> Level Times & Attempts</h3>
+                        <p>Levels 1–19 · Times recorded in Firebase for this student</p>
+                    </div>
+                    <div id="student-level-attempts-list" class="student-level-attempts-list" aria-live="polite"></div>
+                </section>
 
                 </div>
 
@@ -872,15 +848,15 @@
 
                         <div class="chart-header">
 
-                            <h3>Concept Difficulty</h3>
+                            <h3>Topic Difficulty Overview</h3>
 
                             <div class="chart-legend">
 
-                                <span><span class="dot easy"></span> Easy (0-3 wrong)</span>
+                                <span><span class="dot easy"></span> Low (0–3)</span>
 
-                                <span><span class="dot moderate"></span> Moderate (4-6 wrong)</span>
+                                <span><span class="dot moderate"></span> Medium (4–6)</span>
 
-                                <span><span class="dot hard"></span> Hard (7+ wrong)</span>
+                                <span><span class="dot hard"></span> High (7+)</span>
 
                             </div>
 
@@ -910,7 +886,7 @@
 
                                 <h3>Learning Progress by Attempt</h3>
 
-                                <p>Track whether the student's wrong attempts are decreasing.</p>
+                                <p>Compare incorrect code submissions across the recorded attempts for a selected topic.</p>
 
                             </div>
 
@@ -940,7 +916,7 @@
 
                                 <strong id="first-attempt-wrongs" class="attempt-card-value">--</strong>
 
-                                <small>Wrong Attempts</small>
+                                <small>Incorrect submissions</small>
 
                             </div>
 
@@ -952,7 +928,7 @@
 
                                 <strong id="second-attempt-wrongs" class="attempt-card-value">--</strong>
 
-                                <small>Wrong Attempts</small>
+                                <small>Incorrect submissions</small>
 
                             </div>
 
@@ -964,7 +940,7 @@
 
                                 <strong id="third-attempt-wrongs" class="attempt-card-value">--</strong>
 
-                                <small>Wrong Attempts</small>
+                                <small>Incorrect submissions</small>
 
                             </div>
 
@@ -1042,6 +1018,18 @@
 
                             </div>
 
+                            <div class="indicator-evidence" id="modal-performance-evidence" aria-live="polite">
+                                Select a student to view the Firebase evidence behind this status.
+                            </div>
+
+                            
+
+                            <div class="indicator-item indicator-method-row">
+                                <span>Evaluation rule</span>
+                                <span>7+ latest incorrect submissions = At Risk</span>
+
+                            </div>
+
                         </div>
 
 
@@ -1080,6 +1068,7 @@
 
 
 
-    </body>
+        <script src="modern-effects.js" defer></script>
+</body>
 
     </html>

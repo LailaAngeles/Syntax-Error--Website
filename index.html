@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="page-ambient" aria-hidden="true"></div>
+    <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
 
     <!-- Header / Navigation Bar -->
     <header class="navbar">
@@ -18,6 +20,7 @@
             <span class="sti-text">STI</span> <span class="game-title">[SYNTAX_ERROR]</span>
         </div>
         <div class="auth-buttons">
+            <a class="nav-manual" href="#user-manual"><i class="bi bi-journal-code"></i> User manual</a>
             <span class="portal-label">Faculty Portal:</span>
             <a href="Components/LogIn.html" class="btn btn-secondary">Sign In</a>
             <a href="Components/register.html" class="btn btn-primary">Sign Up</a>
@@ -26,7 +29,7 @@
 
     <!-- Hero Section -->
     <main class="hero-container">
-        <section class="game-intro">
+        <section class="game-intro reveal">
             <p class="school-tag">STI COLLEGE CALOOCAN • BSCS THESIS</p>
             <h1>AN ERROR HAS OCCURRED. <br><span class="glitch-text">DEBUG THE SYSTEM.</span></h1>
             
@@ -43,12 +46,13 @@
             </div>
 
             <div class="cta-actions">
-                <a href="#qr-section" class="btn btn-outline-neon btn-large">Scroll to QR Code</a>
+                <a href="#qr-section" class="btn btn-outline-neon btn-large"><i class="bi bi-phone"></i> Get the game</a>
+                <a href="#user-manual" class="btn btn-manual btn-large"><i class="bi bi-book"></i> View manuals</a>
             </div>
         </section>
 
         <!-- 3D Interactive Card Section -->
-        <section id="qr-section" class="qr-container">
+        <section id="qr-section" class="qr-container reveal">
             <div class="toggle-container">
                 <button id="btn-android" class="toggle-btn active">Android</button>
                 <button id="btn-ios" class="toggle-btn">iOS</button>
@@ -95,7 +99,7 @@
     </main>
 
     <!-- Problems & Solutions / System Core Purpose Section -->
-    <section class="impact-section">
+    <section class="impact-section reveal">
         <div class="section-title-wrap">
             <h2>&gt; SYSTEM CORE PURPOSE</h2>
             <p>Addressing key challenges faced by Grade 12 ICT C# Programming students and instructors.</p>
@@ -151,8 +155,81 @@
         </div>
     </section>
 
+<section class="manual-section" id="user-manual" aria-labelledby="manual-heading">
+ <div class="section-title-wrap manual-heading reveal"><span class="eyebrow"><i class="bi bi-terminal"></i> USER DOCUMENTATION / 01</span><h2 id="manual-heading">LEARN THE <span class="highlight">SYSTEM</span></h2><p>Visual step-by-step guides for the SyntaxError mobile game and the web-based faculty portal.</p></div>
+ <div class="manual-shell reveal">
+  <div class="manual-topbar"><div class="manual-tabs" role="tablist" aria-label="Choose user manual"><button class="manual-tab active" type="button" id="tab-game" role="tab" aria-selected="true" aria-controls="panel-game" data-manual="game"><i class="bi bi-phone"></i> Mobile game</button><button class="manual-tab" type="button" id="tab-web" role="tab" aria-selected="false" aria-controls="panel-web" data-manual="web"><i class="bi bi-window-desktop"></i> Website portal</button></div><div class="manual-counter" aria-live="polite"><span id="manual-index">01</span><span class="muted"> / 06</span></div></div>
+  <div class="manual-panels">
+<div class="manual-panel" id="panel-game" role="tabpanel" aria-labelledby="tab-game" >
+<div class="manual-track">
+<article class="manual-slide" data-index="0" >
+    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
+    <div class="manual-shot"><img src="manual/game-01.png" alt="Screenshot for step 01: Create your account" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-person-plus"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/game-01.png</code></div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 01 <span>—</span> 06</div><h3>Create your account</h3><p>Register or sign in to the mobile game using your student account.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual game screenshot.</div></div>
+    </article>
+<article class="manual-slide" data-index="1" aria-hidden="true">
+    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
+    <div class="manual-shot"><img src="manual/game-02.png" alt="Screenshot for step 02: Start a level" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-controller"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/game-02.png</code></div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 02 <span>—</span> 06</div><h3>Start a level</h3><p>Choose an available level from the game menu and read the objective.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual game screenshot.</div></div>
+    </article>
+<article class="manual-slide" data-index="2" aria-hidden="true">
+    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
+    <div class="manual-shot"><img src="manual/game-03.png" alt="Screenshot for step 03: Explore the environment" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-compass"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/game-03.png</code></div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 03 <span>—</span> 06</div><h3>Explore the environment</h3><p>Move through the 3D world and follow task indicators to reach interactive consoles.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual game screenshot.</div></div>
+    </article>
+<article class="manual-slide" data-index="3" aria-hidden="true">
+    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
+    <div class="manual-shot"><img src="manual/game-04.png" alt="Screenshot for step 04: Write and run C# code" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-code-slash"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/game-04.png</code></div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 04 <span>—</span> 06</div><h3>Write and run C# code</h3><p>Enter your solution in the code console, then select Run to check your work.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual game screenshot.</div></div>
+    </article>
+<article class="manual-slide" data-index="4" aria-hidden="true">
+    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
+    <div class="manual-shot"><img src="manual/game-05.png" alt="Screenshot for step 05: Ask Codie for guidance" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-chat-dots"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/game-05.png</code></div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 05 <span>—</span> 06</div><h3>Ask Codie for guidance</h3><p>Talk to Codie to get learning guidance when you need help solving a challenge.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual game screenshot.</div></div>
+    </article>
+<article class="manual-slide" data-index="5" aria-hidden="true">
+    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
+    <div class="manual-shot"><img src="manual/game-06.png" alt="Screenshot for step 06: Review your progress" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-graph-up-arrow"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/game-06.png</code></div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 06 <span>—</span> 06</div><h3>Review your progress</h3><p>Complete tasks and check your recorded completion time and unlocked levels.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual game screenshot.</div></div>
+    </article>
+</div></div>
+<div class="manual-panel" id="panel-web" role="tabpanel" aria-labelledby="tab-web" hidden>
+<div class="manual-track">
+<article class="manual-slide" data-index="0" >
+    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
+    <div class="manual-shot"><img src="manual/web-01.png" alt="Screenshot for step 01: Open the faculty portal" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-box-arrow-in-right"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/web-01.png</code></div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 01 <span>—</span> 06</div><h3>Open the faculty portal</h3><p>Use Sign In or Sign Up at the top of the website to access the faculty portal.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual dashboard screenshot.</div></div>
+    </article>
+<article class="manual-slide" data-index="1" aria-hidden="true">
+    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
+    <div class="manual-shot"><img src="manual/web-02.png" alt="Screenshot for step 02: Access your dashboard" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-grid-1x2"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/web-02.png</code></div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 02 <span>—</span> 06</div><h3>Access your dashboard</h3><p>After signing in, review the overview and available performance summaries.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual dashboard screenshot.</div></div>
+    </article>
+<article class="manual-slide" data-index="2" aria-hidden="true">
+    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
+    <div class="manual-shot"><img src="manual/web-03.png" alt="Screenshot for step 03: Browse student records" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-people"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/web-03.png</code></div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 03 <span>—</span> 06</div><h3>Browse student records</h3><p>Open the student list to find learners and view their individual details.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual dashboard screenshot.</div></div>
+    </article>
+<article class="manual-slide" data-index="3" aria-hidden="true">
+    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
+    <div class="manual-shot"><img src="manual/web-04.png" alt="Screenshot for step 04: Analyze learning progress" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-bar-chart-line"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/web-04.png</code></div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 04 <span>—</span> 06</div><h3>Analyze learning progress</h3><p>Review level completion times, attempts, errors and topic difficulty insights.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual dashboard screenshot.</div></div>
+    </article>
+<article class="manual-slide" data-index="4" aria-hidden="true">
+    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
+    <div class="manual-shot"><img src="manual/web-05.png" alt="Screenshot for step 05: Manage accounts" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-person-check"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/web-05.png</code></div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 05 <span>—</span> 06</div><h3>Manage accounts</h3><p>If your role permits, review registration requests and student accounts.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual dashboard screenshot.</div></div>
+    </article>
+<article class="manual-slide" data-index="5" aria-hidden="true">
+    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
+    <div class="manual-shot"><img src="manual/web-06.png" alt="Screenshot for step 06: Finish your session" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-shield-lock"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/web-06.png</code></div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 06 <span>—</span> 06</div><h3>Finish your session</h3><p>Use your account controls to sign out after using the portal.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual dashboard screenshot.</div></div>
+    </article>
+</div></div>
+</div><div class="manual-bottom"><button class="manual-arrow" id="manual-prev" type="button" aria-label="Previous manual step"><i class="bi bi-arrow-left"></i></button><div id="manual-dots" class="manual-dots" aria-label="Manual steps"></div><button class="manual-arrow" id="manual-next" type="button" aria-label="Next manual step"><i class="bi bi-arrow-right"></i></button></div><div class="manual-tip"><i class="bi bi-hand-index-thumb"></i> Use the arrows, dots, or swipe on a touch screen to browse.</div></div>
+</section>
     <!-- Developers Section -->
-    <section class="developers-section">
+    <section class="developers-section reveal">
         <div class="section-title-wrap">
             <h2>&gt; DEVELOPMENT TEAM</h2>
             <p>The minds behind the Syntax Error thesis project.</p>

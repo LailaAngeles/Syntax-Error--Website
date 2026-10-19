@@ -56,9 +56,86 @@ function stopStudentRealtimeListeners() {
     studentClassSnapshots.clear();
 }
 
+// =========== FIRESTORE-BASED 19-LEVEL GAME PROGRESS ===========
+// Progress is derived from explicit level completion markers, not the
+// imported/default "progress: 0" field or individual console completions.
+const TOTAL_GAME_LEVELS = 19;
+
+function getStudentLevelProgress(student) {
+    const completed = new Set();
+    const root = student && typeof student === "object" ? student : {};
+    const subject = root["Subject Content"] || root.subjectContent;
+    const visited = new WeakSet();
+    const truthyCompleted = v => v === true || v === 1 || v === "true";
+
+    function visit(node, depth = 0, levelContext = null) {
+        if (!node || typeof node !== "object" || depth > 24 || visited.has(node)) return;
+        visited.add(node);
+        if (Array.isArray(node)) {
+            node.forEach(item => visit(item, depth + 1, levelContext));
+            return;
+        }
+        for (const [key, value] of Object.entries(node)) {
+            // Explicit fields e.g. level6Completed, Level_6_Completed,
+            // completedLevel6, Level 6 Completed.
+            const normalized = key.replace(/[\s_-]/g, "").toLowerCase();
+            let match = normalized.match(/^level(\d{1,2})(?:is)?(?:completed|complete|finished)$/)
+                     || normalized.match(/^(?:completed|complete|finished)level(\d{1,2})$/);
+            if (match && truthyCompleted(value)) {
+                const n = Number(match[1]);
+                if (n >= 1 && n <= TOTAL_GAME_LEVELS) completed.add(n);
+            }
+            // Level-specific object e.g. Level7: { completed: true }.
+            const levelKey = normalized.match(/^level(\d{1,2})$/);
+            const nextLevel = levelKey ? Number(levelKey[1]) : levelContext;
+            if (nextLevel && nextLevel >= 1 && nextLevel <= TOTAL_GAME_LEVELS &&
+                /^(?:completed|iscompleted|complete|finished)$/.test(normalized) && truthyCompleted(value)) {
+                completed.add(nextLevel);
+            }
+            if (value && typeof value === "object") visit(value, depth + 1, nextLevel);
+        }
+    }
+    // Look through classList doc, including Subject Content and embedded maps.
+    visit(root);
+    const count = completed.size;
+    return {
+        completedLevels: count,
+        totalLevels: TOTAL_GAME_LEVELS,
+        completedLevelNumbers: [...completed].sort((a,b) => a-b),
+        percent: Math.round(count / TOTAL_GAME_LEVELS * 100),
+        hasSubjectContent: !!(subject && typeof subject === "object")
+    };
+}
+
+function withFirestoreProgress(student) {
+    const calculated = getStudentLevelProgress(student);
+    return { ...student, progress: calculated.percent, levelProgress: calculated };
+}
+
 function renderRealtimeStudents() {
-    allStudents = [...studentClassSnapshots.values()].flat();
+    allStudents = [...studentClassSnapshots.values()].flat().map(withFirestoreProgress);
     loadStudents(document.getElementById("section-select")?.value || "");
+    // onSnapshot provides fresh, complete documents. Re-render the open student
+    // details from this snapshot rather than keeping a stale copied object.
+    if (activeStudentDetailsId !== null && document.getElementById("student-details-modal")?.style.display !== "none") {
+        const current = allStudents.find(s => String(s.id) === String(activeStudentDetailsId) &&
+          (activeStudentDetailsSection === null || String(s.parentDocId) === activeStudentDetailsSection));
+        if (current) {
+            const expandedLevels = [...document.querySelectorAll('#student-level-attempts-list details[open] summary b')].map(e => e.textContent);
+            const selectedSubject = document.getElementById('attempt-subject-select')?.value;
+            // Re-running the existing renderer also updates every related analysis chart.
+            window.viewStudent(current.id);
+            if (selectedSubject) {
+                const selector = document.getElementById('attempt-subject-select');
+                if (selector && [...selector.options].some(o => o.value === selectedSubject)) selector.value = selectedSubject;
+            }
+            for (const details of document.querySelectorAll('#student-level-attempts-list details')) {
+                if (expandedLevels.includes(details.querySelector('summary b')?.textContent)) details.open = true;
+            }
+        } else {
+            window.closeStudentModal?.();
+        }
+    }
 }
  
 let difficultyChart;
@@ -66,6 +143,8 @@ let sectionPieChartInstance = null;
 let overallColumnChartInstance = null;
 let modalAttemptProgressChart = null;
 let currentStudentForAttemptChart = null;
+let activeStudentDetailsId = null;
+let activeStudentDetailsSection = null;
 function getSubjectContentWrongs(studentDoc) {
     const subjectContent = studentDoc["Subject Content"] || studentDoc.subjectContent;
     const categoryAffected = {};
@@ -348,7 +427,7 @@ function loadStudents(section) {
         return matchesSection && matchesSearch;
     });
 
-    const getProgress = s => Math.min(100, Math.max(0, Number(s.progress) || 0));
+    const getProgress = s => getStudentLevelProgress(s).percent;
     const progressFilter = document.getElementById("progress-filter")?.value || "all";
     filtered = filtered.filter(s => {
         const value = getProgress(s);
@@ -382,7 +461,7 @@ function loadStudents(section) {
     if (onlineCountEl) onlineCountEl.textContent = onlineCount;
 
     let avgProg = filtered.length > 0 
-        ? Math.round(filtered.reduce((acc, s) => acc + (s.progress || 0), 0) / filtered.length) 
+        ? Math.round(filtered.reduce((acc, s) => acc + getProgress(s), 0) / filtered.length) 
         : 0;
     
     const avgScoreEl = document.getElementById("average-score");
@@ -401,6 +480,7 @@ function loadStudents(section) {
         table.innerHTML = filtered.map(s => {
             const isOnline = s.isOnline === true || s.isOnline === "true";
             const progress = getProgress(s);
+            const levelCount = getStudentLevelProgress(s).completedLevels;
             const progressLabel = progress === 100 ? "Completed" : progress > 0 ? "In progress" : "Not started";
             const progressClass = progress === 100 ? "is-complete" : progress > 0 ? "is-active" : "is-new";
 
@@ -417,7 +497,7 @@ function loadStudents(section) {
                 <td><strong>${displayText(s.id)}</strong></td>
                 <td><div class="student-name-cell"><span class="student-avatar">${displayText(String(s.name || "?").trim().charAt(0).toUpperCase())}</span><span><strong>${displayText(s.name)}</strong><small>${displayText(s.section)}</small></span></div></td>
                 <td style="padding: 15px;">
-                    <div class="progress-label-row"><strong>${progress}%</strong><span class="progress-state ${progressClass}">${progressLabel}</span></div>
+                    <div class="progress-label-row"><strong>${progress}%</strong><span class="progress-state ${progressClass}">${progressLabel} · ${levelCount}/${TOTAL_GAME_LEVELS} levels</span></div>
                     <div class="progress-track" role="progressbar" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100" aria-label="Student progress"><div class="progress-fill ${progressClass}" style="width:${progress}%"></div></div>
                 </td>
                 <td style="padding: 15px;">${statusBadge}</td>
@@ -610,7 +690,9 @@ function renderConceptBreakdown(studentData) {
             }
         }
 
-        extractLeafTopics(categoryData);
+        const latestInfo = latestIncorrectSubmissions(categoryData);
+        categoryTotalWrongs = latestInfo.total;
+        subTopics.push(...latestInfo.entries.filter(entry => entry.wrongs > 0));
 
         if (categoryTotalWrongs > 0 && subTopics.length > 0) {
             categories.push({
@@ -640,7 +722,7 @@ function renderConceptBreakdown(studentData) {
                             ${cat.title}
                         </span>
                         <div style="font-size: 0.75rem; color: #ef4444; font-weight: 600; margin-top: 2px;">
-                            ${cat.totalWrongs} Total Wrong Attempt${cat.totalWrongs > 1 ? 's' : ''}
+                            ${cat.totalWrongs} Incorrect code submissions (latest attempt snapshot): ${cat.totalWrongs}
                         </div>
                     </div>
                     
@@ -684,6 +766,33 @@ window.toggleConceptDetail = function(detailsId, btnId) {
 // Extract the real learning structure from Firestore.
 // Structure used:
 // Subject Content -> Main Subject/Category -> Subtopic -> wrongAttempts
+// Latest Firebase snapshot per coding activity, avoiding cumulative historical attempts.
+function latestIncorrectSubmissions(category) {
+    const entries = [];
+    const normalize = x => String(x).toLowerCase().replace(/[^a-z0-9]/g, '');
+    const attemptIndex = k => ({firstattempt:1,firstattemp:1,secondattempt:2,secondattemp:2,thirdattempt:3,thirdattemp:3})[normalize(k)] || 0;
+    const isObj = v => v && typeof v === 'object' && !Array.isArray(v) && !(typeof v.toDate === 'function');
+    function visit(node, path, depth=0) {
+        if (!isObj(node) || depth>24) return;
+        const childAttempts = Object.entries(node).filter(([k,v])=>attemptIndex(k) && isObj(v));
+        if (childAttempts.length) {
+            const latest = childAttempts.sort((a,b)=>attemptIndex(b[0])-attemptIndex(a[0]))[0];
+            visit(latest[1], path, depth+1);
+            // Do not add earlier attempt snapshots for this activity.
+            for (const [k,v] of Object.entries(node)) if (!attemptIndex(k) && k!=='wrongAttempts') visit(v, [...path,k], depth+1);
+            return;
+        }
+        if (Object.prototype.hasOwnProperty.call(node,'wrongAttempts')) {
+            const n=Number(node.wrongAttempts);
+            if (Number.isFinite(n) && n>=0) entries.push({name:path.join(' → ')||'Coding activity', wrongs:n});
+            // A leaf may also have unrelated metadata; nested activity children are processed below.
+        }
+        for (const [k,v] of Object.entries(node)) if (isObj(v)) visit(v,[...path,k],depth+1);
+    }
+    visit(category, []);
+    return {total:entries.reduce((sum,item)=>sum+item.wrongs,0), entries};
+}
+
 function getStudentConceptDifficulty(studentData) {
     const subjectContent = studentData?.["Subject Content"] || studentData?.subjectContent;
     const categoryTotals = {};
@@ -701,25 +810,8 @@ function getStudentConceptDifficulty(studentData) {
         const categoryData = subjectContent[mainCategory];
         if (typeof categoryData !== "object" || categoryData === null) continue;
 
-        let totalWrongAttempts = 0;
-
-        function collectWrongAttempts(obj) {
-            for (const key in obj) {
-                const value = obj[key];
-
-                if (typeof value !== "object" || value === null || value instanceof Date) {
-                    continue;
-                }
-
-                if (Object.prototype.hasOwnProperty.call(value, "wrongAttempts")) {
-                    totalWrongAttempts += Math.max(0, Number(value.wrongAttempts) || 0);
-                } else {
-                    collectWrongAttempts(value);
-                }
-            }
-        }
-
-        collectWrongAttempts(categoryData);
+        // One snapshot per activity: newest recorded attempt wins.
+        const totalWrongAttempts = latestIncorrectSubmissions(categoryData).total;
 
         // One chart item per MAIN SUBJECT only.
         const score = Math.min(totalWrongAttempts, 10);
@@ -868,14 +960,14 @@ function updateAttemptProgressSummary(attempts) {
 
     if (latest < first) {
         const improvement = first > 0 ? Math.round(((first - latest) / first) * 100) : 0;
-        message.textContent = `Improvement: wrong attempts decreased by ${improvement}% (${first} → ${latest}).`;
+        message.textContent = `Incorrect submissions decreased by ${improvement}% (${first} → ${latest}).`;
         message.classList.add("is-improving");
     } else if (latest > first) {
         const increase = first > 0 ? Math.round(((latest - first) / first) * 100) : 0;
-        message.textContent = `Wrong attempts increased by ${increase}% (${first} → ${latest}).`;
+        message.textContent = `Incorrect submissions increased by ${increase}% (${first} → ${latest}).`;
         message.classList.add("is-increasing");
     } else {
-        message.textContent = `No change in wrong attempts (${first} → ${latest}).`;
+        message.textContent = `No change in incorrect submissions (${first} → ${latest}).`;
         message.classList.add("is-neutral");
     }
 }
@@ -937,7 +1029,7 @@ function renderStudentAttemptProgressChart(studentData, selectedSubject = "") {
         data: {
             labels,
             datasets: [{
-                label: "Wrong Attempts",
+                label: "Incorrect code submissions",
                 data: values,
                 borderColor: chartBorderColor,
                 backgroundColor: chartFillColor,
@@ -968,7 +1060,7 @@ function renderStudentAttemptProgressChart(studentData, selectedSubject = "") {
                             const value = context.raw;
                             return value === null || value === undefined
                                 ? " No data recorded"
-                                : ` Wrong Attempts: ${value}`;
+                                : ` Incorrect code submissions: ${value}`;
                         }
                     }
                 }
@@ -976,7 +1068,7 @@ function renderStudentAttemptProgressChart(studentData, selectedSubject = "") {
             scales: {
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: "Wrong Attempts", color: chartTextColor },
+                    title: { display: true, text: "Incorrect code submissions", color: chartTextColor },
                     ticks: { color: chartTextColor, stepSize: 1 },
                     grid: { color: chartGridColor }
                 },
@@ -1080,7 +1172,7 @@ function renderConceptDifficultyChart(studentData) {
                             const concept = concepts[context.dataIndex];
                             return [
                                 ` Difficulty: ${concept.difficultyLabel}`,
-                                ` Wrong Attempts: ${concept.wrongAttempts}`
+                                ` Incorrect submissions (latest per activity): ${concept.wrongAttempts}`
                             ];
                         }
                     }
@@ -1177,7 +1269,7 @@ function renderStudentTopicRanking(student) {
         const level = document.createElement("span");
         level.textContent = topic.difficultyLabel;
         const wrongs = document.createElement("span");
-        wrongs.textContent = `${topic.wrongAttempts} recorded wrong attempt${topic.wrongAttempts === 1 ? "" : "s"}`;
+        wrongs.textContent = `${topic.wrongAttempts} incorrect submissions in latest recorded attempts`;
         foot.append(level, wrongs);
         item.append(row, track, foot);
         list.appendChild(item);
@@ -1187,6 +1279,8 @@ function renderStudentTopicRanking(student) {
 window.viewStudent = function(studentId) {
     const student = allStudents.find(s => s.id === studentId);
     if (!student) return;
+    activeStudentDetailsId = student.id;
+    activeStudentDetailsSection = student.parentDocId == null ? null : String(student.parentDocId);
 
     document.getElementById("student-details-modal").style.display = "flex";
     document.getElementById("modal-student-name").textContent = student.name;
@@ -1195,8 +1289,8 @@ window.viewStudent = function(studentId) {
     const birthdayText = student.birthday ? student.birthday : "No Birthday Saved";
     document.getElementById("modal-student-birthday").textContent = `Birthday: ${birthdayText}`;
     
-    document.getElementById("modal-progress").textContent = (student.progress || 0) + "%";
-    document.getElementById("modal-idle").textContent = (student.idleTime || "0") + "m";
+    document.getElementById("modal-progress").textContent = getStudentLevelProgress(student).percent + "% (" + getStudentLevelProgress(student).completedLevels + "/" + TOTAL_GAME_LEVELS + " levels)";
+    // Idle Time card removed by design.
     renderConceptBreakdown(student);
 
     // NEW: populate the main-subject dropdown and attempt improvement chart.
@@ -1206,6 +1300,8 @@ window.viewStudent = function(studentId) {
     // Use the actual Firebase Subject Content hierarchy for the difficulty view.
     const concepts = renderConceptDifficultyChart(student) || [];
     renderStudentTopicRanking(student);
+    window.renderStudentLevelAttempts?.(student);
+    window.renderQALearningInsights?.(student);
 
     const hardestConcept = concepts.length > 0
         ? concepts.reduce((hardest, current) => {
@@ -1214,21 +1310,60 @@ window.viewStudent = function(studentId) {
         : null;
 
     const highest = hardestConcept ? hardestConcept.score : 0;
-    // Since the chart is a MAIN SUBJECT summary, the weakest item is also
-    // reported as the main subject only (no attempt/subtopic path).
+    // Each topic's total is calculated fresh from the latest recorded attempt
+    // per activity, not accumulated again on every Firestore update.
     const weakestTopic = hardestConcept
-        ? String(hardestConcept.mainCategory).replace(/_/g, " ")
-        : "--";
+        ? formatMainSubjectName(hardestConcept.mainCategory)
+        : "No recorded topics";
 
-    document.getElementById("modal-difficulty").textContent = `${highest}/10`;
+    document.getElementById("modal-difficulty") && (document.getElementById("modal-difficulty").textContent = hardestConcept
+        ? `${highest}/10` : "No data");
     document.getElementById("modal-weakest-topic").textContent = weakestTopic;
+
+    // Explain the classification using actual values from the same topic
+    // calculations used by the ranking and chart. Never fabricate evidence.
+    const evidence = document.getElementById("modal-performance-evidence");
+    const topicTotal = concepts.length;
+    const latestIncorrectCount = hardestConcept
+        ? Math.max(0, Number(hardestConcept.wrongAttempts) || 0)
+        : 0;
+    if (evidence) {
+        evidence.replaceChildren();
+        const explanation = document.createElement("p");
+        const method = document.createElement("small");
+        if (!topicTotal) {
+            explanation.textContent = "No topic submission records are available for this student. A risk level cannot be determined yet.";
+            method.textContent = "Waiting for recorded coding activities in Firebase.";
+        } else if (highest >= 7) {
+            explanation.textContent = `${weakestTopic} has ${latestIncorrectCount} incorrect code submission${latestIncorrectCount === 1 ? "" : "s"} across the latest recorded attempts for its activities. This meets the At Risk threshold (7 or more).`;
+            method.textContent = `Evidence: ${topicTotal} recorded topic${topicTotal === 1 ? "" : "s"}; the highest topic difficulty is ${highest}/10 (score capped at 10).`;
+        } else {
+            explanation.textContent = `${weakestTopic} has ${latestIncorrectCount} incorrect code submission${latestIncorrectCount === 1 ? "" : "s"} across the latest recorded attempts for its activities, below the At Risk threshold of 7.`;
+            method.textContent = `Based on ${topicTotal} recorded topic${topicTotal === 1 ? "" : "s"}. A low error count does not by itself prove mastery.`;
+        }
+        evidence.append(explanation, method);
+        evidence.dataset.status = !topicTotal ? "unknown" : highest >= 7 ? "risk" : "on-track";
+    }
 
     const statusBox = document.getElementById("status-card");
     const statusTitle = document.getElementById("modal-status-title");
     const perfText = document.getElementById("modal-performance-text");
     const analysisBox = document.getElementById("modal-analysis-content");
 
-    if (highest >= 7) {
+    if (topicTotal === 0) {
+        if (statusBox) {
+            statusBox.style.borderLeft = "6px solid #94a3b8";
+            statusBox.style.background = "";
+        }
+        if (statusTitle) statusTitle.textContent = "Insufficient Evidence";
+        if (perfText) { perfText.textContent = "Insufficient Data"; perfText.className = ""; }
+        if (analysisBox) {
+            analysisBox.replaceChildren();
+            const message = document.createElement("p");
+            message.textContent = "No recorded coding submissions were found for this student. No risk assessment can be made.";
+            analysisBox.appendChild(message);
+        }
+    } else if (highest >= 7) {
         if (statusBox) {
             statusBox.style.borderLeft = "6px solid #ef4444";
             statusBox.style.background = "#fef2f2";
@@ -1262,7 +1397,7 @@ window.viewStudent = function(studentId) {
                 <div style="border-left: 4px solid #10b981; padding: 10px; background: #f0fdf4;">
                     <strong style="color: #15803d;">Performance: On Track</strong>
                     <p style="font-size: 0.85rem; margin-top: 5px; color: #15803d;">
-                        Student demonstrates strong understanding across the recorded concepts.
+                        The recorded topics currently fall below the 7-submission risk threshold. Review activity-level results before concluding mastery.
                     </p>
                 </div>`;
         }
@@ -1270,6 +1405,8 @@ window.viewStudent = function(studentId) {
 };
 
 window.closeStudentModal = function(){
+    activeStudentDetailsId = null;
+    activeStudentDetailsSection = null;
     document.getElementById("student-details-modal").style.display = "none";
     if (modalAttemptProgressChart instanceof Chart) {
         modalAttemptProgressChart.destroy();
@@ -2330,7 +2467,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentTheme = localStorage.getItem('dashboard-theme') || 'light';
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             
-            localStorage.setItezzm('dashboard-theme', newTheme);
+            localStorage.setItem('dashboard-theme', newTheme);
             applyTheme(newTheme);
         });
     }

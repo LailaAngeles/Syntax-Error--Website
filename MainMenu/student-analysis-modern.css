@@ -1,0 +1,52 @@
+/* Additional presentation layer — no Firestore or record changes */
+#student-details-modal {padding:clamp(10px,2vw,24px)!important;backdrop-filter:blur(11px);background:rgba(5,13,28,.78)!important}
+#student-details-modal .student-modal-box {width:min(1550px,98%)!important;max-width:1550px!important;max-height:min(94dvh,1100px);padding:clamp(14px,2.3vw,28px)!important;border:1px solid var(--border)!important;border-radius:24px!important;box-shadow:0 32px 100px rgba(0,0,0,.28)!important;scrollbar-width:thin;background:var(--bg-color)!important}
+#student-details-modal .close-student-btn{position:sticky;top:0;float:right;z-index:15;border-radius:12px!important;background:var(--card-bg)!important;border:1px solid var(--border)!important;color:var(--text-main)!important;box-shadow:0 5px 22px rgba(0,0,0,.13)}
+.analysis-overview-banner{clear:both;padding:26px clamp(17px,3vw,35px);margin-bottom:20px;border-radius:20px;background:linear-gradient(120deg,rgba(0,82,155,.22),rgba(42,167,255,.06) 65%),var(--card-bg);border:1px solid var(--border);position:relative;overflow:hidden}
+.analysis-overview-banner::before{content:'';position:absolute;width:220px;height:220px;right:-85px;top:-140px;border-radius:50%;background:#3b82f6;filter:blur(95px);opacity:.19;pointer-events:none}
+.analysis-overview-eyebrow{font-size:.67rem;font-weight:800;letter-spacing:.13em;color:var(--stat-icon)}
+.analysis-overview-banner h2{font-size:clamp(1.4rem,2.6vw,2.25rem);font-weight:800;letter-spacing:-.04em;margin:7px 0 5px;color:var(--text-main)}
+.analysis-overview-banner p{font-size:.9rem;color:var(--text-muted);max-width:710px;line-height:1.6}
+.analysis-jump-links{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+.analysis-jump-links button{border:1px solid var(--border);background:var(--card-bg);color:var(--text-main);border-radius:999px;padding:9px 15px;font-size:.77rem;display:inline-flex;align-items:center;gap:7px;transition:transform .22s,background .22s,border-color .22s}
+.analysis-jump-links button:hover{transform:translateY(-2px);border-color:var(--stat-icon);background:var(--table-header)}
+#student-details-modal .student-modal-box .modal-grid-container{grid-template-columns:minmax(325px,37%) minmax(0,1fr)!important;gap:20px!important;align-items:start}
+#student-details-modal .modal-left-col{background:linear-gradient(160deg,#07315c,#064780 60%,#063862)!important;padding:22px!important;border:1px solid rgba(255,255,255,.15);box-shadow:0 15px 40px rgba(0,47,100,.13);border-radius:22px!important}
+#student-details-modal .student-info-header{padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.20);margin-bottom:18px}
+#student-details-modal .student-info-header h2{font-size:clamp(1.18rem,2vw,1.65rem)!important;line-height:1.35;overflow-wrap:anywhere}
+#student-details-modal .modal-left-col .side-stat-card{border:1px solid rgba(255,255,255,.18)!important;border-radius:15px!important;background:rgba(255,255,255,.09)!important;box-shadow:none!important;transition:transform .2s,background .2s}
+#student-details-modal .modal-left-col .side-stat-card:hover{transform:translateY(-2px);background:rgba(255,255,255,.14)!important}
+#student-details-modal .modal-left-col .student-topic-ranking{border-radius:17px!important;background:rgba(1,22,48,.40)!important;padding:18px!important;border-color:rgba(255,255,255,.18)!important}
+#student-details-modal .student-topic-ranking-list{max-height:440px!important;overflow:auto!important;padding-right:3px}
+#student-details-modal .student-topic-ranking-item{border-radius:13px!important;transition:transform .22s,border-color .22s}
+#student-details-modal .student-topic-ranking-item:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.4)!important}
+#student-details-modal .student-topic-ranking-name{line-height:1.4;overflow-wrap:anywhere}
+#student-details-modal .student-topic-ranking-foot{gap:9px!important;line-height:1.55}
+#student-details-modal .student-level-attempts{background:rgba(1,22,48,.34)!important;color:white!important;border-color:rgba(255,255,255,.18)!important;border-radius:17px!important;padding:18px!important}
+#student-details-modal .student-level-heading h3{color:#fff;font-size:1rem}
+#student-details-modal .student-level-heading p{color:#c0d1e9;line-height:1.55}
+#student-details-modal .student-level-attempts-list{max-height:530px;gap:9px}
+#student-details-modal .student-level-row{background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.17)!important;border-radius:12px!important;color:#fff}
+#student-details-modal .student-level-row summary{min-height:49px;font-size:.84rem;gap:10px}
+#student-details-modal .student-level-row summary:hover{background:rgba(255,255,255,.09)}
+#student-details-modal .student-level-row summary span{color:#c9dbef;line-height:1.35}
+#student-details-modal .student-level-row[open]{background:rgba(7,39,77,.8)!important;border-color:rgba(109,188,255,.6)!important}
+#student-details-modal .student-attempt-body{border-color:rgba(255,255,255,.17);gap:12px;background:rgba(0,0,0,.11)}
+#student-details-modal .student-attempt-line{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.09);flex-wrap:wrap}
+#student-details-modal .student-attempt-line strong,#student-details-modal .level-time-fields strong{color:#fff}
+#student-details-modal .level-time-note,#student-details-modal .level-time-fields li,#student-details-modal .level-no-data{color:#bed0e8}
+#student-details-modal .modal-right-col{min-width:0;display:grid;gap:20px}
+#student-details-modal .modal-right-col .chart-section,#student-details-modal .modal-right-col .analysis-card{border-radius:20px!important;padding:clamp(17px,2vw,26px)!important;box-shadow:0 7px 25px rgba(0,0,0,.055)!important}
+#student-details-modal .modal-right-col h3{letter-spacing:-.02em;font-size:1.1rem;line-height:1.4}
+#student-details-modal .attempt-summary-cards{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+#student-details-modal .attempt-summary-card{padding:19px 16px!important;border-radius:15px!important;background:var(--table-header)!important;border:1px solid var(--border)!important;border-top:3px solid var(--stat-border)!important;border-left:1px solid var(--border)!important;min-height:127px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+#student-details-modal .attempt-first-card{border-top-color:#f87171!important}#student-details-modal .attempt-second-card{border-top-color:#fbbf24!important}#student-details-modal .attempt-third-card{border-top-color:#34d399!important}
+#student-details-modal .attempt-card-value{font-size:clamp(1.4rem,2.6vw,2.1rem)!important;font-variant-numeric:tabular-nums}
+#student-details-modal .attempt-summary-card small{font-size:.76rem!important;line-height:1.3}
+#student-details-modal .attempt-improvement-summary{border-radius:13px!important;line-height:1.6}
+#student-details-modal :is(select,button):focus-visible{outline:3px solid #4da7ff!important;outline-offset:3px}
+#student-details-modal :is(.student-chart-box,canvas){max-width:100%}
+@media(max-width:1100px){#student-details-modal .student-modal-box .modal-grid-container{grid-template-columns:minmax(290px,40%) minmax(0,1fr)!important}#student-details-modal .attempt-summary-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:850px){#student-details-modal .student-modal-box .modal-grid-container{grid-template-columns:minmax(0,1fr)!important}#student-details-modal .modal-left-col{padding:18px!important}#student-details-modal .student-topic-ranking-list,#student-details-modal .student-level-attempts-list{max-height:340px!important}}
+@media(max-width:520px){#student-details-modal{padding:6px!important}#student-details-modal .student-modal-box{width:100%!important;padding:12px!important;border-radius:16px!important}#student-details-modal .analysis-overview-banner{padding:20px 15px}#student-details-modal .attempt-summary-cards{gap:6px}#student-details-modal .attempt-summary-card{padding:12px 9px!important;min-height:116px}#student-details-modal .attempt-summary-card small{font-size:.66rem!important}#student-details-modal .modal-left-col{padding:14px!important}}
+@media(prefers-reduced-motion:reduce){#student-details-modal *,#student-details-modal *::before{animation:none!important;scroll-behavior:auto!important;transition:none!important}}

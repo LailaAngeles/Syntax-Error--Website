@@ -1,92 +1,93 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STI Caloocan | Signup</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="Login.css">
-</head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>STI Caloocan | Signup</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="Login.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&amp;family=Fira+Code:wght@400;600&amp;display=swap" rel="stylesheet"/></head>
 <body>
-    <div class="background-blobs">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-    </div>
-
-    <div class="wrapper">
-        <form id="signupForm">
-            <header class="header">
-                <div class="logo-container">
-                    <img src="codie_logo.png" alt="STI Logo" class="logo-img">
-                </div>
-                <h1>Create Account</h1>
-                <p class="subtitle">Join STI College Caloocan</p>
-            </header>
-
-            <div class="input-group">
-                <label>Email Address</label>
-                <div class="input-box">
-                    <i class="bi bi-envelope left-icon"></i>
-                    <input type="email" id="email" placeholder="Enter email" required>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label>Password</label>
-                <div class="input-box">
-                    <i class="bi bi-lock left-icon"></i>
-                    <input type="password" id="password" placeholder="Create password" required>
-                    <i class="bi bi-eye-slash toggle-password" id="togglePassword"></i>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label>Confirm Password</label>
-                <div class="input-box">
-                    <i class="bi bi-shield-lock left-icon"></i>
-                    <input type="password" id="confirmPassword" placeholder="Repeat password" required>
-                    <i class="bi bi-eye-slash toggle-password" id="toggleConfirmPassword"></i>
-                </div>
-            </div>
-            <div class="terms-group">
-                <label class="terms-label">
-                    <input type="checkbox" id="termsCheckbox">
-                    <span>I agree to the <a href="#" id="viewTerms">Terms and Conditions</a></span>
-                </label>
-                <div id="termsError" class="error-tooltip" style="display: none;">You must agree to the terms.</div>
-            </div>
-
-            <button type="submit" class="login-btn">Sign Up</button>
-
-            <div class="register-link">
-                <p>Already have an account? <a href="LogIn.html">Sign In</a></p>
-            </div>
-            
-        </form>
-    </div>
-    <div id="popup" class="popup">
-    <div class="popup-content">
-        <p id="popup-message"></p>
-        </div>
+<div class="background-blobs">
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
 </div>
-<div id="termsModal" class="popup">
-    <div class="popup-content" style="text-align: left; max-width: 450px;">
-        <h2 style="color: var(--sti-blue); margin-bottom: 15px;">Terms & Conditions</h2>
-        <div style="font-size: 14px; color: var(--text-dark); line-height: 1.6; max-height: 300px; overflow-y: auto; padding-right: 10px;">
-            <p>By registering for the <strong>Data Analysis Portal</strong>, you agree to the following:</p>
-            <ul style="margin-left: 20px; margin-top: 10px;">
-                <li><strong>Data Collection:</strong> We require your official STI school email to verify your identity.</li>
-                <li><strong>Account Security:</strong> The password you provide will be used to secure your access to this portal.</li>
-                <li><strong>Usage:</strong> This account allows you to view the <strong>real-time status and learning progress</strong> of students within the system.</li>
-                <li><strong>Privacy:</strong> Your information is stored securely in our database and is used solely for educational analysis.</li>
-            </ul>
-        </div>
-        <div class="popup-buttons">
-            <button type="button" class="choice-btn yes-btn" id="closeTerms">I Understand</button>
-        </div>
-    </div>
+<main class="auth-shell"><section aria-label="SyntaxError introduction" class="auth-showcase"><div class="showcase-pill"><i class="bi bi-terminal"></i> STI COLLEGE CALOOCAN • THESIS PORTAL</div><h2 class="showcase-title">CODE. LEARN.<span>LEVEL UP.</span></h2><p class="showcase-desc">Enter the world of SyntaxError — an interactive C# learning experience with a faculty portal for tracking student progress and discovering learning insights.</p><div aria-hidden="true" class="showcase-code"><div class="code-top"><i class="code-dot"></i><i class="code-dot"></i><i class="code-dot"></i><span class="code-filename">Welcome.cs</span></div><pre><span class="code-comment">// Every expert started somewhere.</span>
+<span class="code-keyword">using</span> System;
+
+<span class="code-keyword">class</span> SyntaxError {
+  <span class="code-keyword">static void</span> Main() {
+    Console.WriteLine(<span class="code-string">"Ready to learn?"</span>);
+  }
+}</pre></div><div class="showcase-footer"><span><i class="bi bi-shield-check"></i> Secure faculty access</span><span><i class="bi bi-graph-up-arrow"></i> Learning analytics</span></div></section><div class="wrapper">
+<form id="signupForm"><a class="auth-return" href="../index.html"><i class="bi bi-arrow-left"></i> Back to SyntaxError</a>
+<header class="header">
+<div class="logo-container">
+<img alt="STI Logo" class="logo-img" src="codie_logo.png"/>
 </div>
-    <script type="module" src="register.js" defer></script>
+<h1>Create Account</h1>
+<p class="subtitle">Join STI College Caloocan</p>
+</header>
+<div class="input-group">
+<label>Email Address</label>
+<div class="input-box">
+<i class="bi bi-envelope left-icon"></i>
+<input id="email" placeholder="Enter email" required="" type="email"/>
+</div>
+</div>
+<div class="input-group">
+<label>Password</label>
+<div class="input-box">
+<i class="bi bi-lock left-icon"></i>
+<input id="password" placeholder="Create password" required="" type="password"/>
+<i class="bi bi-eye-slash toggle-password" id="togglePassword"></i>
+</div>
+</div>
+<div class="input-group">
+<label>Confirm Password</label>
+<div class="input-box">
+<i class="bi bi-shield-lock left-icon"></i>
+<input id="confirmPassword" placeholder="Repeat password" required="" type="password"/>
+<i class="bi bi-eye-slash toggle-password" id="toggleConfirmPassword"></i>
+</div>
+</div>
+<div class="terms-group">
+<label class="terms-label">
+<input id="termsCheckbox" type="checkbox"/>
+<span>I agree to the <a href="#" id="viewTerms">Terms and Conditions</a></span>
+</label>
+<div class="error-tooltip" id="termsError" style="display: none;">You must agree to the terms.</div>
+</div>
+<button class="login-btn" type="submit">Sign Up</button>
+<div class="register-link">
+<p>Already have an account? <a href="LogIn.html">Sign In</a></p>
+</div>
+</form>
+</div></main>
+<div class="popup" id="popup">
+<div class="popup-content">
+<p id="popup-message"></p>
+</div>
+</div>
+<div class="popup" id="termsModal">
+<div class="popup-content" style="text-align: left; max-width: 450px;">
+<h2 style="color: var(--sti-blue); margin-bottom: 15px;">Terms &amp; Conditions</h2>
+<div style="font-size: 14px; color: var(--text-dark); line-height: 1.6; max-height: 300px; overflow-y: auto; padding-right: 10px;">
+<p>By registering for the <strong>Data Analysis Portal</strong>, you agree to the following:</p>
+<ul style="margin-left: 20px; margin-top: 10px;">
+<li><strong>Data Collection:</strong> We require your official STI school email to verify your identity.</li>
+<li><strong>Account Security:</strong> The password you provide will be used to secure your access to this portal.</li>
+<li><strong>Usage:</strong> This account allows you to view the <strong>real-time status and learning progress</strong> of students within the system.</li>
+<li><strong>Privacy:</strong> Your information is stored securely in our database and is used solely for educational analysis.</li>
+</ul>
+</div>
+<div class="popup-buttons">
+<button class="choice-btn yes-btn" id="closeTerms" type="button">I Understand</button>
+</div>
+</div>
+</div>
+<script defer="" src="register.js" type="module"></script>
 </body>
 </html>
