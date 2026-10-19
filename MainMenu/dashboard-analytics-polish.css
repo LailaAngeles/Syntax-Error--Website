@@ -1,0 +1,28 @@
+/* SyntaxError dashboard: visual styling only. Does not alter Firestore listeners, metrics or charts. */
+html[data-theme="light"]{--polish-ink:#192942;--polish-tint:#f4f8fe;--polish-line:#dbe6f5;--polish-accent:#236ce8;--polish-track:#e7eef8;--polish-hover:#edf5ff}
+html[data-theme="dark"]{--polish-ink:#edf4ff;--polish-tint:#131e2c;--polish-line:#26394f;--polish-accent:#4c9dfd;--polish-track:#283342;--polish-hover:#182c43}
+.dashboard-difficulty-card,.dashboard-ranking-card{min-width:0;display:flex;flex-direction:column;min-height:395px!important;overflow:hidden!important;padding:clamp(19px,2.3vw,28px)!important;border:1px solid var(--polish-line)!important;border-radius:23px!important;position:relative;background:var(--card-bg)!important}
+.dashboard-difficulty-card:before,.dashboard-ranking-card:before{content:"";position:absolute;top:0;left:24px;right:24px;height:2px;background:linear-gradient(90deg,var(--polish-accent),transparent);opacity:.65;pointer-events:none}
+.dashboard-card-header{display:flex;align-items:start;justify-content:space-between;gap:12px}
+.dashboard-card-kicker{font-size:.66rem;font-weight:800;letter-spacing:.15em;color:var(--polish-accent);display:flex;gap:8px;align-items:center;margin-bottom:9px}
+.dashboard-difficulty-card h3,.dashboard-ranking-card h3{font-size:clamp(1.04rem,1.5vw,1.2rem)!important;font-weight:800!important;letter-spacing:-.022em;line-height:1.35;margin:0;color:var(--text-main)}
+.dashboard-ranking-card h3 i{color:var(--polish-accent);font-size:1.03em;margin-right:5px}
+.dashboard-card-desc{font-size:.79rem;line-height:1.5;color:var(--text-muted);margin:7px 0 0}
+.dashboard-difficulty-card .chart-container{width:100%;min-width:0;flex:1;min-height:285px;height:315px;margin:12px 0 0;padding:8px 0 3px}
+.dashboard-difficulty-card canvas{max-width:100%!important;max-height:100%!important}
+.dashboard-ranking-card .top-controls{display:flex;align-items:center;gap:12px;margin-bottom:16px!important}
+.dashboard-ranking-card .top-controls>span{font-family:var(--font-primary);color:var(--polish-accent)!important;border:1px solid var(--polish-line);background:var(--polish-tint);font-size:.64rem!important;letter-spacing:.025em;padding:7px 10px;border-radius:999px;white-space:nowrap}
+#mastery-distribution-list{display:flex!important;flex-direction:column;gap:10px!important;overflow-y:auto!important;overflow-x:hidden!important;max-height:300px!important;min-height:0;scrollbar-width:none!important;-ms-overflow-style:none!important;overscroll-behavior:contain;padding:1px 2px 6px!important;margin:0!important;list-style:none!important;}
+#mastery-distribution-list::-webkit-scrollbar,#mastery-distribution-list *::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+#mastery-distribution-list .leaderboard-item{flex:0 0 auto!important;display:block!important;min-width:0!important;background:var(--polish-tint)!important;border:1px solid var(--polish-line)!important;border-radius:15px!important;padding:15px 16px!important;margin:0!important;box-shadow:none!important;transition:background .2s,border-color .2s,transform .2s!important}
+#mastery-distribution-list .leaderboard-item:hover{background:var(--polish-hover)!important;border-color:var(--polish-accent)!important;transform:translateY(-1px)}
+#mastery-distribution-list .leaderboard-item>div:first-child{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:start!important;gap:12px!important;width:100%!important;margin-bottom:11px!important}
+#mastery-distribution-list .leaderboard-item>div:first-child span:first-child{display:block!important;min-width:0;overflow-wrap:anywhere;word-break:normal;line-height:1.45;font-size:.81rem!important;font-family:var(--font-primary);font-weight:700!important;letter-spacing:-.01em;color:var(--polish-ink)!important}
+#mastery-distribution-list .leaderboard-item>div:first-child span:last-child{display:inline-flex!important;align-items:center;justify-content:center;min-width:40px;max-height:33px;padding:5px 8px;border-radius:9px;background:color-mix(in srgb,var(--polish-accent) 13%,transparent);color:var(--polish-accent)!important;font-size:.88rem!important;font-variant-numeric:tabular-nums}
+#mastery-distribution-list .leaderboard-item>div:nth-child(2){background:var(--polish-track)!important;height:9px!important;border-radius:100px!important;overflow:hidden!important}
+#mastery-distribution-list .leaderboard-item>div:nth-child(2)>div{background:linear-gradient(90deg,#3094ff,#4e7de9)!important;border-radius:100px!important;min-width:0;height:100%!important;transition:width .4s ease}
+#mastery-distribution-list .empty-state{color:var(--text-muted)}
+.ranking-footnote{margin:12px 0 0;font-size:.7rem;color:var(--text-muted);line-height:1.45}
+@media(max-width:900px){.dashboard-difficulty-card,.dashboard-ranking-card{min-height:340px!important}.dashboard-difficulty-card .chart-container{height:295px;min-height:260px}}
+@media(max-width:540px){.dashboard-difficulty-card,.dashboard-ranking-card{padding:17px!important;border-radius:17px!important}.dashboard-ranking-card .top-controls{align-items:start!important}.dashboard-ranking-card .top-controls>span{font-size:.59rem!important}.dashboard-difficulty-card .chart-container{height:270px;min-height:240px}#mastery-distribution-list{max-height:295px!important}}
+@media(prefers-reduced-motion:reduce){#mastery-distribution-list .leaderboard-item,#mastery-distribution-list .leaderboard-item *{transition:none!important}}

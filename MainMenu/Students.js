@@ -624,6 +624,7 @@ async function proceedWithArchive(student) {
         await setDoc(archiveRef, {
             ...student,
             archivedAt: serverTimestamp(),
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             status: "archived"
         });
 

@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Orbitron:wght@700;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="dashboard.css">
     <link rel="stylesheet" href="modern-enhancements.css">
+    <link rel="stylesheet" href="dashboard-analytics-polish.css">
+    <link rel="stylesheet" href="topic-time-ranking.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="dashboard.js"></script>
@@ -62,34 +64,38 @@
     
 
     <div class="grid-layout">
-        <div class="card">
-            <h3>Difficulty Trend per Level</h3>
+        <div class="card dashboard-difficulty-card">
+            <div class="dashboard-card-header"><div><span class="dashboard-card-kicker"><i class="bi bi-bar-chart-line"></i> CLASS ANALYTICS</span><h3>Difficulty Trend by Topic</h3><p class="dashboard-card-desc">Average recorded difficulty for each topic</p></div></div>
             <div class="chart-container">
                 <canvas id="overallDifficultyChart"></canvas>
             </div>
         </div>
 
-       <div class="card">
+       <div class="card dashboard-ranking-card">
     <div class="top-controls" style="margin-bottom: 12px;">
-        <h3>Topic Difficulty Ranking</h3>
+        <h3><i class="bi bi-activity" aria-hidden="true"></i> Topic Difficulty Ranking</h3>
         <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Hardest to Easiest</span>
     </div>
-    <div id="mastery-distribution-list" class="leaderboard-list" style="max-height: 260px; overflow-y: auto;">
+    <div id="mastery-distribution-list" class="leaderboard-list" aria-label="Topic difficulty ranking, scroll to view more">
         <!-- Dynamically populated from Firestore data -->
         <li class="leaderboard-item empty-state">
             <span>Loading topic analytics...</span>
         </li>
     </div>
+    <p class="ranking-footnote">Based on recorded Firebase topic metrics. Scroll to view more.</p>
 </div>
         <div class="card">
     <div class="top-controls">
-        <h3>Top 5 Performers</h3>
+        <h3><i class="bi bi-clock-history"></i> Topics With the Most Recorded Time</h3>
         <select id="leaderboard-section-select">
-            <option value="">Select Section</option>
+            <option value="">All My Sections</option>
         </select>
     </div>
-    <ul id="leaderboard-list" class="leaderboard-list">
-        </ul>
+    <p class="topic-time-description">Total recorded coding time by C# topic, across students in the selected sections.</p>
+    <ul id="leaderboard-list" class="leaderboard-list topic-time-list" aria-live="polite">
+        <li class="leaderboard-item empty-state">Loading recorded times...</li>
+    </ul>
+    <details class="topic-time-explainer"><summary>How is this calculated?</summary><p>For each student and C# topic, we read <code>completionTime</code> from the latest numbered attempt of each coding task. We add the task times to find the total time recorded for the topic. Missing times are excluded.</p><p>A longer time does not automatically mean the topic is harder.</p></details>
 </div>
 
         <div class="card full-width">

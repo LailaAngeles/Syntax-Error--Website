@@ -362,57 +362,114 @@ function updateTrendChart(dataValues, labelsList) {
     });
 }
 
-function updateLeaderboard(sectionId) {
-    const leaderboardList = document.getElementById('leaderboard-list');
-    if (!leaderboardList) return;
-    
-    if (!sectionId) {
-        leaderboardList.innerHTML = `
-            <li class="leaderboard-item empty-state">
-                <span>Select a section to view top performers</span>
-            </li>
-        `;
-        return;
-    }
-
-    leaderboardList.innerHTML = ''; 
-
-    const filteredStudents = allStudentsData.filter(s => s.section === sectionId);
-    const topStudents = filteredStudents
-        .sort((a, b) => (b.score || 0) - (a.score || 0)) 
-        .slice(0, 5);
-
-    if (topStudents.length === 0) {
-        leaderboardList.innerHTML = `<li class="leaderboard-item"><span>No data available for this section</span></li>`;
-        return;
-    }
-
-    topStudents.forEach((student, index) => {
-        const li = document.createElement('li');
-        li.className = 'leaderboard-item';
-        li.innerHTML = `
-            <span>${index + 1}. ${student.name || student.email || 'Student'}</span>
-            <span>${Math.round(student.score || 0)} pts</span>
-        `;
-        leaderboardList.appendChild(li);
+// Aggregate task completionTime, not elapsedLevelSeconds. The same task
+// has only one contribution per student, chosen from its latest numbered attempt.
+function getTopicTimeRanking(students) {
+    const normalize = key => String(key ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const attemptNumber = key => ({ firstattemp:1, firstattempt:1, secondattemp:2, secondattempt:2,
+        thirdattemp:3, thirdattempt:3 })[normalize(key)] || 0;
+    const validTime = value => (typeof value === 'number' || typeof value === 'string') &&
+        String(value).trim() !== '' && Number.isFinite(Number(value)) && Number(value) >= 0;
+    const timestamp = value => {
+        if (!value) return 0;
+        if (typeof value.toMillis === 'function') return value.toMillis();
+        if (typeof value.toDate === 'function') return value.toDate().getTime();
+        if (typeof value.seconds === 'number') return value.seconds * 1000;
+        const t = Date.parse(value); return Number.isFinite(t) ? t : 0;
+    };
+    const totals = new Map();
+    students.forEach((student, studentIndex) => {
+        const subjects = student?.['Subject Content'] || student?.subjectContent;
+        if (!subjects || typeof subjects !== 'object') return;
+        const contributorId = String(student.id || student.studentId || studentIndex) + '|' + String(student.section || '');
+        for (const [topic, branch] of Object.entries(subjects)) {
+            if (!branch || typeof branch !== 'object') continue;
+            const tasks = new Map();
+            const seen = new WeakSet();
+            function walk(node, path, attempt, depth) {
+                if (!node || typeof node !== 'object' || depth > 30 || seen.has(node)) return;
+                if (typeof node.toDate === 'function') return;
+                seen.add(node);
+                if (Array.isArray(node)) { node.forEach((v,i) => walk(v, [...path,String(i)], attempt,depth+1)); return; }
+                if (validTime(node.completionTime)) {
+                    // Identify the same activity across First/Second/Third attempt branches.
+                    // Nested context is retained; attempt names are omitted from the key.
+                    const taskKey = path.filter(part => !attemptNumber(part)).join(' / ') || '(topic summary)';
+                    const candidate = {seconds:Number(node.completionTime), attempt,
+                        when:timestamp(node.completedAt || node.updatedAt || node.lastAttempt)};
+                    const prior = tasks.get(taskKey);
+                    if (!prior || candidate.attempt > prior.attempt ||
+                        (candidate.attempt === prior.attempt && candidate.when > prior.when)) tasks.set(taskKey,candidate);
+                }
+                for (const [key,value] of Object.entries(node)) {
+                    if (!value || typeof value !== 'object') continue;
+                    walk(value,[...path,key],attemptNumber(key) || attempt,depth+1);
+                }
+            }
+            walk(branch,[],0,0);
+            // Same-level summary times and individual tasks must not both be counted.
+            const specific = [...tasks.entries()].filter(([name]) => name !== '(topic summary)');
+            const contributions = specific.length ? specific : [...tasks.entries()];
+            const topicSeconds = contributions.reduce((sum,[,result]) => sum + result.seconds,0);
+            if (!contributions.length) continue;
+            const key=normalize(topic);
+            if (!totals.has(key)) totals.set(key,{name:topic,seconds:0,students:new Set(),tasks:0});
+            const entry=totals.get(key);
+            entry.seconds+=topicSeconds;
+            entry.students.add(contributorId);
+            entry.tasks+=contributions.length;
+        }
     });
+    return [...totals.values()].sort((a,b)=>b.seconds-a.seconds || a.name.localeCompare(b.name));
 }
 
-function initLeaderboardDropdown() {
-    const select = document.getElementById('leaderboard-section-select');
-    if (!select) return;
-    
-    select.innerHTML = '<option value="">Select Section</option>';
-    mySections.forEach(section => {
-        const option = document.createElement('option');
-        option.value = section;
-        option.textContent = section;
-        select.appendChild(option);
-    });
+function formatTopicDuration(seconds) {
+    const total=Math.round(seconds);
+    if (total >= 3600) return `${Math.floor(total/3600)}h ${Math.floor((total%3600)/60)}m`;
+    return `${Math.floor(total/60)}m ${String(total%60).padStart(2,'0')}s`;
+}
 
-    select.onchange = (e) => {
-        updateLeaderboard(e.target.value);
-    };
+function updateLeaderboard(sectionId) {
+    const list=document.getElementById('leaderboard-list');
+    if (!list) return;
+    const students=sectionId ? allStudentsData.filter(s=>s.section===sectionId) : allStudentsData;
+    const ranking=getTopicTimeRanking(students);
+    list.replaceChildren();
+    if (!ranking.length) {
+        const li=document.createElement('li'); li.className='leaderboard-item empty-state';
+        li.textContent='No recorded completion times for this selection yet.';
+        list.append(li); return;
+    }
+    const max=ranking[0].seconds || 1;
+    ranking.forEach((topic,index)=>{
+        const item=document.createElement('li'); item.className='topic-time-item';
+        const heading=document.createElement('div'); heading.className='topic-time-item-head';
+        const title=document.createElement('strong'); title.textContent=`${index+1}. ${topic.name}`;
+        const total=document.createElement('strong'); total.className='topic-time-total';
+        total.textContent=formatTopicDuration(topic.seconds);
+        heading.append(title,total);
+        const track=document.createElement('div'); track.className='topic-time-track';
+        track.setAttribute('role','progressbar'); track.setAttribute('aria-valuemin','0');
+        track.setAttribute('aria-valuemax',String(Math.round(max)));
+        track.setAttribute('aria-valuenow',String(Math.round(topic.seconds)));
+        track.setAttribute('aria-label',`${topic.name}: ${formatTopicDuration(topic.seconds)} total recorded time`);
+        const fill=document.createElement('div'); fill.className='topic-time-fill';
+        fill.style.width=`${topic.seconds/max*100}%`; track.append(fill);
+        const note=document.createElement('p'); note.className='topic-time-note';
+        note.textContent=`${topic.students.size} student${topic.students.size===1?'':'s'} with time records · Average ${formatTopicDuration(topic.seconds/topic.students.size)} per student`;
+        item.append(heading,track,note);list.append(item);
+    });
+}
+function initLeaderboardDropdown() {
+    const select=document.getElementById('leaderboard-section-select'); if(!select)return;
+    const previous=select.value;
+    select.replaceChildren();
+    const all=document.createElement('option');all.value='';all.textContent='All My Sections';select.append(all);
+    [...new Set(mySections)].forEach(section=>{
+        const opt=document.createElement('option');opt.value=section;opt.textContent=section;select.append(opt);
+    });
+    if ([...select.options].some(option=>option.value===previous))select.value=previous;
+    select.onchange=()=>updateLeaderboard(select.value);
 }
 
 function updateMasteryDistributionList(students) {

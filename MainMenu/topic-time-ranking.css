@@ -1,0 +1,16 @@
+/* Dashboard topic-time ranking — additive UI, light and dark compatible */
+.topic-time-description {font-size:.82rem;color:var(--text-muted);margin:0 0 15px;line-height:1.5}
+.topic-time-list {display:grid;gap:12px;list-style:none!important;max-height:390px;overflow-y:auto;padding:0 2px 3px!important;scrollbar-width:none}
+.topic-time-list::-webkit-scrollbar{display:none}
+.topic-time-item {padding:15px;border:1px solid var(--border);border-radius:15px;background:var(--table-header);transition:transform .2s,border-color .2s}
+.topic-time-item:hover{transform:translateY(-2px);border-color:var(--stat-icon)}
+.topic-time-item-head{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:11px;font-size:.89rem;color:var(--text-main)}
+.topic-time-item-head strong:first-child{overflow-wrap:anywhere}.topic-time-total{color:var(--stat-icon);white-space:nowrap;font-variant-numeric:tabular-nums}
+.topic-time-track{height:9px;border-radius:99px;overflow:hidden;background:var(--border)}
+.topic-time-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#258bfa,#36d2dc);transition:width .35s ease}
+.topic-time-note{font-size:.74rem;line-height:1.5;color:var(--text-muted);margin-top:10px}
+.topic-time-explainer{border:1px solid var(--border);border-radius:13px;margin-top:14px;padding:12px 15px;color:var(--text-main);font-size:.78rem}
+.topic-time-explainer summary{font-weight:700;cursor:pointer}.topic-time-explainer p{color:var(--text-muted);line-height:1.6;margin-top:10px}
+.topic-time-explainer code{color:var(--stat-icon)}
+@media(max-width:680px){.topic-time-item{padding:12px}.topic-time-item-head{font-size:.8rem}.topic-time-list{max-height:330px}}
+@media(prefers-reduced-motion:reduce){.topic-time-item,.topic-time-fill{transition:none}}

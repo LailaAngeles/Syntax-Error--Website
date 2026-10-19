@@ -1,301 +1,197 @@
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
+import { getFirestore, collection, doc, setDoc, deleteDoc, writeBatch, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
+import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js';
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-import { 
-    getFirestore, collection, getDocs, query, doc, setDoc, deleteDoc, serverTimestamp, writeBatch, onSnapshot 
-} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-
-// 1. FIREBASE CONFIG
+// Original Firebase project, authentication verification, and archive paths preserved.
 const firebaseConfig = {
-    apiKey: "AIzaSyCEK9ungYl1PkiqgLkWJPCtNXAsQ3c6xxc",
-    authDomain: "syntaxerror-data.firebaseapp.com",
-    projectId: "syntaxerror-data",
-    storageBucket: "syntaxerror-data.firebasestorage.app",
-    messagingSenderId: "513961059475",
-    appId: "1:513961059475:web:fbf6f471357465dbaad966"
+  apiKey: 'AIzaSyCEK9ungYl1PkiqgLkWJPCtNXAsQ3c6xxc',
+  authDomain: 'syntaxerror-data.firebaseapp.com',
+  projectId: 'syntaxerror-data',
+  storageBucket: 'syntaxerror-data.firebasestorage.app',
+  messagingSenderId: '513961059475',
+  appId: '1:513961059475:web:fbf6f471357465dbaad966'
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const VERIFIED_KEY = "syntaxerror_verified_uid";
-function hasVerifiedSession(user) {
-    return user && (localStorage.getItem(VERIFIED_KEY) === user.uid ||
-        sessionStorage.getItem(VERIFIED_KEY) === user.uid);
-}
-
-
-const deleteAllModal = document.getElementById('delete-all-modal');
-const deleteAllBtn = document.getElementById('delete-all-btn');
-const confirmDeleteAllBtn = document.getElementById('confirm-delete-all-btn');
-
-// Global Variables
-const archivedTableBody = document.getElementById('archived-students-table');
+const VERIFIED_KEY = 'syntaxerror_verified_uid';
+const DAYS_7 = 7 * 24 * 60 * 60 * 1000;
+const $ = id => document.getElementById(id);
 let allArchived = [];
-let pendingRestoreId = null;
+let selected = new Set();
 let unsubscribeArchives = null;
+let deleteTargets = [];
+let busy = false;
+let cleanupRunning = false;
 
-// --- UI HELPER ---
-const toggleLoading = (show) => {
-    const loader = document.getElementById("loading-overlay");
-    if (loader) loader.style.display = show ? "flex" : "none";
+const normalizeId = value => String(value ?? '').replace(/^0+(?=\d)/, '').toLowerCase();
+const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const timeMs = val => {
+  if (!val) return null;
+  if (typeof val.toMillis === 'function') return val.toMillis();
+  if (typeof val.toDate === 'function') return val.toDate().getTime();
+  if (typeof val.seconds === 'number') return val.seconds * 1000;
+  if (val instanceof Date) return val.getTime();
+  const n = new Date(val).getTime();
+  return Number.isFinite(n) ? n : null;
 };
-
-// --- DELETE ALL MODAL LOGIC ---
-if (deleteAllBtn) {
-    deleteAllBtn.addEventListener('click', () => {
-        if (allArchived.length === 0) {
-            alert("No archived students to delete.");
-            return;
-        }
-        deleteAllModal.style.display = 'flex';
-    });
+function archiveExpires(row) {
+  const archived = timeMs(row.archivedAt);
+  return archived === null ? timeMs(row.expiresAt) : archived + DAYS_7;
 }
-
-window.closeDeleteAllModal = function() {
-    deleteAllModal.style.display = 'none';
-};
-
-// --- DELETE ALL FIRESTORE LOGIC ---
-if (confirmDeleteAllBtn) {
-    confirmDeleteAllBtn.addEventListener('click', async function() {
-        if (allArchived.length === 0) return;
-
-        try {
-            confirmDeleteAllBtn.disabled = true;
-            confirmDeleteAllBtn.innerText = "Deleting...";
-
-            const batch = writeBatch(db);
-
-            allArchived.forEach(student => {
-                const docRef = doc(db, "archivedStudents", student.docId);
-                batch.delete(docRef);
-            });
-
-            await batch.commit();
-
-            allArchived = [];
-            renderTable(allArchived);
-
-            closeDeleteAllModal();
-            alert("All archived students have been permanently deleted.");
-
-        } catch (error) {
-            console.error("Error deleting all archives:", error);
-            alert("Failed to delete all records. Please try again.");
-        } finally {
-            confirmDeleteAllBtn.disabled = false;
-            confirmDeleteAllBtn.innerText = "Yes, Delete All";
-        }
-    });
+function formatDate(val) {
+  const ms = timeMs(val);
+  return ms === null ? 'Not recorded' : new Date(ms).toLocaleString(undefined, {dateStyle:'medium',timeStyle:'short'});
 }
+function timeRemaining(row) {
+  const expiry = archiveExpires(row);
+  if (expiry === null) return {label:'Archive date missing', cls:'unknown'};
+  const diff = expiry - Date.now();
+  if (diff <= 0) return {label:'Expired • pending deletion', cls:'expired'};
+  const hours = Math.ceil(diff / 3600000);
+  if (hours <= 24) return {label:`${hours}h left`, cls:'soon'};
+  return {label:`${Math.ceil(diff / 86400000)} days left`, cls:'safe'};
+}
+function matches(row, term) {
+  if (!term) return true;
+  const q = term.trim().toLowerCase();
+  return String(row.name ?? '').toLowerCase().includes(q) ||
+    String(row.section ?? '').toLowerCase().includes(q) ||
+    String(row.id ?? row.docId ?? '').toLowerCase().includes(q) ||
+    normalizeId(row.id ?? row.docId).includes(normalizeId(q));
+}
+const getVisible = () => allArchived.filter(r => matches(r, $('search-archive')?.value ?? ''));
+function toggleLoading(show) { if ($('loading-overlay')) $('loading-overlay').style.display = show ? 'flex' : 'none'; }
+function renderTable() {
+  selected = new Set([...selected].filter(id => allArchived.some(r => r.docId === id)));
+  const rows = getVisible();
+  $('archive-total').textContent = String(allArchived.length);
+  $('archive-expiring').textContent = String(allArchived.filter(r => {const t=archiveExpires(r);return t !== null && t > Date.now() && t - Date.now() <= 86400000;}).length);
+  $('archive-selected').textContent = String(selected.size);
+  $('archive-result-count').textContent = `${rows.length} record${rows.length===1?'':'s'} shown`;
+  $('restore-selected-btn').disabled = busy || selected.size === 0;
+  $('delete-selected-btn').disabled = busy || selected.size === 0;
+  $('delete-all-btn').disabled = busy || allArchived.length === 0;
+  $('archive-select-all').disabled = busy || rows.length === 0;
+  const allChecked = rows.length > 0 && rows.every(r => selected.has(r.docId));
+  $('archive-select-all').checked = allChecked;
+  $('archive-select-all').indeterminate = !allChecked && rows.some(r => selected.has(r.docId));
+  $('archived-students-table').innerHTML = rows.length ? rows.map(r => {
+    const expiry = timeRemaining(r);
+    const id = escapeHTML(r.docId);
+    return `<tr class="${selected.has(r.docId)?'selected-row':''}">
+      <td class="archive-check"><input type="checkbox" class="archive-item-check" data-id="${id}" aria-label="Select ${escapeHTML(r.name||'student')}" ${selected.has(r.docId)?'checked':''} ${busy?'disabled':''}></td>
+      <td><div class="archive-student-name">${escapeHTML(r.name||'Unnamed student')}</div><small class="archive-student-id">ID: ${escapeHTML(r.id||r.docId)}</small></td>
+      <td>${escapeHTML(r.section||'Unknown section')}</td>
+      <td>${escapeHTML(formatDate(r.archivedAt))}</td>
+      <td><span class="archive-status ${expiry.cls}">${escapeHTML(expiry.label)}</span></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="5" class="archive-empty"><i class="bi bi-inbox"></i><p>No matching archived students.</p></td></tr>';
+}
+function showDelete(ids) {
+  if (busy) return;
+  const unique = [...new Set(ids)].filter(id => allArchived.some(r => r.docId === id));
+  if (!unique.length) return;
+  deleteTargets = unique;
+  $('archive-confirm-title').textContent = unique.length === 1 ? 'Delete archived student?' : `Delete ${unique.length} archived students?`;
+  $('archive-confirm-message').textContent = `Permanently delete ${unique.length} selected archived record${unique.length===1?'':'s'}? This cannot be undone.`;
+  $('delete-all-modal').style.display = 'flex';
+}
+window.closeDeleteAllModal = () => { if (!busy) {$('delete-all-modal').style.display='none'; deleteTargets=[];} };
 
-// --- AUTH OBSERVER ---
-onAuthStateChanged(auth, async (user) => {
-    if (hasVerifiedSession(user)) {
-        toggleLoading(true);
-        loadArchivedStudents();
-        toggleLoading(false);
-    } else {
-        if (unsubscribeArchives) { unsubscribeArchives(); unsubscribeArchives = null; }
-        window.location.href = '../Login/Login.html';
+async function deleteArchived(ids) {
+  const distinct = [...new Set(ids)];
+  for (let i=0; i<distinct.length; i+=450) {
+    const batch=writeBatch(db);
+    distinct.slice(i,i+450).forEach(id => batch.delete(doc(db,'archivedStudents',id)));
+    await batch.commit();
+  }
+}
+async function handleDelete() {
+  if (busy || !deleteTargets.length) return;
+  busy=true;
+  const chosen=[...deleteTargets];
+  $('confirm-delete-all-btn').disabled=true;
+  $('confirm-delete-all-btn').textContent='Deleting...';
+  toggleLoading(true);
+  try {
+    await deleteArchived(chosen);
+    chosen.forEach(id => selected.delete(id));
+    $('delete-all-modal').style.display='none';
+    deleteTargets=[];
+  } catch(e) { console.error('Archive deletion failed',e); alert('Unable to delete all requested students. Please check permissions and try again.'); }
+  finally {busy=false;toggleLoading(false);$('confirm-delete-all-btn').disabled=false;$('confirm-delete-all-btn').textContent='Delete permanently';renderTable();}
+}
+async function restoreOne(id) {
+  const row=allArchived.find(r=>r.docId===id);
+  if (!row) return;
+  if (!row.parentDocId || !row.id) throw new Error(`Student ${row.id||id} is missing its original section reference.`);
+  const {archivedAt, expiresAt, status, docId, ...payload}=row;
+  const batch=writeBatch(db);
+  batch.set(doc(db,'sections',row.parentDocId,'classList',String(row.id)),payload);
+  batch.delete(doc(db,'archivedStudents',id));
+  await batch.commit();
+}
+async function restoreIds(ids) {
+  if(busy || !ids.length) return;
+  busy=true;toggleLoading(true);
+  let success=0; const failures=[];
+  try {
+    for(const id of ids){
+      try{await restoreOne(id);selected.delete(id);success++;}
+      catch(e){console.error('Restore failed',id,e);failures.push(id);}
     }
+    if(failures.length) alert(`${success} restored. ${failures.length} could not be restored; check missing section IDs or permissions.`);
+  } finally {busy=false;toggleLoading(false);renderTable();}
+}
+async function clearExpiredWhileOpen() {
+  // Backup cleanup only. Firestore TTL is required for unattended deletion.
+  if (cleanupRunning || busy) return;
+  const expired=allArchived.filter(r => {const exp=archiveExpires(r);return exp !== null && exp<=Date.now();}).map(r=>r.docId);
+  if (!expired.length) return;
+  cleanupRunning=true;
+  try { await deleteArchived(expired); }
+  catch(e) {console.warn('Client expiry cleanup not permitted or failed. Configure Firestore TTL for unattended cleanup.',e);}
+  finally{cleanupRunning=false;}
+}
+function listenArchive() {
+  unsubscribeArchives?.();
+  unsubscribeArchives=onSnapshot(collection(db,'archivedStudents'), snap => {
+    allArchived=snap.docs.map(d=>({...d.data(),docId:d.id}));
+    renderTable();
+    void clearExpiredWhileOpen();
+  },err=>{console.error('Archive listener failed',err);$('archived-students-table').innerHTML='<tr><td colspan="5" class="archive-empty">Unable to load archived records.</td></tr>';});
+}
+onAuthStateChanged(auth,user=>{
+  const verified=user && (localStorage.getItem(VERIFIED_KEY)===user.uid || sessionStorage.getItem(VERIFIED_KEY)===user.uid);
+  if(!verified){unsubscribeArchives?.();window.location.href='../Login/Login.html';return;}
+  listenArchive();
 });
-
-// --- LOAD ARCHIVES & AUTO-CLEANUP (7 DAYS) ---
-function loadArchivedStudents() {
-    if (unsubscribeArchives) unsubscribeArchives();
-    const q = query(collection(db, "archivedStudents"));
-    unsubscribeArchives = onSnapshot(q, async (querySnapshot) => {
-    try {
-        
-        allArchived = [];
-        archivedTableBody.innerHTML = ''; 
-
-        if (querySnapshot.empty) {
-            archivedTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:40px; color:#94a3b8;">No archived students found.</td></tr>';
-            return;
-        }
-
-        const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-        const now = Date.now();
-        const expiredBatch = writeBatch(db);
-        let expiredCount = 0;
-
-        querySnapshot.forEach((d) => {
-            const data = d.data();
-            
-            // Calculate document age from archivedAt timestamp
-            let archivedTime = null;
-            if (data.archivedAt && typeof data.archivedAt.toDate === 'function') {
-                archivedTime = data.archivedAt.toDate().getTime();
-            } else if (data.archivedAt && data.archivedAt.seconds) {
-                archivedTime = data.archivedAt.seconds * 1000;
-            }
-
-            // Check if document age exceeds 7 days
-            if (archivedTime && (now - archivedTime > SEVEN_DAYS_MS)) {
-                expiredBatch.delete(doc(db, "archivedStudents", d.id));
-                expiredCount++;
-            } else {
-                allArchived.push({ ...data, docId: d.id });
-            }
-        });
-
-        // Permanently purge expired records from Firestore
-        if (expiredCount > 0) {
-            await expiredBatch.commit();
-            console.log(`Auto-deleted ${expiredCount} expired archived record(s).`);
-        }
-
-        renderTable(allArchived);
-        
-    } catch (error) {
-        console.error("Error fetching archives:", error);
-        archivedTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error loading archives.</td></tr>';
-    }
-    }, (error) => {
-        console.error("Archive listener error:", error);
-        archivedTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error loading archives.</td></tr>';
-    });
-}
-
-function renderTable(data) {
-    if (!data || data.length === 0) {
-        archivedTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:40px; color:#94a3b8;">No matches found.</td></tr>';
-        return;
-    }
-
-    archivedTableBody.innerHTML = data.map(student => {
-        const dateStr = student.archivedAt && typeof student.archivedAt.toDate === 'function' 
-            ? student.archivedAt.toDate().toLocaleDateString() 
-            : 'Recently';
-        
-        return `
-            <tr id="row-${student.docId}" style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 15px;"><strong>${student.name}</strong><br><small style="color:#64748b;">ID: ${student.id}</small></td>
-                <td style="padding: 15px;">${student.section}</td>
-                <td style="padding: 15px;">${dateStr}</td>
-                <td style="padding: 15px;">
-                    <button onclick="restoreStudent('${student.docId}')" 
-                            style="background: #10b981; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                        <i class="bi bi-arrow-counterclockwise"></i> Restore
-                    </button>
-                </td>
-            </tr>
-        `;
-    }).join("");
-}
-
-// --- RESTORE LOGIC ---
-window.restoreStudent = function(docId) {
-    const student = allArchived.find(s => s.docId === docId);
-    if (!student) return;
-
-    pendingRestoreId = docId;
-    const modal = document.getElementById('restore-modal');
-    const modalText = modal.querySelector('p');
-    if (modalText) {
-        modalText.innerHTML = `This will move <strong>${student.name}</strong> back to the active list for <strong>${student.section}</strong>.`;
-    }
-    modal.style.display = 'flex';
-};
-
-window.closeRestoreModal = function() {
-    document.getElementById('restore-modal').style.display = 'none';
-    pendingRestoreId = null;
-};
-
-document.getElementById('confirm-restore-btn').onclick = async function() {
-    if (!pendingRestoreId) return;
-
-    const docId = pendingRestoreId;
-    const student = allArchived.find(s => s.docId === docId);
-    const restoreBtn = this;
-
-    try {
-        restoreBtn.disabled = true;
-        restoreBtn.innerText = "Restoring...";
-
-        const originalRef = doc(db, "sections", student.parentDocId, "classList", student.id);
-        const { archivedAt, status, docId: _, ...restorationData } = student;
-        
-        await setDoc(originalRef, restorationData);
-        await deleteDoc(doc(db, "archivedStudents", docId));
-
-        const row = document.getElementById(`row-${docId}`);
-        if (row) row.remove();
-
-        allArchived = allArchived.filter(s => s.docId !== docId);
-        if (allArchived.length === 0) renderTable(allArchived);
-        
-        closeRestoreModal();
-        alert("Student restored successfully!");
-        
-    } catch (error) {
-        console.error("Restore Error:", error);
-        alert("Failed to restore student.");
-    } finally {
-        restoreBtn.disabled = false;
-        restoreBtn.innerText = "Restore Now";
-    }
-};
-
-// --- LOGOUT LOGIC ---
-window.showLogoutPopup = () => document.getElementById("logout-popup").style.display = "flex";
-window.closeLogoutPopup = () => document.getElementById("logout-popup").style.display = "none";
-window.logoutUser = async () => {
-    if (unsubscribeArchives) { unsubscribeArchives(); unsubscribeArchives = null; }
-    try {
-        await signOut(auth);
-        localStorage.removeItem(VERIFIED_KEY);
-        sessionStorage.removeItem(VERIFIED_KEY);
-        window.location.href = '../index.html'; 
-    } catch (error) {
-        console.error("Logout error", error);
-    }
-};
-
-// --- SEARCH LOGIC ---
-document.getElementById("search-archive")?.addEventListener("input", (e) => {
-    const term = e.target.value.toLowerCase();
-    const filtered = allArchived.filter(s => 
-        (s.name && s.name.toLowerCase().includes(term)) || 
-        (s.id && s.id.toString().includes(term))
-    );
-    renderTable(filtered);
+$('archived-students-table').addEventListener('change',e=>{
+  const control=e.target.closest('.archive-item-check');if(!control || busy)return;
+  control.checked?selected.add(control.dataset.id):selected.delete(control.dataset.id);
+  renderTable();
 });
-
-// --- THEME LOGIC ---
-function applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    const themeToggleBtn = document.getElementById("theme-toggle");
-    if (themeToggleBtn) {
-        const icon = themeToggleBtn.querySelector("i");
-        if (icon) {
-            icon.className = (theme === "dark") ? "bi bi-sun-fill" : "bi bi-moon-stars-fill";
-        }
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('dashboard-theme') || 'light';
-    applyTheme(savedTheme);
-
-    const themeBtn = document.getElementById('theme-toggle');
-    if (themeBtn) {
-        themeBtn.addEventListener('click', () => {
-            const currentTheme = localStorage.getItem('dashboard-theme') || 'light';
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
-            localStorage.setItem('dashboard-theme', newTheme);
-            applyTheme(newTheme);
-        });
-    }
+$('archive-select-all').addEventListener('change',e=>{
+  if (busy) return;
+  getVisible().forEach(r=>{if(e.target.checked)selected.add(r.docId);else selected.delete(r.docId);});
+  renderTable();
 });
-
-window.addEventListener('storage', (event) => {
-    if (event.key === 'dashboard-theme') {
-        applyTheme(event.newValue); 
-    }
-}); 
+$('search-archive').addEventListener('input',renderTable);
+$('delete-all-btn').addEventListener('click',()=>showDelete(allArchived.map(r=>r.docId)));
+$('delete-selected-btn').addEventListener('click',()=>showDelete([...selected]));
+$('restore-selected-btn').addEventListener('click',()=>void restoreIds([...selected]));
+$('archive-cancel-delete').addEventListener('click',window.closeDeleteAllModal);
+$('confirm-delete-all-btn').addEventListener('click',()=>void handleDelete());
+setInterval(()=>{renderTable();void clearExpiredWhileOpen();},60*1000);
+window.showLogoutPopup=()=>$('logout-popup').style.display='flex';
+window.closeLogoutPopup=()=>$('logout-popup').style.display='none';
+window.logoutUser=async()=>{
+  unsubscribeArchives?.();
+  try {await signOut(auth);localStorage.removeItem(VERIFIED_KEY);sessionStorage.removeItem(VERIFIED_KEY);window.location.href='../index.html';}
+  catch(e){console.error('Logout failed',e);alert('Unable to log out. Please try again.');}
+};
+function applyTheme(theme){document.documentElement.setAttribute('data-theme',theme);const icon=$('theme-toggle')?.querySelector('i');if(icon)icon.className=theme==='dark'?'bi bi-sun-fill':'bi bi-moon-stars-fill';}
+applyTheme(localStorage.getItem('dashboard-theme')||'light');
+$('theme-toggle')?.addEventListener('click',()=>{const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';localStorage.setItem('dashboard-theme',t);applyTheme(t);});
+window.addEventListener('storage',e=>{if(e.key==='dashboard-theme')applyTheme(e.newValue||'light');});
