@@ -1,0 +1,23 @@
+/* Final login layout repair. This file must load AFTER all existing login CSS. */
+html,html[data-theme="dark"]{min-height:100%;background:#071220;color-scheme:dark}
+html{width:100%}
+body{position:relative!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;place-items:center!important;width:100%!important;min-height:100vh!important;min-height:100dvh!important;margin:0!important;padding:clamp(20px,4vw,48px)!important;overflow-x:hidden!important;overflow-y:auto!important;isolation:isolate!important;background:radial-gradient(ellipse at 76% 16%,rgba(33,123,198,.20),transparent 50%),radial-gradient(ellipse at 13% 90%,rgba(14,177,162,.11),transparent 46%),#071220!important}
+body>.background-blobs{position:fixed!important;inset:0!important;z-index:-1!important;pointer-events:none!important;overflow:hidden!important}
+body>.wrapper{position:relative!important;display:block!important;grid-column:1!important;justify-self:center!important;align-self:center!important;width:min(100%,480px)!important;max-width:480px!important;margin:0 auto!important;padding:clamp(26px,4vw,44px)!important;border-radius:24px!important;box-sizing:border-box!important;background:linear-gradient(145deg,#192c44,#101c2e)!important;border:1px solid #385574!important;box-shadow:0 28px 95px #0008,0 0 0 5px #57b3ff0a!important}
+.wrapper form,.wrapper header,.wrapper #passwordStep,.wrapper #pinStep{width:100%;min-width:0}
+.wrapper .header{text-align:left!important;margin:0 0 30px!important}
+.wrapper h1{margin:0!important;font-size:clamp(1.75rem,3.2vw,2.25rem)!important;line-height:1.2!important;letter-spacing:-.045em!important}
+.wrapper .subtitle{text-align:left!important;margin:9px 0 0!important;max-width:none!important}
+.wrapper .input-group{margin-bottom:20px!important}
+.wrapper .input-group label{display:block!important;margin-bottom:9px!important;font-size:.83rem!important}
+.wrapper .input-box,.wrapper .input-box input{width:100%!important;min-width:0!important;max-width:100%!important}
+.wrapper .input-box input{height:54px!important;box-sizing:border-box!important;padding:0 15px!important;font-size:1rem!important}
+.wrapper .login-btn{display:block!important;width:100%!important;min-height:52px!important;margin-top:6px!important;padding:12px 18px!important;font-size:.93rem!important;white-space:normal!important;cursor:pointer}
+.wrapper .login-btn:disabled{opacity:.7;cursor:wait;transform:none!important}
+/* Most important: loader is hidden until a real action begins. */
+#loader-overlay[hidden]{display:none!important;visibility:hidden!important}
+#loader-overlay:not([hidden]){position:fixed!important;inset:0!important;z-index:99999!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;padding:20px!important;text-align:center!important;visibility:visible!important;background:rgba(5,14,26,.88)!important}
+#loader-overlay .spinner{flex:none!important}
+#loader-overlay .loader-text{font-size:.83rem!important;letter-spacing:.08em!important;line-height:1.5!important}
+@media(max-width:520px){body{padding:18px!important}body>.wrapper{width:100%!important;padding:26px 22px!important;border-radius:20px!important}}
+@media(prefers-reduced-motion:reduce){.wrapper,.wrapper *{animation-duration:.01ms!important;transition-duration:.01ms!important}}

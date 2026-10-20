@@ -1,0 +1,14 @@
+/* Fixed student summary presentation. Both themes supported. */
+#analysis-section .summary-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#analysis-section .summary-stat{min-width:0;justify-content:space-between}
+#analysis-section .summary-stat strong{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+#analysis-section .summary-graph{min-height:330px}
+#analysis-section .summary-chart-wrap{min-height:265px;height:clamp(265px,27vw,390px)!important}
+#analysis-section .summary-chart-wrap canvas{max-width:100%;min-height:0}
+#analysis-section .summary-insight{min-height:175px;height:auto!important;overflow:visible!important}
+#analysis-section #summary-insight-content{display:grid;gap:10px;min-height:90px;visibility:visible!important;opacity:1!important;color:var(--text-main,var(--sa-fg))}
+#analysis-section #summary-insight-content p{margin:0;padding:11px 14px;border:1px solid var(--border,var(--sa-line));border-radius:12px;background:var(--table-header,var(--sa-soft,transparent));color:var(--text-main,var(--sa-fg));line-height:1.6;font-size:.84rem}
+#analysis-section #summary-insight-content strong{color:var(--text-main,var(--sa-fg))}
+#analysis-section #summary-chart-empty:not([hidden]){display:grid;place-items:center;min-height:200px;color:var(--text-muted,var(--sa-muted));font-size:.9rem}
+@media(max-width:1150px){#analysis-section .summary-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){#analysis-section .summary-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#analysis-section .summary-chart-wrap{height:275px!important}#analysis-section .summary-graph{min-height:0}}

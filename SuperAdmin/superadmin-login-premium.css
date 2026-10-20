@@ -1,0 +1,14 @@
+/* SyntaxError Super Admin login - visual refinement only; auth logic unchanged */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+html,body{min-height:100dvh}body{background:radial-gradient(ellipse 55% 55% at 88% 12%,#126fb93d,transparent),radial-gradient(ellipse 40% 35% at 7% 92%,#16c4b52c,transparent),#08111f!important;color:#f0f7ff!important}
+.background-blobs{overflow:hidden;pointer-events:none}
+.wrapper{background:linear-gradient(155deg,rgba(28,47,70,.97),rgba(13,28,47,.97))!important;border:1px solid #46698b99!important;border-radius:29px!important;box-shadow:0 30px 100px #0008,0 0 0 8px #66b9ff08!important;isolation:isolate}
+.wrapper::before{height:4px!important;background:linear-gradient(90deg,#ffe56d,#3aaeff,#22d3bb)!important}
+.wrapper::after{opacity:.7}
+.header{position:relative;z-index:1}h1{font-weight:850!important;letter-spacing:-.055em!important;line-height:1.15}.subtitle{max-width:310px;margin:10px auto 0!important;color:#b1c6e0!important;line-height:1.55!important}
+.input-group{position:relative;z-index:1}.input-group label{letter-spacing:.02em;font-weight:700!important;color:#d1e0f0!important}.input-box input{background:#091726b8!important;border:1px solid #4b6582!important;color:#fff!important;border-radius:14px!important;transition:border-color .2s,box-shadow .2s}.input-box input::placeholder{color:#a1b4cc}.input-box input:focus{border-color:#51beff!important;box-shadow:0 0 0 4px #39b6ff25!important}
+.login-btn{min-height:53px;background:linear-gradient(108deg,#1588e4,#10aeba)!important;box-shadow:0 10px 28px #0670c244!important;font-weight:800!important;border-radius:13px!important;transition:transform .2s,box-shadow .2s}.login-btn:hover{transform:translateY(-2px);box-shadow:0 14px 32px #0670c266!important}
+#emailError,#pinError{color:#ff9a9a!important;font-size:.78rem}.error-input{border-color:#ff7777!important}
+#loader-overlay{background:#08111fdb!important;backdrop-filter:blur(12px)}.spinner{border-top-color:#53c7ff!important}
+@media(max-width:480px){.wrapper{border-radius:23px!important;padding:26px 22px!important}.header{margin-bottom:24px}h1{font-size:1.78rem!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}

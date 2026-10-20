@@ -5,8 +5,12 @@
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Superadmin | Student Management</title>
-    <link rel="stylesheet" href="StudentList.css?v=summary2">
+    <link rel="stylesheet" href="StudentList.css">
+    <link rel="stylesheet" href="superadmin-modern.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="superadmin-unified.css">
+    <link rel="stylesheet" href="superadmin-premium.css">
+    <link rel="stylesheet" href="superadmin-summary-fix.css">
 </head>
 <body>
     <nav class="sidebar">
@@ -64,7 +68,7 @@
             <section id="analysis-section" class="super-student-summary summary-modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="summary-modal-heading" tabindex="-1">
                 <div class="summary-dialog-panel">
                 <div class="summary-topline">
-                    <div><span class="summary-eyebrow">INDIVIDUAL STUDENT</span><h2 id="summary-modal-heading">Student Performance Summary</h2><p id="summary-description">Performance data for the selected student</p></div>
+                    <div><span class="summary-eyebrow">INDIVIDUAL STUDENT</span><h2 id="summary-modal-heading">Student Performance Overview</h2><p id="summary-description">Performance data for the selected student</p></div>
                     <button type="button" id="close-analysis" class="summary-close" aria-label="Close student summary">Close <i class="bi bi-x-lg"></i></button>
                 </div>
                 <div class="summary-layout">
@@ -75,10 +79,11 @@
                     <div class="summary-right">
                         <div class="summary-stats">
                             <div class="card summary-stat"><span>Game Progress</span><strong id="summary-progress">--</strong><div class="summary-track"><div id="summary-progress-fill"></div></div></div>
-                            <div class="card summary-stat"><span>Difficulty Score</span><strong id="summary-difficulty">--</strong><small>Highest recorded topic score / 10</small></div>
-                            <div class="card summary-stat"><span>Recorded Wrong Attempts</span><strong id="summary-wrongs">--</strong><small>Across available topics</small></div>
+                            <div class="card summary-stat"><span>Recorded Time</span><strong id="summary-time">--</strong><small>Latest task completion times</small></div>
+                            <div class="card summary-stat"><span>Latest Incorrect Submissions</span><strong id="summary-wrongs">--</strong><small>Across available topics</small></div>
+                            <div class="card summary-stat"><span>Highest Difficulty</span><strong id="summary-difficulty">--</strong><small>Topic score, maximum 10</small></div>
                         </div>
-                        <div class="card summary-graph"><div class="summary-card-head"><h3><i class="bi bi-graph-up"></i> Concept Difficulty</h3><span>Per main topic</span></div><p class="summary-help">Based on recorded wrong attempts, capped at 10 for each topic.</p><div class="summary-chart-wrap"><canvas id="difficultyChart"></canvas><p id="summary-chart-empty" hidden>No recorded topic difficulty data available yet.</p></div></div>
+                        <div class="summary-evidence-strip" id="summary-coverage">Topics with recorded results</div><div class="card summary-graph"><div class="summary-card-head"><h3><i class="bi bi-graph-up"></i> Concept Difficulty</h3><span>Per main topic</span></div><p class="summary-help">Latest incorrect submissions by topic (display scale: 0–10).</p><div class="summary-chart-wrap"><canvas id="difficultyChart"></canvas><p id="summary-chart-empty" hidden>No recorded topic difficulty data available yet.</p></div></div>
                         <div class="card summary-insight"><h3><i class="bi bi-clipboard-data"></i> Performance Overview</h3><div id="summary-insight-content"></div></div>
                     </div>
                 </div>
@@ -108,7 +113,7 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="module" src="./StudentList.js?v=popup3"></script>
+    <script type="module" src="./StudentList.js"></script>
     <script>
     const themeToggle = document.getElementById('themeToggle');
     const themeIcon = document.getElementById('themeIcon');

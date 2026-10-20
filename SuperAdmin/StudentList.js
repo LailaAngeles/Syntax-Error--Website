@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { 
-    getFirestore, collection, getDocs 
+    getFirestore, collection, getDocs, onSnapshot 
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 // Fixed: Added getAuth to the imports
 import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
@@ -62,46 +62,52 @@ window.logoutUser = async function() {
 // ----------------------------
 // 1. DATA FETCHING
 // ----------------------------
-async function fetchAllDatabaseContent() {
-    toggleLoading(true); 
-    allStudents = [];
-    const sectionSelect = document.getElementById("section-select");
-    
-    if (sectionSelect) sectionSelect.innerHTML = '<option value="">-- All Sections --</option>';
-
-    try {
-        const sectionsSnap = await getDocs(collection(db, "sections"));
-        
-        const fetchPromises = sectionsSnap.docs.map(async (sectionDoc) => {
-            const sectionName = sectionDoc.data().name || sectionDoc.id;
-            
-            if (sectionSelect) {
-                const opt = document.createElement("option");
-                opt.value = sectionName;
-                opt.textContent = sectionName;
-                sectionSelect.appendChild(opt);
-            }
-
-            const classSnap = await getDocs(collection(db, "sections", sectionDoc.id, "classList"));
-            classSnap.forEach(studentDoc => {
-                allStudents.push({
-                    ...studentDoc.data(),
-                    sectionName: sectionName,
-                    firebaseId: studentDoc.id
-                });
-            });
-        });
-
-        await Promise.all(fetchPromises);
-        renderTable(""); 
-        
-    } catch (error) {
-        console.error("Database Fetch Error:", error);
-    } finally {
-        toggleLoading(false); 
+// Realtime subscriptions: only active classes remain subscribed.
+let stopSectionList = null;
+const activeClassListeners = new Map();
+const latestClasses = new Map();
+let selectedStudentKey = null;
+function renderLiveClasses() {
+    allStudents = [...latestClasses.values()].flat();
+    renderTable(document.getElementById('section-select')?.value || '');
+    if (selectedStudentKey && document.getElementById('analysis-section')?.style.display !== 'none') {
+        const student=allStudents.find(s=>`${s.parentDocId}/${s.firebaseId}` === selectedStudentKey);
+        if(student) window.viewAnalysis(student.firebaseId,student.parentDocId);
+        else closeStudentSummary();
     }
 }
-
+function fetchAllDatabaseContent() {
+    toggleLoading(true);
+    if(stopSectionList) stopSectionList();
+    stopSectionList=onSnapshot(collection(db,'sections'), snapshot=>{
+        const wanted=new Map();
+        const select=document.getElementById('section-select');
+        const current=select?.value || '';
+        if(select)select.innerHTML='<option value="">-- All Sections --</option>';
+        snapshot.forEach(d=>{
+            const name=d.data().name || d.id;
+            wanted.set(d.id,name);
+            if(select){const option=document.createElement('option');option.value=name;option.textContent=name;select.append(option)}
+        });
+        if(select && [...select.options].some(o=>o.value===current))select.value=current;
+        for(const [id,stop] of activeClassListeners){
+            if(!wanted.has(id)){stop();activeClassListeners.delete(id);latestClasses.delete(id)}
+        }
+        for(const [id,name] of wanted){
+            if(!activeClassListeners.has(id)){
+                const unsub=onSnapshot(collection(db,'sections',id,'classList'), snap=>{
+                    latestClasses.set(id,snap.docs.map(d=>({...d.data(),sectionName:wanted.get(id)||name,firebaseId:d.id,parentDocId:id})));
+                    renderLiveClasses();
+                },err=>{console.error('Student listener error',err);toggleLoading(false)});
+                activeClassListeners.set(id,unsub);
+            } else {
+                latestClasses.get(id)?.forEach(s=>{s.sectionName=name});
+            }
+        }
+        renderLiveClasses();toggleLoading(false);
+    },err=>{console.error('Sections listener error',err);toggleLoading(false)});
+}
+window.addEventListener('pagehide',()=>{stopSectionList?.();activeClassListeners.forEach(stop=>stop());activeClassListeners.clear()});
 // ----------------------------
 // 2. RENDERING LOGIC (Updated with Empty State UI)
 // ----------------------------
@@ -116,7 +122,7 @@ function renderTable(filterSection) {
         const matchesSection = !filterSection || s.sectionName === filterSection;
         const matchesSearch = !searchTerm || 
                               (s.name && s.name.toLowerCase().includes(searchTerm)) || 
-                              (s.id && s.id.toString().includes(searchTerm));
+                              (s.id && String(s.id).replace(/^0+/, '').includes(searchTerm.replace(/^0+/, ''))) ;
         return matchesSection && matchesSearch;
     });
 
@@ -129,7 +135,7 @@ function renderTable(filterSection) {
 
     // Update Totals
     document.getElementById("card-total-students").textContent = filtered.length;
-    let avg = filtered.length > 0 ? Math.round(filtered.reduce((acc, s) => acc + (s.progress || 0), 0) / filtered.length) : 0;
+    let avg = filtered.length > 0 ? Math.round(filtered.reduce((acc, s) => acc + levelProgress(s).percent, 0) / filtered.length) : 0;
     document.getElementById("average-score").textContent = avg + "%";
 
     // 3. UI logic: Handle Empty State vs Table rows
@@ -146,17 +152,17 @@ function renderTable(filterSection) {
     } else {
         tableBody.innerHTML = filtered.map(s => `
             <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 15px; font-weight: 600;">${s.id || "---"}</td>
-                <td style="padding: 15px;">${s.name || "Unknown"}</td>
-                <td style="padding: 15px;"><span style="background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 20px;">${s.sectionName}</span></td>
+                <td style="padding: 15px; font-weight: 600;">${safeText(s.id || s.firebaseId || '---')}</td>
+                <td style="padding: 15px;">${safeText(s.name || 'Unknown')}</td>
+                <td style="padding: 15px;"><span style="background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 20px;">${safeText(s.sectionName)}</span></td>
                 <td style="padding: 15px;">
                     <div style="width: 100px; background: #e2e8f0; height: 6px; border-radius: 10px;">
-                        <div style="width: ${s.progress || 0}%; background: #3b82f6; height: 100%; border-radius: 10px;"></div>
+                        <div style="width: ${levelProgress(s).percent}%; background: #3b82f6; height: 100%; border-radius: 10px;"></div>
                     </div>
-                    <small style="color: #64748b;">${s.progress || 0}%</small>
+                    <small style="color: #64748b;">${levelProgress(s).percent}%</small>
                 </td>
                 <td style="padding: 15px;">
-                    <button onclick="viewAnalysis('${s.firebaseId}')" style="background: #3b82f6; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">
+                    <button data-student-id="${safeText(s.firebaseId)}" data-section-id="${safeText(s.parentDocId)}" class="open-student-summary" style="background: #3b82f6; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer;">
                         Details
                     </button>
                 </td>
@@ -170,31 +176,55 @@ function renderTable(filterSection) {
 const safeText = value => String(value ?? "--").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const numberOrNull = value => value === '' || value == null || !Number.isFinite(Number(value)) ? null : Number(value);
 const topicColor = value => value >= 7 ? '#ef4444' : value >= 4 ? '#f59e0b' : '#10b981';
+const attemptNumber = name => ({firstattempt:1,firstattemp:1,secondattempt:2,secondattemp:2,thirdattempt:3,thirdattemp:3})[String(name).toLowerCase().replace(/[^a-z0-9]/g,'')]||0;
 function studentTopics(student) {
-    const content = student['Subject Content'] || student.subjectContent;
-    if (content && typeof content === 'object' && !Array.isArray(content)) {
-        return Object.entries(content).filter(([,v]) => v && typeof v === 'object').map(([name, value]) => {
-            let wrongs = 0, found = false;
-            function collect(node) {
-                if (!node || typeof node !== 'object') return;
-                if (Object.prototype.hasOwnProperty.call(node, 'wrongAttempts')) {
-                    const n = numberOrNull(node.wrongAttempts);
-                    if (n !== null && n >= 0) { wrongs += n; found = true; }
-                    return;
-                }
-                Object.values(node).forEach(collect);
+    const content=student['Subject Content'] || student.subjectContent || {};
+    if(!content || typeof content !== 'object') return [];
+    const results=[];
+    for(const [name,root] of Object.entries(content)) {
+        const activities=new Map();
+        function walk(node,path=[],attempt=0,depth=0){
+            if(!node||typeof node!=='object'||depth>24||typeof node.toDate==='function')return;
+            if(Array.isArray(node)){node.forEach((v,i)=>walk(v,[...path,String(i)],attempt,depth+1));return}
+            const hasWrong=Object.prototype.hasOwnProperty.call(node,'wrongAttempts');
+            const hasTime=Object.prototype.hasOwnProperty.call(node,'completionTime');
+            if(hasWrong||hasTime){
+                const key=path.filter(x=>!attemptNumber(x)).join('/')||'Topic summary';
+                const a=activities.get(key)||{attempt:-1,wrong:null,time:null};
+                const n=numberOrNull(node.wrongAttempts),time=numberOrNull(node.completionTime);
+                if(attempt>a.attempt){a.attempt=attempt;a.wrong=null;a.time=null}
+                if(attempt===a.attempt){if(hasWrong&&n!==null&&n>=0)a.wrong=n;if(hasTime&&time!==null&&time>=0)a.time=time}
+                activities.set(key,a);
             }
-            collect(value);
-            return found ? {name:name.replace(/_/g,' '), wrongs, score:Math.min(10, wrongs)} : null;
-        }).filter(Boolean).sort((a,b)=> b.wrongs-a.wrongs || a.name.localeCompare(b.name));
+            for(const [k,v] of Object.entries(node))if(v&&typeof v==='object')walk(v,[...path,k],attemptNumber(k)||attempt,depth+1);
+        }
+        walk(root);
+        const values=[...activities.values()];
+        const wrongEntries=values.filter(v=>v.wrong!==null);
+        const timeEntries=values.filter(v=>v.time!==null);
+        if(!wrongEntries.length&&!timeEntries.length)continue;
+        const wrongs=wrongEntries.reduce((total,v)=>total+v.wrong,0);
+        results.push({name:name.replace(/_/g,' '),wrongs:wrongEntries.length?wrongs:null,score:Math.min(10,wrongs),time:timeEntries.reduce((total,v)=>total+v.time,0),timedTasks:timeEntries.length,tasks:activities.size});
     }
-    // Legacy fallback only if real Subject Content is absent.
-    if (Array.isArray(student.difficulty)) return student.difficulty.map((v,i)=> {
-        const n = numberOrNull(v);
-        return n===null ? null : {name:`Level ${i+1}`,wrongs:null,score:Math.max(0,Math.min(10,n))};
-    }).filter(Boolean).sort((a,b)=>b.score-a.score);
-    return [];
+    return results.sort((a,b)=>(b.wrongs??-1)-(a.wrongs??-1)||a.name.localeCompare(b.name));
 }
+function levelProgress(student){
+    const completed=new Set(); const seen=new WeakSet();
+    function walk(node,context=null,depth=0){
+        if(!node||typeof node!=='object'||depth>25||seen.has(node)||typeof node.toDate==='function')return;
+        seen.add(node);
+        for(const [k,v] of Object.entries(node)){
+            const n=k.toLowerCase().replace(/[^a-z0-9]/g,'');
+            const m=n.match(/^level(\d{1,2})(?:is)?(?:completed|complete|finished)$/)||n.match(/^(?:completed|complete|finished)level(\d{1,2})$/);
+            if(m&&(v===true||v===1||v==='true')){const level=Number(m[1]);if(level>=1&&level<=19)completed.add(level)}
+            const cm=n.match(/^level(\d{1,2})$/);const next=cm?Number(cm[1]):context;
+            if(next&&/^(completed|iscompleted|finished)$/.test(n)&&(v===true||v===1||v==='true'))completed.add(next);
+            if(v&&typeof v==='object')walk(v,next,depth+1);
+        }
+    }
+    walk(student);return {completed:completed.size,percent:Math.round(completed.size/19*100)};
+}
+function duration(seconds){if(!Number.isFinite(seconds))return '--';const n=Math.round(seconds);return `${Math.floor(n/3600)?Math.floor(n/3600)+'h ':''}${Math.floor(n%3600/60)}m ${String(n%60).padStart(2,'0')}s`}
 function renderTopicSummary(topics) {
     const list = document.getElementById('summary-topic-list');
     list.replaceChildren();
@@ -208,21 +238,23 @@ function renderTopicSummary(topics) {
         const track=document.createElement('div'); track.className='summary-track';
         const fill=document.createElement('div'); fill.style.width=`${topic.score*10}%`; fill.style.backgroundColor=topicColor(topic.score);
         track.append(fill);
-        const note=document.createElement('small'); note.textContent=topic.wrongs===null ? 'Legacy level score' : `${topic.wrongs} recorded wrong attempts`;
+        const note=document.createElement('small'); note.textContent=topic.wrongs===null ? 'No error count recorded' : `${topic.wrongs} recorded wrong attempts`;
         item.append(heading,track,note); list.append(item);
     });
 }
-window.viewAnalysis = function(firebaseId) {
-    const student = allStudents.find(s=>String(s.firebaseId)===String(firebaseId));
+window.viewAnalysis = function(firebaseId,parentDocId=null) {
+    const student = allStudents.find(s=>String(s.firebaseId)===String(firebaseId) && (!parentDocId || s.parentDocId===parentDocId));
     if (!student) return;
+    selectedStudentKey=`${student.parentDocId}/${student.firebaseId}`;
     const panel=document.getElementById('analysis-section');
     panel.style.display='flex';
     document.body.classList.add('summary-modal-open');
     document.getElementById('summary-description').textContent=`${student.name || 'Student'} · ${student.sectionName || 'No Section'}`;
     const profile=document.getElementById('student-details-content');
-    const fields=[['Full Name',student.name],['Student Number',student.id],['Section',student.sectionName],['Idle Time',student.idleTime ?? 'Not recorded']];
+    const levelInfo=levelProgress(student);
+    const fields=[['Full Name',student.name],['Student Number',student.id || student.firebaseId],['Section',student.sectionName],['Completed Levels',`${levelInfo.completed} of 19`]];
     profile.innerHTML=fields.map(([label,value])=>`<div class="summary-profile-field"><span>${label}</span><strong>${safeText(value)}</strong></div>`).join('');
-    const progress=numberOrNull(student.progress);
+    const progress=levelInfo.percent;
     const progressValue=progress===null?null:Math.max(0,Math.min(100,progress));
     document.getElementById('summary-progress').textContent=progressValue===null?'--':`${Math.round(progressValue)}%`;
     document.getElementById('summary-progress-fill').style.width=`${progressValue??0}%`;
@@ -233,12 +265,15 @@ window.viewAnalysis = function(firebaseId) {
     const wrongs=totals.length?totals.reduce((sum,t)=>sum+t.wrongs,0):null;
     document.getElementById('summary-difficulty').textContent=highest===null?'--':`${highest}/10`;
     document.getElementById('summary-wrongs').textContent=wrongs===null?'--':String(wrongs);
+    const totalTime=topics.reduce((sum,t)=>sum+(t.time||0),0);
+    const timeEl=document.getElementById('summary-time');if(timeEl)timeEl.textContent=topics.some(t=>t.timedTasks)?duration(totalTime):'--';
+    const coverage=document.getElementById('summary-coverage');if(coverage)coverage.textContent=topics.length+' topics with recorded results';
     const insight=document.getElementById('summary-insight-content');
     if (!topics.length) insight.textContent='No attempt records available yet. More data will appear after the student completes learning activities.';
     else {
         const hardest=topics[0];
-        const progressPhrase=progressValue===null?'Game progress is not yet recorded.':`Game progress: ${Math.round(progressValue)}%.`;
-        insight.innerHTML=`<p><strong>Highest recorded difficulty:</strong> ${safeText(hardest.name)} (${hardest.score}/10).</p><p>${progressPhrase}</p><p>This summary reflects recorded errors and does not directly measure understanding.</p>`;
+        const progressPhrase=`${levelInfo.completed} of 19 levels marked completed.`;
+        insight.innerHTML=`<p><strong>Highest recorded difficulty:</strong> ${safeText(hardest.name)} (${hardest.wrongs??'--'} latest incorrect submissions).</p><p>${progressPhrase}</p><p>Counts use the latest numbered attempt for each task. Time uses completionTime only; missing records are excluded.</p>`;
     }
     renderChart(topics);
     panel.focus({preventScroll:true});
@@ -253,7 +288,7 @@ function renderChart(topics) {
     difficultyChart=new Chart(canvas.getContext('2d'),{
         type:'bar',
         data:{labels:topics.map(t=>t.name),datasets:[{label:'Difficulty Score',data:topics.map(t=>t.score),backgroundColor:topics.map(t=>topicColor(t.score)),borderRadius:5}]},
-        options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{afterLabel:(ctx)=>topics[ctx.dataIndex].wrongs===null?'Legacy score':`${topics[ctx.dataIndex].wrongs} recorded wrong attempts`}}},scales:{x:{beginAtZero:true,max:10,ticks:{stepSize:2}},y:{ticks:{autoSkip:false}}}}
+        options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{afterLabel:(ctx)=>topics[ctx.dataIndex].wrongs===null?'No error count recorded':`${topics[ctx.dataIndex].wrongs} recorded wrong attempts`}}},scales:{x:{beginAtZero:true,max:10,ticks:{stepSize:2}},y:{ticks:{autoSkip:false}}}}
     });
 }
 function closeStudentSummary() {
@@ -261,6 +296,7 @@ function closeStudentSummary() {
     if (!panel || panel.style.display === 'none') return;
     panel.style.display = 'none';
     document.body.classList.remove('summary-modal-open');
+    selectedStudentKey=null;
 }
 document.getElementById('close-analysis')?.addEventListener('click', closeStudentSummary);
 document.getElementById('analysis-section')?.addEventListener('click', event => {
@@ -285,4 +321,9 @@ document.getElementById("search-student")?.addEventListener("input", () => {
 document.getElementById("logout-btn")?.addEventListener("click", (e) => {
     e.preventDefault();
     window.showLogoutPopup();
+});
+// Delegated click handler for student summary buttons.
+document.getElementById('students-table')?.addEventListener('click', (event) => {
+    const button = event.target.closest('.open-student-summary');
+    if (button) window.viewAnalysis(button.dataset.studentId, button.dataset.sectionId);
 });
