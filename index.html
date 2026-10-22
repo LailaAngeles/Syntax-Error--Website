@@ -9,6 +9,125 @@
     <!-- Bootstrap Icons CDN for system badges & arrows -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+/* Step 02: side-by-side Terms & Conditions screenshots only */
+.manual-slide[data-index="1"] .manual-shot.terms-screenshots {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: center !important;
+    justify-items: stretch !important;
+    column-gap: clamp(8px, 1.5vw, 18px) !important;
+    padding: clamp(8px, 1.4vw, 16px) !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+}
+.manual-slide[data-index="1"] .terms-screenshots figure {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: center !important;
+    gap: 9px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.manual-slide[data-index="1"] .terms-screenshots figure img {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 330px !important;
+    aspect-ratio: 16 / 9;
+    object-fit: contain !important;
+    border-radius: 10px !important;
+    background: #07121d;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, .22);
+}
+.manual-slide[data-index="1"] .terms-screenshots figcaption {
+    color: #9bb6c7;
+    font-family: 'Fira Code', monospace;
+    font-size: clamp(9px, .75vw, 11px);
+    text-align: center;
+}
+@media (max-width: 600px) {
+    .manual-slide[data-index="1"] .manual-shot.terms-screenshots {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        column-gap: 8px !important;
+        padding: 8px !important;
+    }
+    .manual-slide[data-index="1"] .terms-screenshots figure img {
+        border-radius: 7px !important;
+    }
+}
+    </style>
+<style>
+
+/* FIX: Step 03 password screenshots, independent of legacy manual-shot image rules */
+.manual-slide[data-index="2"] .manual-shot.password-screenshots {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: clamp(8px, 1.5vw, 18px) !important;
+    width: 100% !important;
+    height: clamp(240px, 32vw, 365px) !important;
+    min-height: 240px !important;
+    align-items: center !important;
+    justify-items: stretch !important;
+    padding: clamp(8px, 1.4vw, 16px) !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+.manual-slide[data-index="2"] .password-screenshots figure {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: center !important;
+    gap: 9px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative !important;
+}
+.manual-slide[data-index="2"] .password-screenshots figure img {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 315px !important;
+    aspect-ratio: 16 / 9;
+    object-fit: contain !important;
+    background: #07121d;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 18px rgba(0,0,0,.22);
+}
+.manual-slide[data-index="2"] .password-screenshots figcaption {
+    color: #9bb6c7;
+    font-family: 'Fira Code', monospace;
+    font-size: clamp(9px, .75vw, 11px);
+    text-align: center;
+}
+@media (max-width: 600px) {
+    .manual-slide[data-index="2"] .manual-shot.password-screenshots {
+        height: 230px !important;
+        min-height: 230px !important;
+        gap: 8px !important;
+        padding: 8px !important;
+    }
+    .manual-slide[data-index="2"] .password-screenshots figure img {
+        border-radius: 7px !important;
+    }
+}
+
+</style>
 </head>
 <body>
     <div class="page-ambient" aria-hidden="true"></div>
@@ -17,7 +136,7 @@
     <!-- Header / Navigation Bar -->
     <header class="navbar">
         <div class="logo">
-            <span class="sti-text">STI</span> <span class="game-title">[SYNTAX_ERROR]</span>
+            <span class="sti-text">STI</span> <span class="game-title">[SYNTAXERROR]</span>
         </div>
         <div class="auth-buttons">
             <a class="nav-manual" href="#user-manual"><i class="bi bi-journal-code"></i> User manual</a>
@@ -162,36 +281,278 @@
   <div class="manual-panels">
 <div class="manual-panel" id="panel-game" role="tabpanel" aria-labelledby="tab-game" >
 <div class="manual-track">
-<article class="manual-slide" data-index="0" >
-    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
-    <div class="manual-shot"><img src="manual/game-01.png" alt="Screenshot for step 01: Create your account" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-person-plus"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/game-01.png</code></div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 01 <span>—</span> 06</div><h3>Create your account</h3><p>Register or sign in to the mobile game using your student account.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual game screenshot.</div></div>
-    </article>
+<article class="manual-slide" data-index="0">
+    <div class="manual-preview">
+        <div class="preview-chrome">
+            <div class="chrome-dots">
+                <i></i><i></i><i></i>
+            </div>
+            <span>MOBILE APP / WALKTHROUGH</span>
+            <i class="bi bi-arrows-fullscreen"></i>
+        </div>
+
+        <div class="manual-shot">
+            <img src="manual/game-01.jpg"
+                 alt="Screenshot for step 01: Sign in with your school account"
+                 loading="lazy"
+                 onerror="this.hidden=true" />
+
+            <div class="shot-placeholder">
+                <div class="placeholder-icon">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <span>YOUR SCREENSHOT GOES HERE</span>
+                <code>manual/game-01.jpg</code>
+            </div>
+        </div>
+    </div>
+
+    <div class="manual-copy">
+        <div class="step-mark">STEP 01 <span>—</span> 06</div>
+
+        <h3>Sign in with your school account</h3>
+
+        <p>
+            Access the mobile game using your official school account.
+            Your default password is your birthdate in YYYYMMDD format
+            (e.g., 20080115 for January 15, 2008).
+        </p>
+
+        <div class="manual-hint">
+            <i class="bi bi-info-circle"></i>
+            Use your school account and your birthdate as your default
+            password to log in and start playing.
+        </div>
+    </div>
+</article>
+
 <article class="manual-slide" data-index="1" aria-hidden="true">
-    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
-    <div class="manual-shot"><img src="manual/game-02.png" alt="Screenshot for step 02: Start a level" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-controller"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/game-02.png</code></div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 02 <span>—</span> 06</div><h3>Start a level</h3><p>Choose an available level from the game menu and read the objective.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual game screenshot.</div></div>
-    </article>
+    <div class="manual-preview">
+        <div class="preview-chrome">
+            <div class="chrome-dots"><i></i><i></i><i></i></div>
+            <span>MOBILE APP / WALKTHROUGH</span>
+            <i class="bi bi-arrows-fullscreen"></i>
+        </div>
+
+        <div class="manual-shot terms-screenshots">
+            <figure class="terms-image-top">
+                <img src="manual/game-02.jpg"
+                     alt="Top section of the Terms and Conditions"
+                     loading="lazy" />
+                <figcaption>01 / Read the terms</figcaption>
+            </figure>
+            <figure class="terms-image-bottom">
+                <img src="manual/game-02-1.jpg"
+                     alt="Bottom section with the agreement checkbox"
+                     loading="lazy" />
+                <figcaption>02 / Accept the agreement</figcaption>
+            </figure>
+        </div>
+    </div>
+
+    <div class="manual-copy">
+        <div class="step-mark">STEP 02 <span>—</span> 06</div>
+        <h3>Accept the Terms and Conditions</h3>
+        <p>Before accessing the game, read the Terms and Conditions. Scroll to the bottom, tick the agreement checkbox, then tap Accept to proceed.</p>
+        <div class="manual-hint">
+            <i class="bi bi-check2-square"></i>
+            Agree to the Terms and Conditions to start playing.
+        </div>
+    </div>
+</article>
+
+
 <article class="manual-slide" data-index="2" aria-hidden="true">
-    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
-    <div class="manual-shot"><img src="manual/game-03.png" alt="Screenshot for step 03: Explore the environment" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-compass"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/game-03.png</code></div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 03 <span>—</span> 06</div><h3>Explore the environment</h3><p>Move through the 3D world and follow task indicators to reach interactive consoles.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual game screenshot.</div></div>
-    </article>
+    <div class="manual-preview">
+        <div class="preview-chrome">
+            <div class="chrome-dots"><i></i><i></i><i></i></div>
+            <span>MOBILE APP / WALKTHROUGH</span>
+            <i class="bi bi-arrows-fullscreen"></i>
+        </div>
+        <div class="manual-shot password-screenshots">
+            <figure class="password-image-first">
+                <img src="manual/game-03-1.jpg"
+                     alt="Popup asking whether to change the default password"
+                     loading="lazy" />
+                <figcaption>01 / Password confirmation</figcaption>
+            </figure>
+            <figure class="password-image-second">
+                <img src="manual/game-03.jpg"
+                     alt="Form for updating the default password"
+                     loading="lazy" />
+                <figcaption>02 / Update your password</figcaption>
+            </figure>
+        </div>
+    </div>
+    <div class="manual-copy">
+        <div class="step-mark">STEP 03 <span>—</span> 06</div>
+        <h3>Update Your Default Password</h3>
+        <p>After signing in, a popup will ask whether you want to change your default password. Select Yes to open the Change Password form, where you can create and save a new password. Select No to continue using your current password.</p>
+        <div class="manual-hint"><i class="bi bi-shield-lock"></i> For better account security, changing your default password is recommended.</div>
+    </div>
+</article>
+
+
 <article class="manual-slide" data-index="3" aria-hidden="true">
-    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
-    <div class="manual-shot"><img src="manual/game-04.png" alt="Screenshot for step 04: Write and run C# code" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-code-slash"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/game-04.png</code></div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 04 <span>—</span> 06</div><h3>Write and run C# code</h3><p>Enter your solution in the code console, then select Run to check your work.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual game screenshot.</div></div>
-    </article>
+    <div class="manual-preview">
+        <div class="preview-chrome">
+            <div class="chrome-dots">
+                <i></i><i></i><i></i>
+            </div>
+            <span>MOBILE APP / WALKTHROUGH</span>
+            <i class="bi bi-arrows-fullscreen"></i>
+        </div>
+
+        <div class="manual-shot">
+            <img
+                src="manual/game-04.jpg"
+                alt="Screenshot for step 04: Main Menu and Settings"
+                loading="lazy"
+                onerror="this.hidden=true"
+            />
+
+            <div class="shot-placeholder">
+                <div class="placeholder-icon">
+                    <i class="bi bi-controller"></i>
+                </div>
+                <span>YOUR SCREENSHOT GOES HERE</span>
+                <code>manual/game-04.jpg</code>
+            </div>
+        </div>
+    </div>
+
+    <div class="manual-copy">
+        <div class="step-mark">STEP 04 <span>—</span> 06</div>
+
+        <h3>Explore the Main Menu and Settings</h3>
+
+        <p>
+            From the Main Menu, select Play to access the Level Menu
+            and begin your programming challenges. You can also open
+            Settings to adjust the game's audio or log out of your account.
+        </p>
+
+        <div class="manual-hint">
+            <i class="bi bi-gear"></i>
+            Choose Play to start a level, or open Settings to manage
+            audio preferences and account logout.
+        </div>
+    </div>
+</article>
+
+
 <article class="manual-slide" data-index="4" aria-hidden="true">
-    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
-    <div class="manual-shot"><img src="manual/game-05.png" alt="Screenshot for step 05: Ask Codie for guidance" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-chat-dots"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/game-05.png</code></div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 05 <span>—</span> 06</div><h3>Ask Codie for guidance</h3><p>Talk to Codie to get learning guidance when you need help solving a challenge.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual game screenshot.</div></div>
-    </article>
+    <div class="manual-preview">
+        <div class="preview-chrome">
+            <div class="chrome-dots">
+                <i></i><i></i><i></i>
+            </div>
+            <span>MOBILE APP / WALKTHROUGH</span>
+            <i class="bi bi-arrows-fullscreen"></i>
+        </div>
+
+        <!-- TWO LEVEL MENU SCREENSHOTS -->
+        <div class="manual-shot level-screenshots">
+
+            <!-- FIRST IMAGE: LOCKED LEVELS -->
+            <figure class="level-image">
+                <img
+                    src="manual/game-05.jpg"
+                    alt="Level menu showing available and locked levels"
+                    loading="lazy"
+                />
+                <figcaption>01 / Select an available level</figcaption>
+            </figure>
+
+            <!-- SECOND IMAGE: COMPLETED LEVELS -->
+            <figure class="level-image">
+                <img
+                    src="manual/game-05-1.jpg"
+                    alt="Level menu showing completed levels and progress"
+                    loading="lazy"
+                />
+                <figcaption>02 / Track completed levels</figcaption>
+            </figure>
+
+        </div>
+    </div>
+
+    <div class="manual-copy">
+        <div class="step-mark">
+            STEP 05 <span>—</span> 06
+        </div>
+
+        <h3>Select a Level and Track Your Progress</h3>
+
+        <p>
+            From the Level Menu, select an unlocked level to begin
+            your C# programming challenges. Complete each level
+            to unlock the next one. Your completion times and
+            overall progress are displayed to help you track
+            your achievements throughout the game.
+        </p>
+
+        <div class="manual-hint">
+            <i class="bi bi-trophy"></i>
+            Tap an available level to play. Completed levels
+            display your recorded time, while the progress
+            bar shows your overall game completion.
+        </div>
+    </div>
+</article>
+
+
 <article class="manual-slide" data-index="5" aria-hidden="true">
-    <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
-    <div class="manual-shot"><img src="manual/game-06.png" alt="Screenshot for step 06: Review your progress" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-graph-up-arrow"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/game-06.png</code></div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 06 <span>—</span> 06</div><h3>Review your progress</h3><p>Complete tasks and check your recorded completion time and unlocked levels.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual game screenshot.</div></div>
-    </article>
+    <div class="manual-preview">
+        <div class="preview-chrome">
+            <div class="chrome-dots">
+                <i></i><i></i><i></i>
+            </div>
+            <span>MOBILE APP / WALKTHROUGH</span>
+            <i class="bi bi-arrows-fullscreen"></i>
+        </div>
+
+        <div class="manual-shot">
+            <img
+                src="manual/game-06.jpg"
+                alt="Screenshot for step 06: Gameplay controls and interface"
+                loading="lazy"
+                onerror="this.hidden=true"
+            />
+
+            <div class="shot-placeholder">
+                <div class="placeholder-icon">
+                    <i class="bi bi-controller"></i>
+                </div>
+                <span>YOUR SCREENSHOT GOES HERE</span>
+                <code>manual/game-06.jpg</code>
+            </div>
+        </div>
+    </div>
+
+    <div class="manual-copy">
+        <div class="step-mark">
+            STEP 06 <span>—</span> 06
+        </div>
+
+        <h3>Explore the Gameplay Controls</h3>
+
+        <p>
+            Use the virtual joystick to move around the 3D environment
+            and follow the displayed objectives to complete each challenge.
+            Tap Ask Codie for helpful guidance, or use the Pause button
+            to temporarily stop the game. The timer at the top tracks
+            your gameplay duration.
+        </p>
+
+        <div class="manual-hint">
+            <i class="bi bi-controller"></i>
+            Follow the task instructions, use the joystick to explore,
+            and ask Codie for help whenever you need guidance.
+        </div>
+    </div>
+</article>
+
 </div></div>
 <div class="manual-panel" id="panel-web" role="tabpanel" aria-labelledby="tab-web" hidden>
 <div class="manual-track">

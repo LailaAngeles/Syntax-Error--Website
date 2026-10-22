@@ -730,3 +730,236 @@ h1 {font-size:clamp(2rem,4.2vw,4.25rem);letter-spacing:-.035em;line-height:1.15;
 @media(max-width:768px){.navbar{flex-direction:row;flex-wrap:wrap;padding:.85rem 4%;gap:.55rem}.navbar.scrolled{padding:.65rem 4%}.auth-buttons{gap:.5rem}.nav-manual{font-size:.7rem}.auth-buttons .btn{font-size:.65rem;padding:.6rem .7rem}.logo{font-size:clamp(.78rem,3vw,1.05rem)}.hero-container{padding:3rem 5% 4rem}.cta-actions{justify-content:center}.manual-section{padding:3rem 4% 4rem}.manual-topbar{flex-direction:column;align-items:stretch}.manual-counter{text-align:center}.manual-tabs{justify-content:center}.manual-tab{flex:1;padding:.7rem .6rem}.manual-shot{height:260px}.manual-shell{border-radius:19px}.manual-copy h3{font-size:1.3rem}}
 @media(max-width:430px){.navbar{justify-content:center}.auth-buttons{justify-content:center;width:100%}.nav-manual{margin-right:auto}.hero-container{padding-top:2rem}.school-tag{font-size:.66rem}.manual-shot{height:230px}.manual-copy{padding:.5rem 0}.manual-tab{font-size:.7rem}.manual-bottom{gap:1rem}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}.reveal{opacity:1;transform:none}}
+/* Step 02: side-by-side Terms & Conditions screenshots only */
+
+/* ==========================================
+   STEP 02 - LARGER SIDE-BY-SIDE SCREENSHOTS
+   ========================================== */
+
+.manual-slide[data-index="1"] .manual-preview {
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+}
+
+.manual-slide[data-index="1"] .manual-shot.terms-screenshots {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+    align-items: center !important;
+    justify-items: stretch !important;
+
+    flex: 1;
+    width: 100% !important;
+    min-height: 330px;
+    height: auto !important;
+    padding: 16px !important;
+    overflow: hidden !important;
+    box-sizing: border-box;
+}
+
+.manual-slide[data-index="1"] .terms-screenshots figure {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: stretch !important;
+    gap: 12px;
+
+    width: 100% !important;
+    min-width: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.manual-slide[data-index="1"] .terms-screenshots figure img {
+    position: static !important;
+    display: block !important;
+
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: none !important;
+
+    aspect-ratio: 16 / 9;
+    object-fit: contain !important;
+
+    background: #081521;
+    border-radius: 12px;
+}
+
+.manual-slide[data-index="1"] .terms-screenshots figcaption {
+    text-align: center;
+    color: #9bb6c7;
+    font-size: 12px;
+    font-family: 'Fira Code', monospace;
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+    .manual-slide[data-index="1"] .manual-preview {
+        min-height: 240px;
+    }
+
+    .manual-slide[data-index="1"] .manual-shot.terms-screenshots {
+        min-height: 190px;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+        padding: 8px !important;
+    }
+
+    .manual-slide[data-index="1"] .terms-screenshots figure img {
+        border-radius: 8px;
+    }
+
+    .manual-slide[data-index="1"] .terms-screenshots figcaption {
+        font-size: 9px;
+    }
+}
+
+
+/* FIX: Step 03 password screenshots, independent of legacy manual-shot image rules */
+.manual-slide[data-index="2"] .manual-shot.password-screenshots {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: clamp(8px, 1.5vw, 18px) !important;
+    width: 100% !important;
+    height: clamp(240px, 32vw, 365px) !important;
+    min-height: 240px !important;
+    align-items: center !important;
+    justify-items: stretch !important;
+    padding: clamp(8px, 1.4vw, 16px) !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+.manual-slide[data-index="2"] .password-screenshots figure {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: center !important;
+    gap: 9px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative !important;
+}
+.manual-slide[data-index="2"] .password-screenshots figure img {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 315px !important;
+    aspect-ratio: 16 / 9;
+    object-fit: contain !important;
+    background: #07121d;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 18px rgba(0,0,0,.22);
+}
+.manual-slide[data-index="2"] .password-screenshots figcaption {
+    color: #9bb6c7;
+    font-family: 'Fira Code', monospace;
+    font-size: clamp(9px, .75vw, 11px);
+    text-align: center;
+}
+@media (max-width: 600px) {
+    .manual-slide[data-index="2"] .manual-shot.password-screenshots {
+        height: 230px !important;
+        min-height: 230px !important;
+        gap: 8px !important;
+        padding: 8px !important;
+    }
+    .manual-slide[data-index="2"] .password-screenshots figure img {
+        border-radius: 7px !important;
+    }
+}
+
+/* ==========================================
+   STEP 05 - MATCH STEP 03 PREVIEW SIZE
+   ========================================== */
+
+.manual-slide[data-index="4"] .manual-preview {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+}
+
+.manual-slide[data-index="4"] .manual-shot.level-screenshots {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: center !important;
+    justify-items: stretch !important;
+
+    width: 100% !important;
+    height: clamp(240px, 32vw, 365px) !important;
+    min-height: 240px !important;
+
+    gap: 16px !important;
+    padding: 16px !important;
+
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+.manual-slide[data-index="4"] .level-screenshots figure {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: center !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 9px !important;
+}
+
+.manual-slide[data-index="4"] .level-screenshots figure img {
+    position: static !important;
+    inset: auto !important;
+
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+
+    height: auto !important;
+    max-height: 315px !important;
+
+    aspect-ratio: 16 / 9;
+    object-fit: contain !important;
+
+    background: #07121d;
+    border-radius: 10px !important;
+}
+
+.manual-slide[data-index="4"] .level-screenshots figcaption {
+    color: #9bb6c7;
+    font-family: 'Fira Code', monospace;
+    font-size: clamp(9px, .75vw, 11px);
+    text-align: center;
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+    .manual-slide[data-index="4"] .manual-shot.level-screenshots {
+        height: 230px !important;
+        min-height: 230px !important;
+        gap: 8px !important;
+        padding: 8px !important;
+    }
+
+    .manual-slide[data-index="4"] .level-screenshots figure img {
+        border-radius: 7px !important;
+    }
+
+    .manual-slide[data-index="4"] .level-screenshots figcaption {
+        font-size: 9px;
+    }
+}
