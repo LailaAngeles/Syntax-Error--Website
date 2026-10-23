@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Orbitron:wght@500;900&display=swap" rel="stylesheet">
     <!-- Bootstrap Icons CDN for system badges & arrows -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./style.css?v=20261023-qrfix2">
     <style>
 /* Step 02: side-by-side Terms & Conditions screenshots only */
 .manual-slide[data-index="1"] .manual-shot.terms-screenshots {
@@ -130,6 +130,28 @@
     }
 }
 
+</style>
+<style>
+
+/* FIX: clamp Android QR even if earlier CSS is cached or overridden. */
+#qr-section .qr-card.card-front .qr-placeholder.android-theme {
+  width: 190px !important; height: 190px !important;
+  min-width: 190px !important; min-height: 190px !important;
+  max-width: 190px !important; max-height: 190px !important;
+  box-sizing: border-box !important; padding: 10px !important;
+  margin: 0 auto 1.2rem !important; overflow: hidden !important;
+  display: flex !important; align-items: center !important; justify-content: center !important;
+  background: #fff !important; border-radius: 12px !important;
+}
+#qr-section .qr-card.card-front .qr-placeholder.android-theme > img.qr-code-image {
+  display: block !important; position: static !important; float: none !important;
+  width: 100% !important; height: 100% !important;
+  min-width: 0 !important; min-height: 0 !important;
+  max-width: 100% !important; max-height: 100% !important;
+  object-fit: contain !important; box-sizing: border-box !important;
+  margin: 0 !important; padding: 0 !important; transform: none !important;
+  opacity: 1 !important; visibility: visible !important;
+}
 </style>
 </head>
 <body>
