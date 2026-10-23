@@ -1911,7 +1911,7 @@ body {
 }
 .manual-slide .manual-copy h3,
 .manual-slide .manual-copy p { animation:none !important; }
-}
+
 .manual-copy h3 { letter-spacing:-.025em; text-wrap:balance; }
 .manual-copy p { text-wrap:pretty; }
 
