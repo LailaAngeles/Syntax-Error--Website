@@ -1949,3 +1949,25 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .manual-copy p.manual-description-enter { animation: none !important; }
 }
+
+.qr-placeholder {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.qr-code-image {
+    width: 85%;
+    height: 85%;
+    object-fit: contain;
+    display: block;
+    background: #ffffff;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.qr-corner {
+    z-index: 2;
+}
