@@ -1,0 +1,33 @@
+    <!DOCTYPE html>
+    <html lang="en" data-theme="light">
+    <head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Level Access | SyntaxError</title>
+    <link rel="stylesheet" href="dashboard.css"><link rel="stylesheet" href="modern-enhancements.css"><link rel="stylesheet" href="levels.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <script type="module" src="levels.js"></script><script src="modern-effects.js" defer></script>
+    </head>
+    <body>
+    <div class="sidebar"><div class="sidebar-header"><h2 class="logo"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></h2><button class="theme-btn" id="theme-toggle" aria-label="Toggle light or dark mode"><i class="bi bi-moon-stars-fill"></i></button></div>
+    <ul>
+    <li><a href="dashboard.html"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a></li>
+    <li class="active"><a href="Levels.html"><i class="bi bi-key-fill"></i><span>Levels</span></a></li>
+    <li><a href="Students.html"><i class="bi bi-people"></i><span>Students</span></a></li>
+    <li><a href="archive.html"><i class="bi bi-archive"></i><span>Archive</span></a></li>
+    <li><a href="#" id="logout"><i class="bi bi-box-arrow-right"></i><span>LogOut</span></a></li>
+    </ul></div>
+    <main class="main-content access-page">
+    <header><div class="access-kicker"><i class="bi bi-shield-lock-fill"></i> TEACHER CONTROL PANEL</div><h1>Level Access Management</h1><p>Generate secure five-minute codes for your assigned sections. Students must finish the previous level before redeeming a code.</p></header>
+    <section class="access-metrics" aria-label="Access summary"><article class="card metric"><i class="bi bi-layers"></i><div><strong>19</strong><span>Game Levels</span></div></article><article class="card metric"><i class="bi bi-clock"></i><div><strong>05:00</strong><span>Code Validity</span></div></article><article class="card metric"><i class="bi bi-key"></i><div><strong id="active-count">0</strong><span>Active Codes</span></div></article></section>
+    <div class="access-grid"><div class="access-stack">
+    <section class="card access-card"><div class="access-title"><i class="bi bi-plus-square"></i><h2>Generate access code</h2></div><p>Choose which level students can unlock and which of your sections can redeem the code.</p>
+    <label for="level">Level to unlock</label><select id="level"></select>
+    <label for="section">Authorized section</label><select id="section"><option value="">Loading your assigned sections…</option></select>
+    <div class="access-note"><i class="bi bi-info-circle"></i> Codes expire five minutes after creation. Generating a new code replaces the previous active code for this level and section.</div>
+    <button class="access-primary" id="generate" disabled><i class="bi bi-key-fill"></i> Generate 5-minute code</button></section>
+    <section class="card access-card"><div class="access-title"><i class="bi bi-shield-check"></i><h2>Current generated code</h2></div><div class="access-code"><div id="current-description">Generate a code to begin</div><strong id="current-code">— — — — — —</strong><div class="access-code-help">Displayed only to the teacher who generated it</div></div><div class="timer-row"><span>Remaining time</span><strong id="remaining">--:--</strong></div><div class="timer-track"><div id="timebar"></div></div><div class="access-actions"><button id="copy" disabled><i class="bi bi-clipboard"></i> Copy</button><button id="revoke" disabled class="revoke"><i class="bi bi-x-circle"></i> Revoke</button></div></section>
+    </div><div class="access-stack">
+    <section class="card access-card"><div class="access-title"><i class="bi bi-list-check"></i><h2>Access code activity</h2></div><p>Active and recently issued codes are loaded from Firebase. For security, existing codes cannot be displayed again after a page reload.</p><div id="code-list" class="access-list"><p>Loading…</p></div><button id="refresh" class="access-outline"><i class="bi bi-arrow-clockwise"></i> Refresh activity</button></section>
+    <section class="card access-card"><div class="access-title"><i class="bi bi-phone"></i><h2>Mobile game access preview</h2></div><div class="mobile-preview"><div class="mobile-preview-top">SYNTAX<span>ERROR</span></div><div class="mobile-icon"><i class="bi bi-lock-fill"></i></div><strong>Level Locked</strong><p>Enter the access code provided by your teacher</p><div class="mobile-code">••••••</div><div class="mobile-unlock">UNLOCK LEVEL</div><small>Illustration only — redemption occurs in Unity</small></div></section><section class="card access-card"><div class="access-title"><i class="bi bi-check2-circle"></i><h2>How students unlock</h2></div><div class="instruction"><span>1</span><p>Complete Level 1 (or the preceding level) in the Unity game.</p></div><div class="instruction"><span>2</span><p>Teacher generates a code for the next level and assigned section.</p></div><div class="instruction"><span>3</span><p>Student enters the six-digit code before five minutes expire.</p></div><div class="instruction"><span>4</span><p>Firebase verifies the student and permanently saves the unlock.</p></div></section>
+    </div></div><div id="notice" role="status" aria-live="polite"></div>
+    </main></body></html>
