@@ -1,0 +1,70 @@
+/* SyntaxError Super Admin mobile + dropdown visibility patch.
+   Load AFTER all other page stylesheets. Does not change Firebase logic. */
+html, body { max-width:100%; }
+/* The header must not clip menus extending below the header card. */
+.content > .header { overflow:visible !important; isolation:auto !important; position:relative !important; z-index:80 !important; }
+.content > .header .panel-header,
+.content > .header .controls-wrapper,
+.content > .header .dropdown { overflow:visible !important; }
+.content > .header .panel-header { position:relative; z-index:85; }
+.content > .header .controls-wrapper { display:flex; flex-wrap:wrap; gap:10px; }
+.content > .header .dropdown { position:relative !important; z-index:90; }
+.content > .header .dropdown:has(.dropdown-content.show) { z-index:110 !important; }
+.content > .header .dropdown-content {
+  position:absolute !important; top:calc(100% + 8px) !important;
+  left:auto !important; right:0 !important; bottom:auto !important;
+  width:max-content; min-width:max(100%,210px); max-width:min(310px,calc(100vw - 28px));
+  overflow:visible !important; background:var(--sa-surface,var(--bg-panel,#fff)) !important;
+  border:1px solid var(--sa-line,var(--border-color,#dce5f2)) !important;
+  box-shadow:0 18px 46px #071c3340 !important; border-radius:14px !important;
+  z-index:2000 !important;
+}
+.content > .header .dropdown-content:not(.show) { display:none !important; }
+.content > .header .dropdown-content.show { display:block !important; }
+.content > .header .dropdown-content button { display:block; width:100%; text-align:left; white-space:normal; min-height:44px; color:var(--sa-fg,var(--text-primary,#192a42)) !important; }
+/* All pages: panels should remain behind an open header dropdown. */
+.content > .main-container { position:relative; z-index:1; }
+:is(.content,.main-content) { min-width:0 !important; }
+@media (max-width: 768px) {
+  html { -webkit-text-size-adjust:100%; }
+  body { display:flex !important; flex-direction:column !important; width:100% !important; min-height:100dvh; height:auto !important; overflow-x:clip !important; }
+  .dashboard { display:flex !important; flex-direction:column !important; height:auto !important; min-height:100dvh !important; overflow:visible !important; }
+  .sidebar { position:relative !important; top:auto !important; align-self:stretch !important; flex:none !important; width:100% !important; max-width:100% !important; height:auto !important; min-height:0 !important; padding:13px 14px 10px !important; z-index:70 !important; overflow:visible !important; }
+  .sidebar-header { margin:0 0 10px !important; }
+  .sidebar .logo { font-size:20px !important; }
+  .sidebar .logo .game-title { font-size:12px !important; margin-top:3px !important; }
+  .sidebar .theme-btn { width:42px !important; height:42px !important; min-width:42px !important; }
+  .sidebar ul { width:100% !important; display:flex !important; flex-direction:row !important; flex-wrap:nowrap !important; gap:6px !important; overflow-x:auto !important; overflow-y:hidden !important; white-space:nowrap !important; -webkit-overflow-scrolling:touch; padding-bottom:4px !important; }
+  .sidebar ul li { flex:0 0 auto !important; margin:0 !important; }
+  .sidebar ul li a { white-space:nowrap !important; font-size:12px !important; padding:10px 11px !important; min-height:44px; gap:7px !important; }
+  .content, .main-content { flex:1 1 auto !important; overflow:visible !important; width:100% !important; max-width:100% !important; padding:13px !important; }
+  .content > .header, .main-content > header { padding:17px 15px !important; margin-bottom:16px !important; border-radius:17px !important; display:flex !important; flex-direction:column !important; align-items:stretch !important; gap:12px !important; }
+  .content > .header h1,.main-content > header h1 { font-size:clamp(22px,5.6vw,30px) !important; }
+  .content > .header .panel-header, .content > .header .controls-wrapper { width:100%; }
+  .content > .header .controls-wrapper { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+  .content > .header .dropbtn { width:100%; min-height:46px; padding:9px 10px !important; font-size:clamp(11px,3vw,14px) !important; justify-content:space-between; }
+  .content > .header .dropdown-content { min-width:100% !important; width:max-content; max-width:min(290px,calc(100vw - 28px)) !important; }
+  .content > .header .dropdown:first-child .dropdown-content { left:0 !important; right:auto !important; }
+  .content > .header .dropdown:last-child .dropdown-content { right:0 !important; left:auto !important; }
+  .main-container, .panel,.panelL,.card { min-width:0 !important; max-width:100% !important; }
+  .panel,.panelL,.card { padding:14px !important; border-radius:17px !important; }
+  .table-container,.table-responsive,.table-scroll-wrapper { max-width:100% !important; overflow-x:auto !important; -webkit-overflow-scrolling:touch; }
+  .table-container table,.table-responsive table,.table-scroll-wrapper table { width:100%; }
+  /* Preserve the existing approved-user card rows where provided by admin.css. */
+  #approvedTable td { overflow-wrap:anywhere; }
+  .controls { display:flex !important; flex-wrap:wrap !important; gap:10px !important; }
+  .controls > input,.controls > select { flex:1 1 180px !important; min-width:0 !important; max-width:100%; }
+  .header .stat { max-width:100%; }
+  .modal-box,.admin-modal-box,.logout-box { max-width:calc(100vw - 24px) !important; max-height:calc(100dvh - 30px) !important; overflow-y:auto; }
+  #analysis-section .summary-layout { grid-template-columns:minmax(0,1fr) !important; }
+  #analysis-section .summary-dialog-panel { width:calc(100vw - 16px) !important; max-height:95dvh !important; }
+  #analysis-section .summary-stats { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+}
+@media(max-width:420px) {
+  .content,.main-content { padding:10px !important; }
+  .content > .header .dropbtn { padding:9px 7px !important; }
+  .content > .header .dropbtn i { flex:none; }
+  .modal-actions,.modal-footer,.actions-bar { flex-wrap:wrap !important; }
+  .modal-actions button { flex:1 1 auto; }
+  .sidebar ul li a { font-size:11.5px !important; }
+}
