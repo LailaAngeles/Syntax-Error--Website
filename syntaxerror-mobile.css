@@ -1,0 +1,87 @@
+/* SyntaxError responsive enhancement: loaded AFTER style.css and inline styles.
+   Keeps existing QR flip interaction and manual carousel functionality. */
+html,body{max-width:100%;overflow-x:clip}
+#qr-section,.flip-card,.flip-card-inner,.manual-section,.manual-shell,.manual-panels,.manual-track,.manual-slide,.manual-preview,.manual-copy{min-width:0}
+#qr-section .flip-card{width:min(100%,350px);max-width:calc(100vw - 32px);height:clamp(345px,110vw,435px)}
+#qr-section .qr-card{box-sizing:border-box;padding:clamp(15px,5vw,32px);overflow:hidden}
+#qr-section .qr-card h3{font-size:clamp(1rem,4.5vw,1.25rem)}
+#qr-section .qr-placeholder.android-theme{width:min(190px,60vw)!important;height:min(190px,60vw)!important;min-width:0!important;min-height:0!important;max-width:100%!important;max-height:none!important;flex-shrink:1!important}
+#qr-section .qr-placeholder.android-theme img.qr-code-image{width:100%!important;height:100%!important;object-fit:contain!important}
+#qr-section .qr-placeholder.ios-theme{width:min(190px,60vw);height:min(190px,60vw);max-width:100%}
+#qr-section .toggle-container{width:min(100%,350px);justify-content:center}
+#qr-section .toggle-btn{flex:1;min-height:44px;padding:10px 12px}
+.manual-section{width:100%;max-width:1510px}.manual-shell{width:100%;max-width:100%}
+.manual-track,.manual-panels,.manual-slide{width:100%;max-width:100%}
+.manual-preview{overflow:hidden}.manual-copy{overflow-wrap:anywhere}
+.manual-shot img{max-width:100%}
+.manual-bottom{flex-wrap:nowrap}.manual-arrow{flex-shrink:0;min-width:44px;min-height:44px}
+.manual-dots{min-width:0;flex-wrap:wrap}
+@media(max-width:900px){
+ .hero-container{align-items:stretch;gap:30px}
+ #qr-section{flex:initial;width:100%;max-width:440px;align-self:center}
+ .manual-slide{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+ .manual-copy{padding:8px 4px 0;text-align:left}
+ .manual-copy h3{margin-bottom:12px}
+ .manual-copy p{line-height:1.7}
+ .manual-hint{margin-top:14px;line-height:1.7}
+}
+@media(max-width:600px){
+ .navbar{width:100%;padding:12px 4%!important;gap:10px}
+ .navbar .logo{width:100%;text-align:center;font-size:clamp(.87rem,3.7vw,1.15rem)}
+ .navbar .auth-buttons{width:100%;justify-content:center;flex-wrap:wrap;gap:8px}
+ .navbar .auth-buttons .btn,.navbar .nav-manual{min-height:42px;display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;font-size:clamp(.68rem,2.7vw,.78rem)}
+ .hero-container{padding:28px 16px 44px!important;min-height:0}
+ .game-intro h1{font-size:clamp(1.65rem,7.3vw,2.6rem);overflow-wrap:normal}
+ .game-intro .info-block{text-align:left}
+ .cta-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .cta-actions .btn{min-width:0;padding:12px 8px;font-size:clamp(.66rem,2.8vw,.85rem);white-space:normal}
+ .manual-section{padding:42px 12px 55px!important}
+ .manual-heading{margin-bottom:20px}.manual-heading h2{font-size:clamp(1.28rem,5.6vw,1.8rem)}
+ .manual-shell{border-radius:17px;padding:12px!important;overflow:hidden}
+ .manual-topbar{gap:10px;margin-bottom:12px}
+ .manual-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;padding:4px;gap:4px}
+ .manual-tab{min-width:0;min-height:44px;font-size:clamp(.65rem,2.7vw,.8rem);padding:10px 4px!important;white-space:normal}
+ .manual-counter{font-size:1rem}
+ .manual-preview{padding:7px;border-radius:13px;width:100%}
+ .preview-chrome{font-size:9px;letter-spacing:0;padding:6px 5px 9px}
+ .preview-chrome>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .manual-shot{height:clamp(190px,67vw,325px)!important;min-height:0!important;border-radius:9px}
+ /* Two-image walkthrough steps: preserve both screenshots and captions without shrinking them into illegibility. */
+ .manual-slide[data-index="1"] .manual-shot.terms-screenshots,
+ .manual-slide[data-index="2"] .manual-shot.password-screenshots,
+ .manual-slide[data-index="4"] .manual-shot.level-screenshots{
+   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+   width:100%!important;height:auto!important;min-height:0!important;
+   padding:8px!important;gap:7px!important;align-items:start!important;
+   overflow:visible!important;
+ }
+ .manual-slide[data-index="1"] .manual-shot figure,
+ .manual-slide[data-index="2"] .manual-shot figure,
+ .manual-slide[data-index="4"] .manual-shot figure{min-width:0!important;gap:6px!important;justify-content:start!important}
+ .manual-slide[data-index="1"] .manual-shot figure img,
+ .manual-slide[data-index="2"] .manual-shot figure img,
+ .manual-slide[data-index="4"] .manual-shot figure img{
+    display:block!important;position:static!important;inset:auto!important;
+    width:100%!important;height:auto!important;aspect-ratio:auto!important;
+    max-height:clamp(140px,49vw,265px)!important;object-fit:contain!important;
+    background:#0b1420;border-radius:7px!important;
+ }
+ .manual-slide .manual-shot figcaption{font-size:clamp(8px,2.2vw,10px)!important;line-height:1.4;text-align:center}
+ .manual-copy{padding:14px 2px 0;text-align:left}
+ .manual-copy h3{font-size:clamp(1.12rem,5vw,1.45rem);line-height:1.35}
+ .manual-copy p{font-size:clamp(.79rem,3.3vw,.94rem);line-height:1.7}
+ .manual-hint{font-size:clamp(.72rem,3vw,.84rem)}
+ .manual-bottom{gap:10px;margin-top:20px}.manual-arrow{width:44px;height:44px}
+ .manual-dots{gap:8px}.manual-tip{font-size:.7rem;line-height:1.5}
+ .impact-section,.developers-section{padding-left:16px;padding-right:16px}
+}
+@media(max-width:360px){
+ #qr-section .flip-card{height:350px}
+ #qr-section .qr-placeholder.android-theme{width:min(170px,55vw)!important;height:min(170px,55vw)!important}
+ #qr-section .qr-placeholder.ios-theme{width:min(170px,55vw);height:min(170px,55vw)}
+ .manual-shell{padding:8px!important}
+ .manual-tab i{margin-right:3px}
+ .manual-bottom{gap:6px}
+ .manual-dots{gap:5px}
+}
+@media(prefers-reduced-motion:reduce){.flip-card-inner{transition:none!important}}
