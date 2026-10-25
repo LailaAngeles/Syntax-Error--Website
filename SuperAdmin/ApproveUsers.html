@@ -9,6 +9,10 @@
     <link rel="stylesheet" href="superadmin-unified.css">
     <link rel="stylesheet" href="superadmin-premium.css">
     <link rel="stylesheet" href="superadmin-mobile-fix.css">
+    <link rel="stylesheet" href="superadmin-archive-teacher.css">
+    <link rel="stylesheet" href="superadmin-section-manager.css">
+    <link rel="stylesheet" href="superadmin-section-archive-redesign.css">
+    <link rel="stylesheet" href="superadmin-section-archive-compact.css">
 </head>
 <body>
 <div class="dashboard">
@@ -78,12 +82,14 @@
 
 <!-- SECTION MODAL -->
 <div id="sectionModal" class="modal hidden">
-    <div class="modal-box">
-        <h3>Section</h3>
-        <input type="text" id="sectionInput" placeholder="Enter section name" />
+    <div class="modal-box sa-section-dialog">
+        <div class="sa-section-heading"><div class="sa-section-icon"><i class="bi bi-folder-plus"></i></div><div><span class="sa-section-eyebrow">MANAGE SECTIONS</span><h3>Add New Section</h3><p>Create a section that can be assigned to approved users.</p></div></div>
+        <label class="sa-section-input-label" for="sectionInput">SECTION NAME</label>
+        <input type="text" id="sectionInput" placeholder="e.g. ICT1202" autocomplete="off" />
+        <p class="sa-section-input-help"><i class="bi bi-info-circle"></i> Enter a unique section name to avoid duplicates.</p>
         <div class="modal-actions">
-            <button id="saveSectionBtn" class="approve">Save</button>
-            <button id="cancelSectionBtn" class="reject">Cancel</button>
+            <button id="cancelSectionBtn" class="sa-section-cancel reject">Cancel</button>
+            <button id="saveSectionBtn" class="sa-section-primary approve"><i class="bi bi-plus-lg"></i> Add Section</button>
         </div>
     </div>
 </div>

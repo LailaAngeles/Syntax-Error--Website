@@ -1,0 +1,43 @@
+/* Compact Archived Sections — visual only; does not affect Archived Users */
+#viewArchiveModal.sa-sections-archive-mode .sa-archive-dialog {width:min(790px,calc(100vw - 28px))!important;max-width:790px!important;max-height:90dvh!important;padding:clamp(16px,2.4vw,26px)!important;}
+#viewArchiveModal.sa-sections-archive-mode .sa-archive-top {margin-bottom:14px!important;padding-bottom:14px!important}
+#viewArchiveModal.sa-sections-archive-mode .sa-archive-top h3 {font-size:clamp(1.4rem,2.7vw,1.9rem)!important}
+#viewArchiveModal.sa-sections-archive-mode .sa-archive-message {margin-bottom:14px!important;padding:11px 14px!important;font-size:.79rem!important}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-metrics {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:0 0 14px}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-metric {border-radius:15px;border:1px solid var(--sa-line,var(--border-color));background:var(--sa-soft,var(--bg-main));padding:15px 17px;display:flex;flex-direction:column;gap:5px;min-width:0}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-metric span {font-size:.78rem;font-weight:750;color:var(--sa-muted,var(--text-secondary))}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-metric span i {color:var(--sa-accent,#1685ed);margin-right:5px}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-metric strong {font-size:1.65rem;line-height:1.2;color:var(--sa-fg,var(--text-primary))}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-metric small {font-size:.72rem;color:var(--sa-muted,var(--text-secondary))}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-archive {border:1px solid var(--sa-line,var(--border-color));border-radius:16px;overflow:hidden;background:var(--sa-surface,var(--bg-panel))}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-archive-tools {padding:15px!important;grid-template-columns:1fr minmax(185px,1.3fr)!important;border-bottom:1px solid var(--sa-line,var(--border-color));}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-archive-tools strong {font-size:.8rem!important}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-searchbox {height:42px!important}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-searchbox input {height:40px!important;font-size:.84rem!important}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-table-heading {display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) 110px;gap:12px;padding:11px 16px;background:var(--sa-soft,var(--bg-main));color:var(--sa-muted,var(--text-secondary));font-size:.7rem;font-weight:800;letter-spacing:.055em}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-table-heading span:last-child {text-align:right}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-archive-list {padding:0!important;max-height:38dvh!important;gap:0!important;display:block!important;overflow-y:auto!important}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-archive-row {display:grid!important;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) 110px;gap:12px;align-items:center!important;padding:12px 16px!important;border:0!important;border-radius:0!important;background:transparent!important;border-top:1px solid var(--sa-line,var(--border-color))!important}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-archive-row strong {font-size:.87rem;overflow-wrap:anywhere}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-date {font-size:.75rem;color:var(--sa-muted,var(--text-secondary))}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-archive-row button {min-width:0!important;width:100%;min-height:38px!important;padding:8px!important;font-size:.77rem}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-empty {min-height:138px!important;padding:22px!important;border:0!important;background:transparent!important;margin:0!important}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-empty i {font-size:1.8rem!important;margin:0 0 6px!important}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-empty strong {font-size:.95rem}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-empty p {font-size:.8rem}
+#viewArchiveModal.sa-sections-archive-mode :is(.sa-archive-dialog,.sa-section-archive-list,#dynamicArchiveList){scrollbar-width:none!important;-ms-overflow-style:none!important}
+#viewArchiveModal.sa-sections-archive-mode :is(.sa-archive-dialog,.sa-section-archive-list,#dynamicArchiveList)::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+@media(max-width:600px){
+ #viewArchiveModal.sa-sections-archive-mode .sa-section-metric{padding:12px}
+ #viewArchiveModal.sa-sections-archive-mode .sa-section-archive-tools{grid-template-columns:1fr!important;gap:8px!important}
+ #viewArchiveModal.sa-sections-archive-mode .sa-section-table-heading{display:none!important}
+ #viewArchiveModal.sa-sections-archive-mode .sa-section-archive-row{grid-template-columns:1fr auto!important;gap:6px 12px!important}
+ #viewArchiveModal.sa-sections-archive-mode .sa-section-date{grid-column:1;grid-row:2}
+ #viewArchiveModal.sa-sections-archive-mode .sa-section-archive-row button{grid-column:2;grid-row:1/3;width:auto!important;min-width:94px!important}
+}
+
+/* Ensure the users-only block disappears when viewing Archived Sections. */
+#viewArchiveModal.sa-sections-archive-mode #saArchiveStudentView {display:none!important}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-archive-tools {display:grid!important;align-items:center!important;gap:12px!important}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-searchbox {display:flex!important;align-items:center!important;gap:9px!important;padding:0 12px!important}
+#viewArchiveModal.sa-sections-archive-mode .sa-section-searchbox input {flex:1!important;min-width:0!important;width:100%!important}

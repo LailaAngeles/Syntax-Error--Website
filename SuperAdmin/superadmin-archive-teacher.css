@@ -1,0 +1,44 @@
+/* Super Admin archived users — teacher inspired, responsive; additive */
+#saArchiveStudentView[hidden]{display:none!important}
+.sa-archive-dialog{width:min(1320px,calc(100vw - 30px))!important;max-width:1320px!important;max-height:94dvh!important;overflow:auto!important;padding:clamp(16px,2.3vw,32px)!important;border-radius:24px!important}
+.sa-archive-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding-bottom:18px;border-bottom:1px solid var(--sa-line,var(--border-color));margin-bottom:22px}
+.sa-archive-top h3{font-size:clamp(1.55rem,2.7vw,2.4rem)!important;letter-spacing:-.04em;margin:0 0 7px!important}
+.sa-archive-subtitle{font-size:.9rem;color:var(--sa-muted,var(--text-secondary));line-height:1.5}
+.sa-archive-close{width:44px;height:44px;flex:0 0 auto;font-size:1.15rem;padding:0!important}
+.sa-archive-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.sa-archive-metric{padding:21px;background:var(--sa-soft,var(--bg-main));border:1px solid var(--sa-line,var(--border-color));border-radius:19px;display:flex;flex-direction:column;gap:9px}
+.sa-archive-metric>span{font-weight:750;color:var(--sa-muted,var(--text-secondary));font-size:.85rem}.sa-archive-metric i{color:var(--sa-accent,#1685ed);margin-right:6px}.sa-archive-metric strong{font-size:2.05rem;line-height:1.15;color:var(--sa-fg,var(--text-primary))}.sa-archive-metric small{color:var(--sa-muted,var(--text-secondary));font-size:.75rem}
+.sa-archive-notice{display:flex;gap:12px;align-items:center;border:1px solid var(--sa-ring,var(--border-color));background:var(--sa-soft,var(--bg-main));padding:16px;border-radius:15px;margin-bottom:18px}.sa-archive-notice i{font-size:1.4rem;color:var(--sa-accent,#1685ed)}.sa-archive-notice p{font-size:.83rem;line-height:1.55;color:var(--sa-fg,var(--text-primary))!important}
+.sa-archive-list-panel{background:var(--sa-surface,var(--bg-panel));border:1px solid var(--sa-line,var(--border-color));border-radius:17px 17px 0 0;padding:18px 18px 12px}
+.sa-archive-panel-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.sa-archive-panel-heading h3{margin:0!important;font-size:1.15rem}.sa-archive-panel-heading small{color:var(--sa-muted,var(--text-secondary))}
+.sa-archive-search{display:flex;align-items:center;gap:10px;max-width:420px;width:100%;background:var(--sa-soft,var(--bg-main));border:1px solid var(--sa-line,var(--border-color));border-radius:12px;padding:0 12px}.sa-archive-search input{width:100%;min-width:0;background:transparent!important;border:0!important;box-shadow:none!important;outline:0!important}.sa-archive-search i{color:var(--sa-muted,var(--text-secondary))}
+.sa-archive-list-panel .archive-toolbar{display:flex;gap:10px;margin-top:15px;padding:12px 0 0;border:0;align-items:center}.sa-archive-list-panel .archive-toolbar .archive-select-all{margin-right:3px}.sa-archive-list-panel .archive-toolbar #archiveSelectedCount{font-size:.8rem;color:var(--sa-muted,var(--text-secondary));margin-right:auto}.sa-archive-list-panel .archive-toolbar button{font-size:.78rem;min-height:42px!important;padding:10px 13px!important}.sa-archive-list-panel .archive-toolbar button:disabled{opacity:.45;cursor:not-allowed}.sa-archive-delete-all{background:var(--sa-soft,var(--bg-main))!important;color:var(--sa-fg,var(--text-primary))!important}
+.sa-archive-message{font-size:.78rem;color:var(--sa-muted,var(--text-secondary));line-height:1.55;padding:12px 18px;background:var(--sa-soft,var(--bg-main));margin:0!important}
+#dynamicArchiveList.sa-archive-list{border:1px solid var(--sa-line,var(--border-color));border-top:0;border-radius:0 0 17px 17px;max-height:50dvh!important;overflow:auto!important;margin:0!important;scrollbar-width:none!important}
+.sa-archive-table{width:100%;min-width:720px;border-collapse:collapse!important}.sa-archive-table th{background:var(--sa-soft,var(--bg-main));padding:13px 15px!important;font-size:.72rem!important;letter-spacing:.05em}.sa-archive-table td{padding:16px 15px!important;font-size:.84rem;vertical-align:middle;overflow-wrap:anywhere}.sa-archive-table .sa-archive-email{display:block;font-size:.86rem}.sa-archive-table .sa-archive-id{display:block;margin-top:4px;font-size:.72rem;color:var(--sa-muted,var(--text-secondary))}.sa-archive-table tbody tr.selected-row{background:var(--sa-soft,var(--bg-main))!important}.sa-archive-status{display:inline-block;padding:7px 11px;border-radius:99px;font-size:.73rem;font-weight:750;white-space:nowrap}.sa-archive-status.safe{background:rgba(16,185,129,.13);color:#10a77b}.sa-archive-status.soon{background:rgba(245,158,11,.14);color:#bf820b}.sa-archive-status.expired{background:rgba(220,64,85,.13);color:#dc4055}.sa-archive-status.unknown{background:var(--sa-soft,var(--bg-main));color:var(--sa-muted,var(--text-secondary))}.sa-archive-empty{text-align:center;padding:38px!important}
+@media(max-width:800px){.sa-archive-dialog{width:calc(100vw - 14px)!important;max-height:95dvh!important;padding:14px!important}.sa-archive-metrics{gap:8px}.sa-archive-metric{padding:14px}.sa-archive-metric strong{font-size:1.6rem}.sa-archive-panel-heading{align-items:stretch}.sa-archive-search{max-width:none}.sa-archive-list-panel .archive-toolbar{display:grid;grid-template-columns:1fr 1fr}.sa-archive-list-panel .archive-toolbar .archive-select-all,.sa-archive-list-panel .archive-toolbar #archiveSelectedCount{margin:0}.sa-archive-list-panel .archive-toolbar .sa-archive-delete-all{grid-column:1/-1}}
+@media(max-width:480px){.sa-archive-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.sa-archive-metric:last-child{grid-column:1/-1}.sa-archive-top h3{font-size:1.5rem!important}.sa-archive-list-panel{padding:12px}.sa-archive-list-panel .archive-toolbar button{font-size:.73rem!important}.sa-archive-notice{align-items:flex-start}}
+
+
+/* Archive: invisible scrollbars on every scrolling surface, without disabling scrolling. */
+#dynamicArchiveList.sa-archive-list,
+#dynamicArchiveList,
+.sa-archive-dialog,
+#viewArchiveModal,
+#viewArchiveModal .modal-box,
+.sa-archive-list-panel,
+.sa-archive-table-wrap {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+#dynamicArchiveList.sa-archive-list::-webkit-scrollbar,
+#dynamicArchiveList::-webkit-scrollbar,
+.sa-archive-dialog::-webkit-scrollbar,
+#viewArchiveModal::-webkit-scrollbar,
+#viewArchiveModal .modal-box::-webkit-scrollbar,
+.sa-archive-list-panel::-webkit-scrollbar,
+.sa-archive-table-wrap::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}

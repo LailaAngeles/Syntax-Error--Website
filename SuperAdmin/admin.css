@@ -1331,3 +1331,40 @@ html[data-theme="dark"] {
     .sidebar .logo { font-size:23px; }
     .content, .main-content { padding:12px !important; }
 }
+
+/* Archived user management: selection feedback, bulk actions, mobile */
+.archive-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 0;border-bottom:1px solid var(--border-color)}
+.archive-toolbar[hidden]{display:none!important}
+.archive-select-all{display:flex;align-items:center;gap:8px;font-weight:700}
+.archive-toolbar button{padding:10px 12px;font-size:.85rem}
+.archive-user-row{display:flex;align-items:center;gap:13px;padding:14px 10px;border-bottom:1px solid var(--border-color);cursor:pointer}
+.archive-user-row:hover{background:var(--sa-soft,var(--bg-main))}
+.archive-user-info{display:flex;flex-direction:column;min-width:0;gap:3px;overflow-wrap:anywhere}
+.archive-user-info strong{font-size:.9rem}
+.archive-user-info small{color:var(--text-secondary,var(--sa-muted));font-size:.76rem}
+.archive-alert-overlay{position:fixed;inset:0;background:#0009;z-index:15000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(5px)}
+.archive-alert{background:var(--sa-surface,var(--bg-panel));color:var(--sa-fg,var(--text-primary));border:1px solid var(--sa-line,var(--border-color));border-radius:19px;padding:24px;width:min(440px,100%);box-shadow:0 18px 55px #0005;display:grid;gap:14px}
+.archive-alert h3{margin:0}.archive-alert p{line-height:1.6;overflow-wrap:anywhere;margin:0}
+.archive-alert-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:9px}
+#dynamicArchiveList{max-height:45dvh!important;overflow-y:auto!important}
+@media(max-width:600px){.archive-toolbar{align-items:stretch}.archive-toolbar button{flex:1 1 100%;min-height:43px}.archive-user-row{align-items:flex-start}.archive-alert{padding:20px}}
+/* HIDE ARCHIVE SCROLLBAR WITHOUT DISABLING SCROLLING */
+
+#viewArchiveModal,
+#viewArchiveModal .modal-box,
+#dynamicArchiveList,
+.archive-table-wrap,
+.archive-panel {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+#viewArchiveModal::-webkit-scrollbar,
+#viewArchiveModal .modal-box::-webkit-scrollbar,
+#dynamicArchiveList::-webkit-scrollbar,
+.archive-table-wrap::-webkit-scrollbar,
+.archive-panel::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
