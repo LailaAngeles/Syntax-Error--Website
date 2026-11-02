@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="superadmin-premium.css">
     <link rel="stylesheet" href="superadmin-summary-fix.css">
     <link rel="stylesheet" href="superadmin-mobile-fix.css">
+    <link rel="stylesheet" href="student-insights.css">
 </head>
 <body>
     <nav class="sidebar">
@@ -20,7 +21,6 @@
             <button id="themeToggle" class="theme-btn"> <i class="bi bi-moon" id="themeIcon"></i></button>
         </div>
         <ul>
-            <li><a href="Dashboard.html"><i class="bi bi-speedometer2"></i> Pending Users</a></li>
             <li><a href="ApproveUsers.html"><i class="bi bi-people"></i> Approve Users</a></li>
             <li class="active"><a href="StudentsList.html"><i class="bi bi-archive"></i> Students</a></li>
             <li onclick="showLogoutPopup()"><a href="#"><i class="bi bi-box-arrow-right"></i> LogOut</a></li>
@@ -37,14 +37,88 @@
         </div>
 
         <div class="main-container">
+            <div class="controls insight-filters">
+                <label for="section-select" class="insight-filter-label"><i class="bi bi-funnel"></i> Section</label>
+                <select id="section-select"><option value="">-- All Sections --</option></select>
+            </div>
+
+            <section class="panelL insight-panel" aria-labelledby="insight-title">
+                <div class="insight-head">
+                    <div>
+                        <span class="insight-eyebrow">LEARNING ANALYTICS</span>
+                        <h3 id="insight-title">All sections</h3>
+                        <p id="insight-sub" class="insight-sub">Loading game data...</p>
+                    </div>
+                    <div class="insight-teacher">
+                        <span>Assigned teacher</span>
+                        <strong id="insight-teacher">--</strong>
+                    </div>
+                </div>
+
+                <div class="insight-tiles">
+                    <div class="insight-tile tile-hard">
+                        <span><i class="bi bi-exclamation-diamond"></i> Hardest to understand</span>
+                        <strong id="tile-hard-topic">--</strong>
+                        <small id="tile-hard-note">Highest combined time and error score</small>
+                    </div>
+                    <div class="insight-tile tile-time">
+                        <span><i class="bi bi-hourglass-split"></i> Most time spent</span>
+                        <strong id="tile-time-topic">--</strong>
+                        <small id="tile-time-note">Average time per student</small>
+                    </div>
+                    <div class="insight-tile tile-error">
+                        <span><i class="bi bi-bug"></i> Most errors</span>
+                        <strong id="tile-error-topic">--</strong>
+                        <small id="tile-error-note">Average wrong submissions per student</small>
+                    </div>
+                </div>
+
+                <div class="insight-charts">
+                    <figure class="insight-chart">
+                        <figcaption><strong>Time spent per topic</strong><span>Average minutes per student, all attempts</span></figcaption>
+                        <div class="insight-canvas"><canvas id="timeChart" role="img" aria-label="Bar chart of average time spent per topic"></canvas></div>
+                    </figure>
+                    <figure class="insight-chart">
+                        <figcaption><strong>Errors per topic</strong><span>Average wrong submissions per student, all attempts</span></figcaption>
+                        <div class="insight-canvas"><canvas id="errorChart" role="img" aria-label="Bar chart of average errors per topic"></canvas></div>
+                    </figure>
+                </div>
+                <p id="insight-empty" class="insight-empty" hidden><i class="bi bi-inbox"></i> No game data recorded for this selection yet. Charts appear after students finish levels in the mobile game.</p>
+
+                <div class="insight-lower">
+                    <div>
+                        <h4>Topic breakdown</h4>
+                        <div class="table-scroll-wrapper">
+                            <table class="insight-table">
+                                <thead><tr><th>Topic</th><th>Students</th><th>Avg. time</th><th>Avg. errors</th><th>Difficulty</th></tr></thead>
+                                <tbody id="topic-breakdown"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <h4>Most common errors</h4>
+                        <ol id="common-errors" class="insight-errors"></ol>
+                    </div>
+                </div>
+                <p class="insight-footnote">Difficulty combines average time and average errors, each scaled against the highest topic in this view (0–100). Higher means students struggle more.</p>
+            </section>
+
+            <section class="panelL insight-panel" aria-labelledby="section-overview-title">
+                <h3 id="section-overview-title">Sections and assigned teachers</h3>
+                <div class="table-scroll-wrapper">
+                    <table class="insight-table">
+                        <thead><tr><th>Section</th><th>Assigned teacher(s)</th><th>Students</th><th>Hardest topic</th><th>Most time</th><th>Most errors</th></tr></thead>
+                        <tbody id="section-overview"></tbody>
+                    </table>
+                </div>
+            </section>
+
             <div class="panelL">
-                <h3>All Registered Students</h3>
-                <div class="controls" style="margin: 20px 0; display: flex; gap: 15px; ">
-                    <select id="section-select"><option value="">-- All Sections --</option></select>
-                    <input type="text" id="search-student" placeholder="Search..." style="flex-grow: 1;">
+                <div class="insight-table-head">
+                    <h3>All Registered Students</h3>
+                    <input type="text" id="search-student" placeholder="Search name or student number...">
                 </div>
                 <div class="panelL">
-    <h3>All Registered Students</h3>
     <div class="table-scroll-wrapper">
         <table>
             <thead>

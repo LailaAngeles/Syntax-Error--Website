@@ -710,10 +710,12 @@ async function loadApprovedUsers() {
         const multiSelect = createMultiSelect(data.section || []);
         row.innerHTML = `
             <td><input type="checkbox" class="approvedCheck" data-id="${docSnap.id}"></td>
-            <td>${data.email}</td>
+            <td class="teacher-id-col"><strong></strong><small></small></td>
             <td class="select-col"></td>
             <td><button class="saveBtn" data-id="${docSnap.id}">Save</button></td>
         `;
+        row.querySelector(".teacher-id-col strong").textContent = data.name || data.email;
+        row.querySelector(".teacher-id-col small").textContent = data.name ? data.email : "";
         row.querySelector(".select-col").appendChild(multiSelect);
         approvedTable.appendChild(row);
     });

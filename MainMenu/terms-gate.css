@@ -1,0 +1,72 @@
+/* First-login Terms and Conditions / Privacy Notice gate.
+   Until terms-gate.js marks the page as cleared, everything except the gate is hidden
+   and unreachable (visibility:hidden also removes it from keyboard and screen-reader access). */
+html:not(.terms-ok) body > *:not(#termsGate) { visibility: hidden !important; }
+html:not(.terms-ok) body { overflow: hidden !important; }
+
+#termsGate {
+  --tg-blue: #00529b;
+  --tg-blue-deep: #0b2f5c;
+  --tg-yellow: #ffc107;
+  --tg-ink: #14233b;
+  --tg-muted: #5b6b82;
+  --tg-line: #d9e3ef;
+  --tg-paper: #ffffff;
+  --tg-soft: #f4f8fd;
+  position: fixed; inset: 0; z-index: 2147483000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; box-sizing: border-box;
+  background: radial-gradient(circle at 20% 0%, #0d4a8a 0%, #061a35 70%);
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif; color: var(--tg-ink);
+}
+#termsGate *, #termsGate *::before, #termsGate *::after { box-sizing: border-box; }
+.tg-dialog {
+  width: min(100%, 760px); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px);
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--tg-paper); border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .45); border-top: 6px solid var(--tg-yellow);
+}
+.tg-header { padding: 22px 26px 18px; background: var(--tg-blue); color: #fff; display: flex; gap: 16px; align-items: center; }
+.tg-badge { flex: none; width: 50px; height: 50px; border-radius: 12px; display: grid; place-items: center; background: var(--tg-yellow); color: var(--tg-blue-deep); font-weight: 900; font-size: 15px; letter-spacing: .04em; }
+.tg-header h2 { margin: 0; font-size: clamp(1.02rem, 2.4vw, 1.3rem); letter-spacing: .01em; line-height: 1.25; color: #fff; }
+.tg-header p { margin: 4px 0 0; font-size: .8rem; color: #cfe3ff; }
+.tg-body { flex: 1; overflow-y: auto; padding: 22px 26px; font-size: .9rem; line-height: 1.65; background: var(--tg-paper); outline: none; }
+.tg-body:focus-visible { box-shadow: inset 0 0 0 3px #398cff55; }
+.tg-body h3 { margin: 22px 0 6px; font-size: .95rem; color: var(--tg-blue); }
+.tg-body h3:first-child { margin-top: 0; }
+.tg-body p, .tg-body li { color: var(--tg-ink); margin: 0 0 8px; }
+.tg-body ul { margin: 0 0 8px; padding-left: 20px; }
+.tg-body .tg-meta { font-size: .78rem; color: var(--tg-muted); border-left: 4px solid var(--tg-yellow); background: var(--tg-soft); padding: 10px 12px; border-radius: 0 8px 8px 0; }
+.tg-footer { padding: 16px 26px 20px; border-top: 1px solid var(--tg-line); background: var(--tg-soft); }
+.tg-hint { margin: 0 0 10px; font-size: .78rem; color: var(--tg-muted); display: flex; gap: 6px; align-items: center; }
+.tg-hint.tg-done { color: #15803d; }
+.tg-agree { display: flex; gap: 10px; align-items: flex-start; font-size: .86rem; font-weight: 600; cursor: pointer; }
+.tg-agree input { width: 19px; height: 19px; margin: 1px 0 0; flex: none; accent-color: var(--tg-blue); cursor: pointer; }
+.tg-agree.tg-locked { opacity: .55; cursor: not-allowed; }
+.tg-agree.tg-locked input { cursor: not-allowed; }
+.tg-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.tg-actions button { min-height: 44px; padding: 10px 18px; border-radius: 10px; font: inherit; font-size: .86rem; font-weight: 700; cursor: pointer; }
+.tg-decline { background: transparent; color: var(--tg-ink); border: 1px solid #b9c7da; }
+.tg-accept { background: var(--tg-blue); color: #fff; border: 0; box-shadow: inset 0 -3px 0 var(--tg-yellow); }
+.tg-accept:disabled { background: #8aa4c2; box-shadow: none; cursor: not-allowed; }
+.tg-error { margin: 10px 0 0; font-size: .8rem; color: #b91c1c; }
+.tg-status { padding: 40px 26px; text-align: center; color: var(--tg-ink); }
+.tg-status p { margin: 0 0 16px; }
+@media (max-width: 560px) {
+  #termsGate { padding: 0; }
+  .tg-dialog { max-height: 100vh; max-height: 100dvh; height: 100%; border-radius: 0; }
+  .tg-header, .tg-body, .tg-footer { padding-left: 16px; padding-right: 16px; }
+  .tg-badge { width: 42px; height: 42px; font-size: 13px; }
+  .tg-actions button { flex: 1; }
+}
+
+/* First-login change-password step */
+.tg-small { width: min(100%, 520px); }
+.tg-badge .bi { font-size: 22px; }
+.tg-field { display: flex; flex-direction: column; gap: 6px; margin: 0 0 14px; font-size: .8rem; font-weight: 700; color: var(--tg-ink); }
+.tg-input { position: relative; display: block; }
+.tg-input input { width: 100%; min-height: 46px; padding: 10px 46px 10px 12px; border: 1px solid #b9c7da; border-radius: 10px; font: inherit; font-size: .9rem; font-weight: 400; color: var(--tg-ink); background: #fff; outline: none; }
+.tg-input input:focus { border-color: var(--tg-blue); box-shadow: 0 0 0 3px #00529b26; }
+.tg-eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border: 0; border-radius: 8px; background: transparent; color: var(--tg-muted); cursor: pointer; font-size: 1rem; }
+.tg-eye:hover { background: var(--tg-soft); color: var(--tg-blue); }
+.tg-status strong { color: var(--tg-blue); font-size: 1.05rem; }

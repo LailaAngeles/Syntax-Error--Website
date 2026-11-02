@@ -160,8 +160,16 @@ loginForm?.addEventListener("submit", async function (e) {
         }
 
         // Validate credentials before initiating OTP
-        await signInWithEmailAndPassword(auth, email.value, password.value);
-        
+        const credential = await signInWithEmailAndPassword(auth, email.value, password.value);
+
+        // Only accounts provisioned or approved by the Super Admin may continue.
+        const approved = await getDocs(query(collection(db, "approvedUsers"), where("email", "==", credential.user.email)));
+        if (approved.empty || approved.docs[0].data().status !== "approved") {
+            await signOut(auth);
+            showPopup("This account was not created by the Super Admin. Please contact your administrator.");
+            return;
+        }
+
         // Credentials valid, initiate OTP
         await handleLoginAttempt(email.value);
 

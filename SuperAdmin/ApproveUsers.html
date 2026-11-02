@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="superadmin-section-manager.css">
     <link rel="stylesheet" href="superadmin-section-archive-redesign.css">
     <link rel="stylesheet" href="superadmin-section-archive-compact.css">
+    <link rel="stylesheet" href="teacher-onboarding.css">
 </head>
 <body>
 <div class="dashboard">
@@ -24,7 +25,6 @@
         </button>
     </div>
     <ul>
-        <li><a href="Dashboard.html"><i class="bi bi-speedometer2"></i> Pending Users</a></li>
         <li class="active"><a href="ApproveUsers.html"><i class="bi bi-people"></i> Approve Users</a></li>
         <li><a href="StudentsList.html"><i class="bi bi-archive"></i> Students</a></li>
         <li onclick="showLogoutPopup()"><a href="#"><i class="bi bi-box-arrow-right"></i> LogOut</a></li>
@@ -62,13 +62,48 @@
      </div>
 
 <div class="main-container">
-    <div class="panel">
+    <section class="panel teacher-card" id="teacher-account-management">
+        <div class="teacher-card-heading">
+            <div>
+                <span class="teacher-eyebrow">TEACHER ACCOUNT MANAGEMENT · STEP 1 OF 2</span>
+                <h2><span class="teacher-step-num">1</span> Create teacher account</h2>
+                <p>Create the teacher's login. Then assign their section(s) in Step 2 below. The teacher signs in with this email and default password, then must accept the Terms and Privacy Notice before using the dashboard.</p>
+            </div>
+            <div class="teacher-heading-icon"><i class="bi bi-person-plus"></i></div>
+        </div>
+        <form id="createTeacherForm" novalidate>
+            <div class="teacher-fields">
+                <label>COMPLETE NAME
+                    <input type="text" id="teacherName" autocomplete="off" maxlength="120" placeholder="e.g. Juan M. Dela Cruz" required>
+                </label>
+                <label>OFFICIAL SCHOOL EMAIL
+                    <input type="email" id="teacherEmail" autocomplete="off" placeholder="name@caloocan.sti.edu.ph" required>
+                </label>
+                <label>DEFAULT PASSWORD
+                    <input type="text" id="teacherPassword" autocomplete="new-password" minlength="8" maxlength="128" placeholder="At least 8 characters" required>
+                </label>
+            </div>
+            <div class="teacher-form-footer">
+                <p id="teacherCreateMessage" role="status" aria-live="polite"></p>
+                <button type="submit" id="createTeacherButton"><i class="bi bi-person-check"></i> Create Teacher</button>
+            </div>
+        </form>
+    </section>
+
+    <div class="panel" id="teacher-section-assignment">
+        <div class="teacher-card-heading teacher-step-two">
+            <div>
+                <span class="teacher-eyebrow">TEACHER ACCOUNT MANAGEMENT · STEP 2 OF 2</span>
+                <h2><span class="teacher-step-num">2</span> Assign sections</h2>
+                <p>Tick the section(s) each teacher handles, then click <strong>Save</strong> on that row. New teachers start with <strong>No Section</strong> and see no students until a section is assigned.</p>
+            </div>
+        </div>
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
                         <th><input type="checkbox" id="selectAllApproved"></th>
-                        <th>Email</th>
+                        <th>Teacher</th>
                         <th>Section</th>
                         <th>Actions</th>
                     </tr>
@@ -200,7 +235,39 @@
         </div>
     </div>
 </div>
+<div id="teacherConfirmModal" class="teacher-confirm-overlay" hidden>
+    <div class="teacher-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="teacherConfirmTitle">
+        <div class="teacher-confirm-icon"><i class="bi bi-person-plus"></i></div>
+        <h2 id="teacherConfirmTitle">Create this teacher account?</h2>
+        <p>Check the details below. A Firebase login and a teacher record will be created.</p>
+        <dl class="teacher-confirm-details">
+            <div><dt>Name</dt><dd id="teacherConfirmName"></dd></div>
+            <div><dt>Email</dt><dd id="teacherConfirmEmail"></dd></div>
+        </dl>
+        <p class="teacher-confirm-note">Give the default password to the teacher privately.</p>
+        <div class="teacher-confirm-actions">
+            <button type="button" id="teacherConfirmCancel">Cancel</button>
+            <button type="button" id="teacherConfirmYes"><i class="bi bi-check-circle"></i> Yes, Create Teacher</button>
+        </div>
+    </div>
+</div>
+<div id="teacherSuccessModal" class="teacher-confirm-overlay" hidden>
+    <div class="teacher-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="teacherSuccessTitle">
+        <div class="teacher-confirm-icon" style="color:#16a34a;background:rgba(22,163,74,.13)"><i class="bi bi-check2-circle"></i></div>
+        <h2 id="teacherSuccessTitle">Teacher account created</h2>
+        <p>The login account and teacher record were both saved. The teacher can now sign in.</p>
+        <dl class="teacher-confirm-details">
+            <div><dt>Name</dt><dd id="teacherSuccessName"></dd></div>
+            <div><dt>Email</dt><dd id="teacherSuccessEmail"></dd></div>
+        </dl>
+        <p class="teacher-confirm-note"><strong>Next:</strong> assign this teacher's section(s) in Step 2.</p>
+        <div class="teacher-confirm-actions">
+            <button type="button" id="teacherSuccessClose" style="border:0;background:#00529b;color:#fff">Go to Step 2</button>
+        </div>
+    </div>
+</div>
 <script type="module" src="ApproveUser.js"></script>
+<script type="module" src="TeacherOnboarding.js"></script>
 <script>
     
     document.querySelectorAll('.dropbtn').forEach(button => {

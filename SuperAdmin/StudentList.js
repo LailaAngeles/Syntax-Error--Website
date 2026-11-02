@@ -70,6 +70,7 @@ let selectedStudentKey = null;
 function renderLiveClasses() {
     allStudents = [...latestClasses.values()].flat();
     renderTable(document.getElementById('section-select')?.value || '');
+    renderInsights(document.getElementById('section-select')?.value || '');
     if (selectedStudentKey && document.getElementById('analysis-section')?.style.display !== 'none') {
         const student=allStudents.find(s=>`${s.parentDocId}/${s.firebaseId}` === selectedStudentKey);
         if(student) window.viewAnalysis(student.firebaseId,student.parentDocId);
@@ -252,7 +253,7 @@ window.viewAnalysis = function(firebaseId,parentDocId=null) {
     document.getElementById('summary-description').textContent=`${student.name || 'Student'} · ${student.sectionName || 'No Section'}`;
     const profile=document.getElementById('student-details-content');
     const levelInfo=levelProgress(student);
-    const fields=[['Full Name',student.name],['Student Number',student.id || student.firebaseId],['Section',student.sectionName],['Completed Levels',`${levelInfo.completed} of 19`]];
+    const fields=[['Full Name',student.name],['Student Number',student.id || student.firebaseId],['Section',student.sectionName],['Assigned Teacher',teacherNames(student.sectionName)],['Completed Levels',`${levelInfo.completed} of 19`]];
     profile.innerHTML=fields.map(([label,value])=>`<div class="summary-profile-field"><span>${label}</span><strong>${safeText(value)}</strong></div>`).join('');
     const progress=levelInfo.percent;
     const progressValue=progress===null?null:Math.max(0,Math.min(100,progress));
@@ -307,11 +308,212 @@ document.addEventListener('keydown', event => {
 });
 
 // ----------------------------
-// 4. INITIALIZE & EVENTS
+// 4. LEARNING ANALYTICS (time spent, errors, hardest topics, assigned teachers)
+// ----------------------------
+// Game data shape: Subject Content > main topic > topic (level) > attempt (FirstAttemp...) > task
+// { timeSeconds, wrongAttempts, errors: [{message}] }. The attempt also stores completionTime.
+let teachersBySection = new Map();
+let timeChart = null;
+let errorChart = null;
+const prettyName = value => String(value).replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+const isTimestamp = value => value && typeof value === 'object' && ('seconds' in value && 'nanoseconds' in value || typeof value.toDate === 'function');
+const minutes = seconds => Number.isFinite(seconds) ? (seconds / 60) : 0;
+const fmtMinutes = seconds => !Number.isFinite(seconds) ? '--' : seconds < 60 ? `${Math.round(seconds)}s` : `${(seconds / 60).toFixed(1)} min`;
+const fmtNumber = value => Number.isFinite(value) ? (Math.round(value * 10) / 10).toString() : '--';
+
+// One record per student per topic, summed over every attempt.
+function topicRecords(student) {
+    const content = student['Subject Content'] || student.subjectContent;
+    if (!content || typeof content !== 'object') return [];
+    const records = [];
+    for (const [main, topics] of Object.entries(content)) {
+        if (!topics || typeof topics !== 'object') continue;
+        for (const [topic, node] of Object.entries(topics)) {
+            if (!node || typeof node !== 'object') continue;
+            let time = 0, errors = 0, attempts = 0, hasData = false;
+            const messages = [];
+            for (const [attemptKey, attempt] of Object.entries(node)) {
+                if (!attemptNumber(attemptKey) || !attempt || typeof attempt !== 'object') continue;
+                attempts++;
+                let taskTime = 0;
+                for (const task of Object.values(attempt)) {
+                    if (!task || typeof task !== 'object' || Array.isArray(task) || isTimestamp(task)) continue;
+                    const wrong = numberOrNull(task.wrongAttempts), seconds = numberOrNull(task.timeSeconds);
+                    if (wrong !== null && wrong >= 0) { errors += wrong; hasData = true; }
+                    if (seconds !== null && seconds >= 0) { taskTime += seconds; hasData = true; }
+                    if (Array.isArray(task.errors)) task.errors.forEach(e => { if (e?.message) messages.push(String(e.message)); });
+                }
+                const total = numberOrNull(attempt.completionTime);
+                if (total !== null && total >= 0) { time += total; hasData = true; }
+                else time += taskTime;
+            }
+            if (hasData) records.push({ key: `${main}\u0000${topic}`, main: prettyName(main), topic: prettyName(topic), time, errors, attempts, messages });
+        }
+    }
+    return records;
+}
+
+function aggregateTopics(students) {
+    const topics = new Map();
+    let withData = 0;
+    for (const student of students) {
+        const records = topicRecords(student);
+        if (records.length) withData++;
+        for (const r of records) {
+            const t = topics.get(r.key) || { main: r.main, topic: r.topic, students: 0, time: 0, errors: 0, messages: new Map() };
+            t.students++; t.time += r.time; t.errors += r.errors;
+            r.messages.forEach(m => t.messages.set(m, (t.messages.get(m) || 0) + 1));
+            topics.set(r.key, t);
+        }
+    }
+    const list = [...topics.values()].map(t => ({ ...t, avgTime: t.time / t.students, avgErrors: t.errors / t.students }));
+    const maxTime = Math.max(0, ...list.map(t => t.avgTime));
+    const maxErrors = Math.max(0, ...list.map(t => t.avgErrors));
+    list.forEach(t => {
+        t.difficulty = Math.round(100 * (0.5 * (maxErrors ? t.avgErrors / maxErrors : 0) + 0.5 * (maxTime ? t.avgTime / maxTime : 0)));
+    });
+    const top = key => list.length ? [...list].sort((a, b) => b[key] - a[key] || a.topic.localeCompare(b.topic))[0] : null;
+    return { list, withData, hardest: top('difficulty'), mostTime: top('avgTime'), mostErrors: top('avgErrors') };
+}
+
+function teacherNames(sectionName) {
+    const names = teachersBySection.get(sectionName) || [];
+    return names.length ? names.join(', ') : 'No teacher assigned';
+}
+
+function listenToTeachers() {
+    onSnapshot(collection(db, 'approvedUsers'), snapshot => {
+        const map = new Map();
+        snapshot.forEach(d => {
+            const data = d.data();
+            if (data.status && data.status !== 'approved') return;
+            const label = data.name ? `${data.name}` : data.email;
+            (Array.isArray(data.section) ? data.section : [data.section]).forEach(section => {
+                if (!section || section === 'No Section') return;
+                if (!map.has(section)) map.set(section, []);
+                map.get(section).push(label);
+            });
+        });
+        teachersBySection = map;
+        renderInsights(document.getElementById('section-select')?.value || '');
+    }, err => console.error('Teacher listener error', err));
+}
+
+function setText(id, text) { const el = document.getElementById(id); if (el) el.textContent = text; }
+
+function chartColors() {
+    const css = getComputedStyle(document.documentElement);
+    const read = (name, fallback) => css.getPropertyValue(name).trim() || fallback;
+    return { time: read('--insight-time', '#1f6fd1'), error: read('--insight-error', '#c26a00'), text: read('--sa-muted', '#64748b'), grid: read('--sa-line', '#e2e8f0') };
+}
+
+function drawBarChart(existing, canvasId, topics, valueOf, color, formatValue, axisTitle) {
+    existing?.destroy();
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || typeof Chart === 'undefined' || !topics.length) return null;
+    const colors = chartColors();
+    const sorted = [...topics].sort((a, b) => valueOf(b) - valueOf(a));
+    canvas.parentElement.style.height = Math.max(200, sorted.length * 34 + 70) + 'px';
+    return new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: { labels: sorted.map(t => t.topic), datasets: [{ data: sorted.map(valueOf), backgroundColor: color, hoverBackgroundColor: color, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 22 }] },
+        options: {
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: { duration: 250 },
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: {
+                    title: items => { const t = sorted[items[0].dataIndex]; return `${t.topic} (${t.main})`; },
+                    label: item => formatValue(sorted[item.dataIndex]),
+                    afterLabel: item => `${sorted[item.dataIndex].students} student(s) with records`
+                } }
+            },
+            scales: {
+                x: { beginAtZero: true, grid: { color: colors.grid }, border: { display: false }, ticks: { color: colors.text }, title: { display: true, text: axisTitle, color: colors.text } },
+                y: { grid: { display: false }, border: { color: colors.grid }, ticks: { color: colors.text, autoSkip: false } }
+            }
+        }
+    });
+}
+
+function renderInsights(filterSection) {
+    const students = allStudents.filter(s => !filterSection || s.sectionName === filterSection);
+    const stats = aggregateTopics(students);
+    const colors = chartColors();
+
+    setText('insight-title', filterSection ? `Section ${filterSection}` : 'All sections');
+    setText('insight-sub', `${stats.withData} of ${students.length} student(s) have recorded game data`);
+    setText('insight-teacher', filterSection ? teacherNames(filterSection) : `${teachersBySection.size} section(s) with a teacher`);
+
+    const tile = (prefix, topic, note) => {
+        setText(`tile-${prefix}-topic`, topic ? topic.topic : 'No data yet');
+        setText(`tile-${prefix}-note`, topic ? note(topic) : 'Appears once students finish a level');
+    };
+    tile('hard', stats.hardest, t => `${t.main} · difficulty ${t.difficulty}/100`);
+    tile('time', stats.mostTime, t => `${fmtMinutes(t.avgTime)} average per student`);
+    tile('error', stats.mostErrors, t => `${fmtNumber(t.avgErrors)} wrong submissions per student`);
+
+    const empty = !stats.list.length;
+    document.getElementById('insight-empty').hidden = !empty;
+    document.querySelectorAll('.insight-chart').forEach(el => { el.hidden = empty; });
+    timeChart = drawBarChart(timeChart, 'timeChart', stats.list, t => Number(minutes(t.avgTime).toFixed(2)), colors.time, t => `Average time: ${fmtMinutes(t.avgTime)}`, 'Minutes per student');
+    errorChart = drawBarChart(errorChart, 'errorChart', stats.list, t => Number(t.avgErrors.toFixed(2)), colors.error, t => `Average errors: ${fmtNumber(t.avgErrors)} (${t.errors} total)`, 'Wrong submissions per student');
+
+    const breakdown = document.getElementById('topic-breakdown');
+    breakdown.innerHTML = empty
+        ? '<tr><td colspan="5" class="insight-muted">No topic records yet.</td></tr>'
+        : [...stats.list].sort((a, b) => b.difficulty - a.difficulty).map(t => `
+            <tr>
+                <td><strong>${safeText(t.topic)}</strong><small>${safeText(t.main)}</small></td>
+                <td>${t.students}</td>
+                <td>${fmtMinutes(t.avgTime)}</td>
+                <td>${fmtNumber(t.avgErrors)}</td>
+                <td><span class="insight-meter"><i style="width:${Math.max(2, t.difficulty * 0.8)}px"></i><b>${t.difficulty}</b></span></td>
+            </tr>`).join('');
+
+    const messages = [];
+    stats.list.forEach(t => t.messages.forEach((count, message) => messages.push({ message, count, topic: t.topic })));
+    messages.sort((a, b) => b.count - a.count || a.message.localeCompare(b.message));
+    document.getElementById('common-errors').innerHTML = messages.length
+        ? messages.slice(0, 6).map(m => `<li><strong>${safeText(m.message)}</strong><small>${m.count} time(s) · ${safeText(m.topic)}</small></li>`).join('')
+        : '<li class="insight-none">No error messages recorded yet.</li>';
+
+    renderSectionOverview(filterSection);
+}
+
+function renderSectionOverview(filterSection) {
+    const body = document.getElementById('section-overview');
+    if (!body) return;
+    const sections = [...new Set([...latestClasses.values()].flat().map(s => s.sectionName).filter(Boolean))];
+    [...document.getElementById('section-select')?.options || []].forEach(o => { if (o.value && !sections.includes(o.value)) sections.push(o.value); });
+    sections.sort((a, b) => a.localeCompare(b));
+    if (!sections.length) { body.innerHTML = '<tr><td colspan="6" class="insight-muted">No sections yet.</td></tr>'; return; }
+    const cell = (topic, detail) => topic ? `${safeText(topic.topic)}<small>${detail(topic)}</small>` : '<span class="insight-muted">--</span>';
+    body.innerHTML = sections.map(name => {
+        const students = allStudents.filter(s => s.sectionName === name);
+        const stats = aggregateTopics(students);
+        const teachers = teachersBySection.get(name) || [];
+        return `<tr class="${name === filterSection ? 'is-selected' : ''}">
+            <td><strong>${safeText(name)}</strong></td>
+            <td>${teachers.length ? teachers.map(t => `<span class="insight-pill">${safeText(t)}</span>`).join('') : '<span class="insight-muted">No teacher assigned</span>'}</td>
+            <td>${students.length}<small>${stats.withData} with game data</small></td>
+            <td>${cell(stats.hardest, t => `difficulty ${t.difficulty}/100`)}</td>
+            <td>${cell(stats.mostTime, t => fmtMinutes(t.avgTime) + ' avg')}</td>
+            <td>${cell(stats.mostErrors, t => fmtNumber(t.avgErrors) + ' errors avg')}</td>
+        </tr>`;
+    }).join('');
+}
+
+// Charts read theme colors when drawn, so redraw after the theme button flips data-theme.
+new MutationObserver(() => renderInsights(document.getElementById('section-select')?.value || ''))
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+// ----------------------------
+// 5. INITIALIZE & EVENTS
 // ----------------------------
 fetchAllDatabaseContent();
+listenToTeachers();
 
-document.getElementById("section-select")?.addEventListener("change", (e) => renderTable(e.target.value));
+document.getElementById("section-select")?.addEventListener("change", (e) => { renderTable(e.target.value); renderInsights(e.target.value); });
 document.getElementById("search-student")?.addEventListener("input", () => {
     const sel = document.getElementById("section-select").value;
     renderTable(sel);

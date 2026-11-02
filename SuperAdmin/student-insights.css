@@ -1,0 +1,62 @@
+/* Super Admin learning analytics (Students page). Uses the --sa-* tokens from superadmin-unified.css. */
+:root { --insight-time: #1f6fd1; --insight-error: #c26a00; --insight-hard: #b42318; }
+html[data-theme="dark"] { --insight-time: #5aa4ff; --insight-error: #f0a640; --insight-hard: #ff8a7a; }
+
+.main-container { display: flex; flex-direction: column; gap: 22px; }
+.insight-filters { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0; }
+.insight-filter-label { font-size: .8rem; font-weight: 700; color: var(--sa-muted); display: inline-flex; gap: 6px; align-items: center; }
+.insight-filters select { min-width: 220px; }
+
+.insight-panel h3 { margin: 4px 0 6px; }
+.insight-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid var(--sa-line); margin-bottom: 18px; }
+.insight-eyebrow { font-size: .7rem; font-weight: 800; letter-spacing: .12em; color: var(--sa-accent); }
+.insight-sub { margin: 0; font-size: .84rem; color: var(--sa-muted); }
+.insight-teacher { background: var(--sa-soft); border: 1px solid var(--sa-line); border-left: 4px solid #ffc107; border-radius: 12px; padding: 10px 14px; min-width: 220px; max-width: 100%; }
+.insight-teacher span { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--sa-muted); }
+.insight-teacher strong { display: block; font-size: .95rem; margin-top: 3px; overflow-wrap: anywhere; }
+
+.insight-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+.insight-tile { background: var(--sa-soft); border: 1px solid var(--sa-line); border-radius: 14px; padding: 14px 16px; min-width: 0; border-top: 4px solid var(--tile-accent); }
+.insight-tile span { display: flex; gap: 7px; align-items: center; font-size: .76rem; font-weight: 700; color: var(--sa-muted); text-transform: uppercase; letter-spacing: .04em; }
+.insight-tile span i { color: var(--tile-accent); font-size: 1rem; }
+.insight-tile strong { display: block; font-size: 1.15rem; margin: 8px 0 4px; overflow-wrap: anywhere; color: var(--sa-fg); }
+.insight-tile small { display: block; font-size: .78rem; color: var(--sa-muted); line-height: 1.4; }
+.tile-hard { --tile-accent: var(--insight-hard); }
+.tile-time { --tile-accent: var(--insight-time); }
+.tile-error { --tile-accent: var(--insight-error); }
+
+.insight-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.insight-chart { margin: 0; border: 1px solid var(--sa-line); border-radius: 14px; padding: 14px; min-width: 0; }
+.insight-chart figcaption { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+.insight-chart figcaption strong { font-size: .92rem; }
+.insight-chart figcaption span { font-size: .76rem; color: var(--sa-muted); }
+.insight-canvas { position: relative; height: 260px; }
+.insight-empty { margin: 14px 0 0; padding: 16px; border: 1px dashed var(--sa-line); border-radius: 12px; color: var(--sa-muted); font-size: .86rem; text-align: center; }
+
+.insight-lower { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; margin-top: 20px; }
+.insight-lower h4 { margin: 0 0 10px; font-size: .9rem; }
+.insight-table td, .insight-table th { padding: 11px 13px !important; }
+.insight-table td small { display: block; color: var(--sa-muted); font-size: .74rem; }
+.insight-meter { display: flex; align-items: center; gap: 8px; min-width: 110px; }
+.insight-meter i { display: block; height: 6px; border-radius: 4px; background: var(--insight-hard); min-width: 2px; }
+.insight-meter b { font-weight: 700; font-size: .82rem; }
+.insight-errors { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.insight-errors li { border: 1px solid var(--sa-line); border-left: 4px solid var(--insight-error); border-radius: 10px; padding: 9px 12px; font-size: .84rem; }
+.insight-errors li strong { display: block; overflow-wrap: anywhere; }
+.insight-errors li small { color: var(--sa-muted); font-size: .74rem; }
+.insight-errors .insight-none { border-left-color: var(--sa-line); color: var(--sa-muted); }
+.insight-footnote { margin: 14px 0 0; font-size: .75rem; color: var(--sa-muted); }
+.insight-pill { display: inline-block; background: var(--sa-soft); border: 1px solid var(--sa-line); border-radius: 999px; padding: 3px 9px; margin: 2px 4px 2px 0; font-size: .78rem; }
+.insight-muted { color: var(--sa-muted); }
+#section-overview tr.is-selected td { background: var(--sa-soft); }
+
+.insight-table-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.insight-table-head input { flex: 1; min-width: 200px; max-width: 420px; }
+
+@media (max-width: 1100px) { .insight-lower { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .insight-charts { grid-template-columns: 1fr; } }
+@media (max-width: 700px) {
+  .insight-tiles { grid-template-columns: 1fr; }
+  .insight-filters select, .insight-teacher { width: 100%; min-width: 0; }
+  .insight-table { min-width: 560px; }
+}
