@@ -164,7 +164,7 @@ function listenArchive() {
 }
 onAuthStateChanged(auth,user=>{
   const verified=user && (localStorage.getItem(VERIFIED_KEY)===user.uid || sessionStorage.getItem(VERIFIED_KEY)===user.uid);
-  if(!verified){unsubscribeArchives?.();window.location.href='../Login/Login.html';return;}
+  if(!verified){unsubscribeArchives?.();window.location.href='../Components/LogIn.html';return;}
   listenArchive();
 });
 $('archived-students-table').addEventListener('change',e=>{

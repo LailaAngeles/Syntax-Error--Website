@@ -29,10 +29,10 @@ confirmModal?.addEventListener('click', e => { if(e.target===confirmModal)closeC
 document.addEventListener('keydown', e => {
   if(e.key==='Escape' && confirmModal && !confirmModal.hidden)closeConfirm();
 });
-// Reload so Step 2 lists the new teacher, then jump straight to it.
+// Step 2's list is live, so the new teacher is already there; just jump to it.
 document.getElementById('teacherSuccessClose')?.addEventListener('click', () => {
-  window.location.hash = 'teacher-section-assignment';
-  window.location.reload();
+  successModal.hidden = true;
+  document.getElementById('teacher-section-assignment')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 async function emailInUse(teacherEmail) {
   for (const name of ['approvedUsers','pendingUsers','archivedUsers']) {

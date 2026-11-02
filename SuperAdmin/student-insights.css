@@ -62,3 +62,19 @@ html[data-theme="dark"] { --insight-time: #5aa4ff; --insight-error: #f0a640; --i
 }
 /* Grid children must be allowed to shrink so wide tables scroll inside their wrapper instead of widening the page. */
 .insight-lower > div, .insight-panel, .insight-panel .table-scroll-wrapper { min-width: 0; max-width: 100%; }
+
+/* Tabs: one view at a time on the Super Admin Students page */
+.sa-tabs { display: flex; gap: 6px; padding: 5px; border-radius: 14px; background: var(--sa-soft); border: 1px solid var(--sa-line); overflow-x: auto; scrollbar-width: none; }
+.sa-tabs::-webkit-scrollbar { display: none; }
+.sa-tabs button { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 9px 16px; border: 0; border-radius: 10px !important; background: transparent; color: var(--sa-muted); font-weight: 700; font-size: .9rem; cursor: pointer; white-space: nowrap; }
+.sa-tabs button:hover { color: var(--sa-fg); }
+.sa-tabs button.active { background: var(--sa-surface); color: var(--sa-fg); box-shadow: 0 4px 14px rgba(10, 34, 71, .1); }
+.sa-tabs button.active i { color: var(--sa-accent); }
+.sa-count { min-width: 24px; padding: 1px 8px; border-radius: 999px; background: var(--sa-line); color: var(--sa-fg); font-size: .74rem; }
+.sa-tabs button.active .sa-count { background: var(--sa-accent); color: #fff; }
+.sa-view[hidden] { display: none !important; }
+.sa-section-link { background: none !important; border: 0 !important; padding: 0 !important; color: var(--sa-accent) !important; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 2px; box-shadow: none !important; }
+.sa-section-link:hover { text-decoration: underline; transform: none !important; }
+.sa-help-link { display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 12px; border: 1px solid var(--sa-line); background: var(--sa-surface); color: var(--sa-fg); font-weight: 700; font-size: .86rem; text-decoration: none; }
+.sa-help-link:hover { border-color: var(--sa-accent); color: var(--sa-accent); }
+@media (max-width: 600px) { .sa-tabs button { padding: 9px 12px; font-size: .84rem; } .sa-help-link { width: 100%; justify-content: center; } }

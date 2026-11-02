@@ -154,6 +154,7 @@
 }
 </style>
     <link rel="stylesheet" href="./syntaxerror-mobile.css?v=20261102-mobile">
+    <link rel="stylesheet" href="./welcome.css?v=20261102-b">
 </head>
 <body>
     <div class="page-ambient" aria-hidden="true"></div>
@@ -180,12 +181,12 @@
             <div class="info-split">
                 <div class="info-block">
                     <h2 class="block-title">&gt; FOR STUDENTS</h2>
-                    <p>Scan the QR code on the right using your mobile device to install the application and start completing coding tasks and challenges.</p>
+                    <p>Scan the QR code to install SyntaxError on your phone. Play 19 C# levels of short coding tasks, from data types to more advanced topics, and get instant feedback on every answer.</p>
                 </div>
                 
                 <div class="info-block">
                     <h2 class="block-title">&gt; FOR TEACHERS</h2>
-                    <p>Sign in at the top right with the account provided by the Super Admin to access the <strong>Data Analysis Portal</strong>. Monitor real-time class performance and pinpoint specific student learning gaps.</p>
+                    <p>Sign in with the account from the Super Admin to open the <strong>Data Analysis Portal</strong>. See your sections' game records live: levels completed, time and errors per topic, and each student's attempt history.</p>
                 </div>
             </div>
 
@@ -236,65 +237,66 @@
         </section>
     </main>
 
-    <!-- Problems & Solutions / System Core Purpose Section -->
-    <section class="impact-section reveal">
+    <!-- How the game, database and portal connect -->
+    <section class="flow-section reveal" id="how-it-works" aria-labelledby="flow-heading">
         <div class="section-title-wrap">
-            <h2>&gt; SYSTEM CORE PURPOSE</h2>
-            <p>Addressing key challenges faced by Grade 12 ICT C# Programming students and instructors.</p>
+            <h2 id="flow-heading">&gt; HOW SYNTAXERROR WORKS</h2>
+            <p>One mobile game, one database and one faculty portal, connected in real time.</p>
         </div>
+        <ol class="flow-steps">
+            <li class="flow-step">
+                <span class="flow-num">01</span>
+                <div class="flow-icon"><i class="bi bi-phone"></i></div>
+                <h3>Students play</h3>
+                <p>Students solve short C# coding tasks level by level on their phone. A wrong answer gets an instant message, like <code>Missing quotation marks!</code></p>
+            </li>
+            <li class="flow-link" aria-hidden="true"><span></span><span></span><span></span></li>
+            <li class="flow-step">
+                <span class="flow-num">02</span>
+                <div class="flow-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+                <h3>Every attempt is saved</h3>
+                <p>Each attempt is stored in Firebase as it happens: time spent on every task, wrong submissions, error messages and finished levels.</p>
+            </li>
+            <li class="flow-link" aria-hidden="true"><span></span><span></span><span></span></li>
+            <li class="flow-step">
+                <span class="flow-num">03</span>
+                <div class="flow-icon"><i class="bi bi-bar-chart-line"></i></div>
+                <h3>Teachers review live</h3>
+                <p>The portal turns those records into clear charts and tables for each section, and updates by itself while students play.</p>
+            </li>
+        </ol>
+    </section>
 
-        <div class="problems-solutions-grid">
-
-            <!-- Problem & Solution 1 -->
-            <div class="impact-card">
-                <div class="problem-box">
-                    <span class="badge problem-badge"><i class="bi bi-exclamation-triangle-fill"></i> Problem 01</span>
-                    <h3>Learning Pace & Syntax Confusion</h3>
-                    <p>Grade 12 ICT students often struggle with C# programming due to a lack of visual examples and slow learning pace. Complex blocks of code and frequent syntax errors cause distraction and loss of interest.</p>
-                </div>
-                <div class="solution-arrow"><i class="bi bi-arrow-down"></i></div>
-                <div class="solution-box">
-                    <span class="badge solution-badge"><i class="bi bi-check-circle-fill"></i> System Solution</span>
-                    <h3>Interactive Game-Based Learning</h3>
-                    <p>Provides interactive real-world challenges, syntax, and debugging exercises. This visual approach helps students retain concepts and creates a level playing field starting from Level 0.</p>
-                </div>
-            </div>
-
-            <!-- Problem & Solution 2 -->
-            <div class="impact-card">
-                <div class="problem-box">
-                    <span class="badge problem-badge"><i class="bi bi-exclamation-triangle-fill"></i> Problem 02</span>
-                    <h3>Limited PC Access Outside School</h3>
-                    <p>Survey data indicates <strong>40.3%</strong> of students lack personal computers at home, restricting practice strictly to 1.5 hours per week during lab classes and causing them to fall behind.</p>
-                </div>
-                <div class="solution-arrow"><i class="bi bi-arrow-down"></i></div>
-                <div class="solution-box">
-                    <span class="badge solution-badge"><i class="bi bi-check-circle-fill"></i> System Solution</span>
-                    <h3>Cross-Platform Mobile Application</h3>
-                    <p>Enables students to practice C# programming concepts directly on their smartphones anytime, anywhere—bridging the hardware accessibility gap for those without home PCs.</p>
-                </div>
-            </div>
-
-            <!-- Problem & Solution 3 -->
-            <div class="impact-card">
-                <div class="problem-box">
-                    <span class="badge problem-badge"><i class="bi bi-exclamation-triangle-fill"></i> Problem 03</span>
-                    <h3>Limited Student Progress Tracking</h3>
-                    <p>Teachers at STI College Caloocan have limited ways to monitor programming proficiency, relying heavily on standard eLMS or pen-and-paper, which lack detailed real-time insights.</p>
-                </div>
-                <div class="solution-arrow"><i class="bi bi-arrow-down"></i></div>
-                <div class="solution-box">
-                    <span class="badge solution-badge"><i class="bi bi-check-circle-fill"></i> System Solution</span>
-                    <h3>Web-Based Analytics Portal</h3>
-                    <p>Integrates live web data analysis so instructors can monitor time spent per level and instantly identify students who are stuck on specific concepts.</p>
-                </div>
-            </div>
-
+    <!-- What the game and the portal offer -->
+    <section class="inside-section reveal" id="inside" aria-labelledby="inside-heading">
+        <div class="section-title-wrap">
+            <h2 id="inside-heading">&gt; INSIDE THE SYSTEM</h2>
+            <p>What students get in the game and what teachers get in the portal.</p>
+        </div>
+        <div class="inside-grid">
+            <article class="inside-card inside-game">
+                <header><i class="bi bi-controller"></i><div><span>FOR STUDENTS</span><h3>SyntaxError mobile game</h3></div></header>
+                <ul>
+                    <li><i class="bi bi-signpost-split"></i><div><strong>19 levels, step by step</strong><span>Starts with data types, printing text, user input, comments and arithmetic, then moves to more advanced C#.</span></div></li>
+                    <li><i class="bi bi-lightning-charge"></i><div><strong>Instant feedback</strong><span>Every wrong submission shows a message that explains what to fix.</span></div></li>
+                    <li><i class="bi bi-key"></i><div><strong>Teacher-unlocked levels</strong><span>After finishing a level, a 6-digit code from the teacher opens the next one.</span></div></li>
+                    <li><i class="bi bi-phone-vibrate"></i><div><strong>Practice anywhere</strong><span>Runs on Android phones, so practice is not limited to lab hours. iOS is coming through TestFlight.</span></div></li>
+                </ul>
+            </article>
+            <article class="inside-card inside-portal">
+                <header><i class="bi bi-window-desktop"></i><div><span>FOR TEACHERS</span><h3>Data Analysis Portal</h3></div></header>
+                <ul>
+                    <li><i class="bi bi-broadcast"></i><div><strong>Live class overview</strong><span>Level completion, time recorded and wrong submissions for each section, updated as students play.</span></div></li>
+                    <li><i class="bi bi-grid-3x3-gap"></i><div><strong>Time and errors per topic</strong><span>See which topics take longest, which tasks get the most wrong submissions, and the most common error messages.</span></div></li>
+                    <li><i class="bi bi-person-lines-fill"></i><div><strong>Student records</strong><span>Every attempt, task and error message for each student, plus CSV export for reports.</span></div></li>
+                    <li><i class="bi bi-shield-check"></i><div><strong>Secure, section-based access</strong><span>Accounts are created by the Super Admin, sign-in uses an email PIN, and teachers only see their own sections.</span></div></li>
+                </ul>
+            </article>
         </div>
     </section>
 
 <section class="manual-section" id="user-manual" aria-labelledby="manual-heading">
- <div class="section-title-wrap manual-heading reveal"><span class="eyebrow"><i class="bi bi-terminal"></i> USER DOCUMENTATION / 01</span><h2 id="manual-heading">LEARN THE <span class="highlight">SYSTEM</span></h2><p>Visual step-by-step guides for the SyntaxError mobile game and the web-based faculty portal.</p></div>
+ <div class="section-title-wrap manual-heading reveal"><span class="eyebrow"><i class="bi bi-terminal"></i> USER DOCUMENTATION / 01</span><h2 id="manual-heading">LEARN THE <span class="highlight">SYSTEM</span></h2><p>Short animated walkthroughs of the mobile game and the faculty portal. They play on their own; pause anytime or jump to any chapter.</p><a class="manual-full-link" href="help.html"><i class="bi bi-journal-text"></i> Open the full user manual for teachers and the Super Admin</a></div>
  <div class="manual-shell reveal">
   <div class="manual-topbar"><div class="manual-tabs" role="tablist" aria-label="Choose user manual"><button class="manual-tab active" type="button" id="tab-game" role="tab" aria-selected="true" aria-controls="panel-game" data-manual="game"><i class="bi bi-phone"></i> Mobile game</button><button class="manual-tab" type="button" id="tab-web" role="tab" aria-selected="false" aria-controls="panel-web" data-manual="web"><i class="bi bi-window-desktop"></i> Website portal</button></div><div class="manual-counter" aria-live="polite"><span id="manual-index">01</span><span class="muted"> / 06</span></div></div>
   <div class="manual-panels">
@@ -584,36 +586,115 @@
 <div class="manual-track">
 <article class="manual-slide" data-index="0" >
     <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
-    <div class="manual-shot"><img src="manual/web-01.png" alt="Screenshot for step 01: Open the faculty portal" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-box-arrow-in-right"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/web-01.png</code></div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 01 <span>—</span> 06</div><h3>Open the faculty portal</h3><p>Use Sign In at the top of the website to access the faculty portal. Teacher accounts are created by the Super Admin.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual dashboard screenshot.</div></div>
+    <div class="manual-shot manual-scene"><div class="scene scene-login" aria-hidden="true"><span class="sc-tag">Sample view</span>
+  <div class="sc-card">
+    <div class="sc-title"><i class="bi bi-shield-lock"></i> SIGN IN</div>
+    <div class="sc-field"><i class="bi bi-envelope"></i><span class="sc-type">teacher@caloocan.sti.edu.ph</span></div>
+    <div class="sc-field"><i class="bi bi-lock"></i><span class="sc-dots">••••••••</span></div>
+    <div class="sc-btn">LOGIN</div>
+    <div class="sc-pin"><span>4</span><span>8</span><span>1</span><span>9</span><span>2</span><span>6</span></div>
+    <div class="sc-ok"><i class="bi bi-check-circle-fill"></i> PIN verified · welcome!</div>
+  </div>
+  <i class="sc-cursor"></i>
+</div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 01 <span>—</span> 06</div><h3>Sign in to the faculty portal</h3><p>Select Sign In and use the school email and default password given by the Super Admin, then enter the 6-digit PIN sent to your email. On your first sign-in you accept the Terms and Privacy Notice and can change your default password.</p><div class="manual-hint"><i class="bi bi-shield-lock"></i> There is no public sign-up. Teacher accounts are created by the Super Admin.</div></div>
     </article>
 <article class="manual-slide" data-index="1" aria-hidden="true">
     <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
-    <div class="manual-shot"><img src="manual/web-02.png" alt="Screenshot for step 02: Access your dashboard" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-grid-1x2"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/web-02.png</code></div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 02 <span>—</span> 06</div><h3>Access your dashboard</h3><p>After signing in, review the overview and available performance summaries.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual dashboard screenshot.</div></div>
+    <div class="manual-shot manual-scene"><div class="scene scene-overview" aria-hidden="true"><span class="sc-tag">Sample view</span>
+  <div class="sc-app">
+    <div class="sc-head"><b>Class Overview</b><span class="sc-live"><i></i> LIVE</span></div>
+    <div class="sc-kpis">
+      <div><small>Students</small><b class="sc-count" style="--to:36"></b></div>
+      <div><small>Started</small><b class="sc-count" style="--to:28"></b></div>
+      <div><small>Levels done</small><b class="sc-count" style="--to:74"></b></div>
+      <div><small>Wrong subs</small><b class="sc-count" style="--to:93"></b></div>
+    </div>
+    <div class="sc-panel"><small>Level completion</small>
+      <div class="sc-levels"><i style="--h:92%;--d:0.90s"></i><i style="--h:86%;--d:0.97s"></i><i style="--h:78%;--d:1.04s"></i><i style="--h:70%;--d:1.11s"></i><i style="--h:61%;--d:1.18s"></i><i style="--h:52%;--d:1.25s"></i><i style="--h:44%;--d:1.32s"></i><i style="--h:36%;--d:1.39s"></i><i style="--h:29%;--d:1.46s"></i><i style="--h:22%;--d:1.53s"></i><i style="--h:16%;--d:1.60s"></i><i style="--h:12%;--d:1.67s"></i><i style="--h:9%;--d:1.74s"></i><i style="--h:6%;--d:1.81s"></i><i style="--h:4%;--d:1.88s"></i><i style="--h:3%;--d:1.95s"></i><i style="--h:2%;--d:2.02s"></i><i style="--h:1%;--d:2.09s"></i><i style="--h:1%;--d:2.16s"></i></div>
+    </div>
+  </div>
+</div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 02 <span>—</span> 06</div><h3>Read the Class Overview</h3><p>The Dashboard summarises the game records of your sections: how many students started playing, levels completed, total time recorded and wrong submissions. Use the Section menu to look at one class.</p><div class="manual-hint"><i class="bi bi-check2-circle"></i> Every number is counted directly from the records the game saves.</div></div>
     </article>
 <article class="manual-slide" data-index="2" aria-hidden="true">
     <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
-    <div class="manual-shot"><img src="manual/web-03.png" alt="Screenshot for step 03: Browse student records" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-people"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/web-03.png</code></div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 03 <span>—</span> 06</div><h3>Browse student records</h3><p>Open the student list to find learners and view their individual details.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual dashboard screenshot.</div></div>
+    <div class="manual-shot manual-scene"><div class="scene scene-topics" aria-hidden="true"><span class="sc-tag">Sample view</span>
+  <div class="sc-app">
+    <div class="sc-head"><b>Time and errors per topic</b></div>
+    <div class="sc-two">
+      <div class="sc-panel"><small><i class="bi bi-hourglass-split"></i> Minutes per student</small>
+        <div class="sc-bar sc-time"><span>Data types</span><i style="--w:92%;--d:0.50s"></i><b style="--d:1.40s">5 min</b></div><div class="sc-bar sc-time"><span>Comments</span><i style="--w:74%;--d:0.75s"></i><b style="--d:1.65s">4 min</b></div><div class="sc-bar sc-time"><span>Printing</span><i style="--w:52%;--d:1.00s"></i><b style="--d:1.90s">3 min</b></div><div class="sc-bar sc-time"><span>Arithmetic</span><i style="--w:30%;--d:1.25s"></i><b style="--d:2.15s">1 min</b></div><div class="sc-bar sc-time"><span>User input</span><i style="--w:18%;--d:1.50s"></i><b style="--d:2.40s">35 s</b></div>
+      </div>
+      <div class="sc-panel"><small><i class="bi bi-bug"></i> Wrong submissions per student</small>
+        <div class="sc-bar sc-err"><span>Data types</span><i style="--w:90%;--d:1.20s"></i><b style="--d:2.10s">4.7</b></div><div class="sc-bar sc-err"><span>Arithmetic</span><i style="--w:60%;--d:1.45s"></i><b style="--d:2.35s">3</b></div><div class="sc-bar sc-err"><span>User input</span><i style="--w:40%;--d:1.70s"></i><b style="--d:2.60s">2</b></div><div class="sc-bar sc-err"><span>Comments</span><i style="--w:40%;--d:1.95s"></i><b style="--d:2.85s">2</b></div><div class="sc-bar sc-err"><span>Printing</span><i style="--w:6%;--d:2.20s"></i><b style="--d:3.10s">0</b></div>
+        <div class="sc-tip">Data types · about 4.7 per student</div>
+      </div>
+    </div>
+  </div>
+  <i class="sc-cursor"></i>
+</div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 03 <span>—</span> 06</div><h3>Compare levels and topics</h3><p>See how many students completed each level, the time and wrong submissions per topic, the coding tasks with the most wrong submissions, and the error messages students saw most often.</p><div class="manual-hint"><i class="bi bi-download"></i> Use Export to download a CSV summary of every student for your reports.</div></div>
     </article>
 <article class="manual-slide" data-index="3" aria-hidden="true">
     <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
-    <div class="manual-shot"><img src="manual/web-04.png" alt="Screenshot for step 04: Analyze learning progress" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-bar-chart-line"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/web-04.png</code></div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 04 <span>—</span> 06</div><h3>Analyze learning progress</h3><p>Review level completion times, attempts, errors and topic difficulty insights.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual dashboard screenshot.</div></div>
+    <div class="manual-shot manual-scene"><div class="scene scene-record" aria-hidden="true"><span class="sc-tag">Sample view</span>
+  <div class="sc-app">
+    <div class="sc-head"><b>Students</b><span class="sc-search"><i class="bi bi-search"></i> Search</span></div>
+    <div class="sc-table">
+      <div class="sc-row" style="--d:0.30s"><b>Student A</b><span>5 of 19</span><span>11</span><em>Details</em></div><div class="sc-row" style="--d:0.48s"><b>Student B</b><span>1 of 19</span><span>8</span><em>Details</em></div><div class="sc-row" style="--d:0.66s"><b>Student C</b><span>3 of 19</span><span>4</span><em>Details</em></div><div class="sc-row" style="--d:0.84s"><b>Student D</b><span>0 of 19</span><span>--</span><em>Details</em></div>
+    </div>
+    <div class="sc-drawer">
+      <b>Student A</b>
+      <div class="sc-chips"><i class="on" style="--d:3.00s">1</i><i class="on" style="--d:3.12s">2</i><i class="on" style="--d:3.24s">3</i><i class="on" style="--d:3.36s">4</i><i class="on" style="--d:3.48s">5</i><i class="" style="--d:3.60s">6</i><i class="" style="--d:3.72s">7</i><i class="" style="--d:3.84s">8</i><i class="" style="--d:3.96s">9</i><i class="" style="--d:4.08s">10</i></div>
+      <div class="sc-attempt"><span>Attempt 1</span><span>3 min 21 s</span><span>2 wrong</span></div>
+      <div class="sc-error"><code>2:34</code> Missing quotation marks!</div>
+      <div class="sc-error sc-error-2"><code>1:34</code> Float must end with f!</div>
+    </div>
+  </div>
+  <i class="sc-cursor"></i>
+</div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 04 <span>—</span> 06</div><h3>Open a student record</h3><p>On the Students page, search, filter and sort your class. Select Details to see a student's levels, time and wrong submissions, and every attempt with each task and the exact error messages.</p><div class="manual-hint"><i class="bi bi-people"></i> You can also import a class list from the Excel template, add, edit or archive students here.</div></div>
     </article>
 <article class="manual-slide" data-index="4" aria-hidden="true">
     <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
-    <div class="manual-shot"><img src="manual/web-05.png" alt="Screenshot for step 05: Manage accounts" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-person-check"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/web-05.png</code></div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 05 <span>—</span> 06</div><h3>Manage accounts</h3><p>If your role permits, review registration requests and student accounts.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual dashboard screenshot.</div></div>
+    <div class="manual-shot manual-scene"><div class="scene scene-codes" aria-hidden="true"><span class="sc-tag">Sample view</span>
+  <div class="sc-card sc-card-wide">
+    <div class="sc-title"><i class="bi bi-key-fill"></i> GENERATE ACCESS CODE</div>
+    <div class="sc-selects"><span>Level 3 · Unlock</span><span>ICT1201</span></div>
+    <div class="sc-btn sc-btn-gen">GENERATE</div>
+    <div class="sc-code"><span style="--to:7;--d:2.20s"><i>0<br>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9</i></span><span style="--to:3;--d:2.38s"><i>0<br>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9</i></span><span style="--to:0;--d:2.56s"><i>0<br>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9</i></span><span style="--to:5;--d:2.74s"><i>0<br>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9</i></span><span style="--to:9;--d:2.92s"><i>0<br>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9</i></span><span style="--to:2;--d:3.10s"><i>0<br>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9</i></span></div>
+    <div class="sc-timer"><b>05:00</b><i></i></div>
+    <small class="sc-note">Students in ICT1201 enter this code to unlock Level 3.</small>
+  </div>
+  <i class="sc-cursor"></i>
+</div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 05 <span>—</span> 06</div><h3>Give level access codes</h3><p>On the Levels page, generate a five-minute code that lets students in your section unlock the next level in the game after finishing the previous one.</p><div class="manual-hint"><i class="bi bi-key"></i> Codes only work for the sections assigned to you.</div></div>
     </article>
 <article class="manual-slide" data-index="5" aria-hidden="true">
     <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
-    <div class="manual-shot"><img src="manual/web-06.png" alt="Screenshot for step 06: Finish your session" loading="lazy" onerror="this.hidden=true" /><div class="shot-placeholder"><div class="placeholder-icon"><i class="bi bi-shield-lock"></i></div><span>YOUR SCREENSHOT GOES HERE</span><code>manual/web-06.png</code></div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 06 <span>—</span> 06</div><h3>Finish your session</h3><p>Use your account controls to sign out after using the portal.</p><div class="manual-hint"><i class="bi bi-images"></i> Replace the sample area with your actual dashboard screenshot.</div></div>
+    <div class="manual-shot manual-scene"><div class="scene scene-archive" aria-hidden="true"><span class="sc-tag">Sample view</span>
+  <div class="sc-app sc-app-side">
+    <nav class="sc-nav"><i class="bi bi-speedometer2"></i><i class="bi bi-key"></i><i class="bi bi-people"></i><i class="bi bi-archive sc-nav-archive"></i><i class="bi bi-box-arrow-right sc-nav-out"></i></nav>
+    <div class="sc-main">
+      <div class="sc-head"><b>Archive</b><span class="sc-badge">Restore within 7 days</span></div>
+      <div class="sc-row sc-row-move"><b>Student D</b><span>ICT1201</span><em>Archive</em></div>
+      <div class="sc-bin"><i class="bi bi-archive"></i> 1 archived · 7 days left</div>
+      <div class="sc-toast"><i class="bi bi-check-circle-fill"></i> Signed out safely</div>
+    </div>
+  </div>
+  <i class="sc-cursor"></i>
+</div></div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 06 <span>—</span> 06</div><h3>Archive and sign out</h3><p>Archived students can be restored from the Archive page within seven days. When you are done, select LogOut, especially on a shared computer.</p><div class="manual-hint"><i class="bi bi-box-arrow-right"></i> Signing out also ends the PIN-verified session on that device.</div></div>
     </article>
 </div></div>
-</div><div class="manual-bottom"><button class="manual-arrow" id="manual-prev" type="button" aria-label="Previous manual step"><i class="bi bi-arrow-left"></i></button><div id="manual-dots" class="manual-dots" aria-label="Manual steps"></div><button class="manual-arrow" id="manual-next" type="button" aria-label="Next manual step"><i class="bi bi-arrow-right"></i></button></div><div class="manual-tip"><i class="bi bi-hand-index-thumb"></i> Use the arrows, dots, or swipe on a touch screen to browse.</div></div>
+</div><div class="manual-bottom manual-player">
+  <button class="manual-play" id="manual-play" type="button" aria-label="Pause walkthrough"><i class="bi bi-pause-fill"></i></button>
+  <button class="manual-arrow" id="manual-prev" type="button" aria-label="Previous chapter"><i class="bi bi-skip-start-fill"></i></button>
+  <div id="manual-dots" class="manual-chapters" aria-label="Chapters"></div>
+  <button class="manual-arrow" id="manual-next" type="button" aria-label="Next chapter"><i class="bi bi-skip-end-fill"></i></button>
+  <span class="manual-time" id="manual-time" aria-hidden="true">0:00 / 0:54</span>
+</div><div class="manual-tip"><i class="bi bi-play-circle"></i> Plays automatically. Tap a chapter, use the arrow keys, or swipe to move between steps.</div></div>
 </section>
     <!-- Developers Section -->
     <section class="developers-section reveal">
@@ -677,6 +758,6 @@
     <button id="scrollTopBtn" class="scroll-top-btn" aria-label="Scroll to top">
         <i class="bi bi-chevron-up"></i>
     </button>
-    <script src="script.js"></script>
+    <script src="script.js?v=20261102-a"></script>
 </body>
 </html>

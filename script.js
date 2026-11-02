@@ -115,13 +115,69 @@ function typeManualText(slide) {
   typingFrame = requestAnimationFrame(tick);
 }
 
-// Screenshot manual: independent sequences for mobile and website.
+// Manual player: two independent sequences (mobile game, website portal) shown like a short video.
+// Each step is a chapter; the player advances on its own, pauses when hidden, and never autoplays
+// for people who prefer reduced motion.
 const manuals = ['game','web'];
 const positions = {game:0,web:0};
 let selectedManual = 'game';
+const STEP_MS = 9000;
 const dotsHolder = document.getElementById('manual-dots');
 const indexLabel = document.getElementById('manual-index');
-function renderManual() {
+const timeLabel = document.getElementById('manual-time');
+const playButton = document.getElementById('manual-play');
+const shell = document.querySelector('.manual-shell');
+let playing = false, userPaused = reducedMotion.matches, inView = false, ended = false;
+let elapsed = 0, lastTick = null, frame = null;
+
+const stepCount = () => document.querySelectorAll(`#panel-${selectedManual} .manual-slide`).length;
+const clockText = ms => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
+function paintProgress() {
+  const idx = positions[selectedManual];
+  dotsHolder?.querySelectorAll('.manual-chapter').forEach((chapter, n) => {
+    const p = n < idx ? 100 : n > idx ? 0 : Math.min(100, elapsed / STEP_MS * 100);
+    chapter.style.setProperty('--p', p + '%');
+  });
+  if (timeLabel) timeLabel.textContent = `${clockText(idx * STEP_MS + elapsed)} / ${clockText(stepCount() * STEP_MS)}`;
+}
+
+function setPlayButton() {
+  if (!playButton) return;
+  const icon = ended ? 'bi-arrow-counterclockwise' : playing ? 'bi-pause-fill' : 'bi-play-fill';
+  playButton.innerHTML = `<i class="bi ${icon}"></i>`;
+  playButton.setAttribute('aria-label', ended ? 'Replay walkthrough' : playing ? 'Pause walkthrough' : 'Play walkthrough');
+  shell?.classList.toggle('is-paused', !playing);
+}
+
+function tick(now) {
+  if (!playing) { frame = null; return; }
+  if (lastTick !== null) elapsed += now - lastTick;
+  lastTick = now;
+  if (elapsed >= STEP_MS) {
+    if (positions[selectedManual] >= stepCount() - 1) { elapsed = STEP_MS; paintProgress(); ended = true; stop(); return; }
+    positions[selectedManual]++;
+    elapsed = 0;
+    renderManual(false);
+  }
+  paintProgress();
+  frame = requestAnimationFrame(tick);
+}
+function start() {
+  if (playing) return;
+  if (ended) { ended = false; positions[selectedManual] = 0; elapsed = 0; renderManual(false); }
+  playing = true; lastTick = null; setPlayButton();
+  frame = requestAnimationFrame(tick);
+}
+function stop() {
+  playing = false; lastTick = null;
+  if (frame !== null) cancelAnimationFrame(frame);
+  frame = null; setPlayButton();
+}
+function syncAutoplay() { (inView && !userPaused && !document.hidden && !ended) ? start() : stop(); }
+
+function renderManual(resetTime = true) {
+  if (resetTime) { elapsed = 0; ended = false; }
   manuals.forEach(name => {
     const panel = document.getElementById(`panel-${name}`);
     const tab = document.getElementById(`tab-${name}`);
@@ -130,8 +186,10 @@ function renderManual() {
     tab?.classList.toggle('active',active);
     tab?.setAttribute('aria-selected',String(active));
     panel?.querySelectorAll('.manual-slide').forEach((slide,index) => {
-      const visible = index === positions[name];
-      slide.classList.toggle('current', visible);
+      const visible = active && index === positions[name];
+      // Re-adding "current" restarts the step's animations from the beginning.
+      slide.classList.remove('current');
+      if (visible) { void slide.offsetWidth; slide.classList.add('current'); }
       slide.classList.remove('manual-enter-forward','manual-enter-backward','manual-exit-forward','manual-exit-backward');
       slide.setAttribute('aria-hidden', String(!visible));
     });
@@ -141,30 +199,39 @@ function renderManual() {
   if (indexLabel) indexLabel.textContent = String(idx + 1).padStart(2,'0');
   if (dotsHolder) {
     dotsHolder.replaceChildren();
-    slides.forEach((_,n) => {
-      const dot = document.createElement('button');
-      dot.type='button';
-      dot.className='manual-dot' + (n === idx ? ' active' : '');
-      dot.setAttribute('aria-label', `Go to step ${n+1}`);
-      dot.setAttribute('aria-current', String(n===idx));
-      dot.addEventListener('click', () => { positions[selectedManual]=n; renderManual(); });
-      dotsHolder.appendChild(dot);
+    slides.forEach((slide,n) => {
+      const chapter = document.createElement('button');
+      chapter.type = 'button';
+      chapter.className = 'manual-chapter' + (n === idx ? ' active' : '');
+      const title = slide.querySelector('.manual-copy h3')?.textContent.trim() || `Step ${n + 1}`;
+      chapter.title = `${n + 1}. ${title}`;
+      chapter.setAttribute('aria-label', `Chapter ${n + 1}: ${title}`);
+      chapter.setAttribute('aria-current', String(n === idx));
+      chapter.append(document.createElement('span'));
+      chapter.addEventListener('click', () => { positions[selectedManual] = n; renderManual(); syncAutoplay(); });
+      dotsHolder.appendChild(chapter);
     });
   }
+  setPlayButton();
+  paintProgress();
   typeManualText(slides[idx]);
 }
 function moveManual(step) {
-  const length=document.querySelectorAll(`#panel-${selectedManual} .manual-slide`).length;
+  const length = stepCount();
   if (!length) return;
-  positions[selectedManual]=(positions[selectedManual]+step+length)%length;
+  positions[selectedManual] = (positions[selectedManual] + step + length) % length;
   renderManual();
+  syncAutoplay();
 }
 manuals.forEach(name => document.getElementById(`tab-${name}`)?.addEventListener('click', () => {
-  selectedManual=name; renderManual();
+  selectedManual = name; positions[name] = 0; renderManual(); syncAutoplay();
 }));
 document.getElementById('manual-prev')?.addEventListener('click', () => moveManual(-1));
 document.getElementById('manual-next')?.addEventListener('click', () => moveManual(1));
-const shell=document.querySelector('.manual-shell');
+playButton?.addEventListener('click', () => {
+  if (playing) { userPaused = true; stop(); }
+  else { userPaused = false; if (ended) start(); else syncAutoplay(); if (!inView) start(); }
+});
 shell?.addEventListener('keydown', e => {
   if (e.key==='ArrowLeft'||e.key==='ArrowRight') {
     e.preventDefault(); moveManual(e.key==='ArrowRight'?1:-1);
@@ -179,4 +246,10 @@ panels?.addEventListener('touchend', e => {
   if (Math.abs(delta)>55)moveManual(delta<0?1:-1);
   touchX=null;
 }, {passive:true});
+// Play only while the manual is on screen and the tab is visible.
+if ('IntersectionObserver' in window && shell) {
+  new IntersectionObserver(entries => { inView = entries[0].isIntersecting; syncAutoplay(); }, {threshold:.35}).observe(shell);
+} else { inView = true; }
+document.addEventListener('visibilitychange', syncAutoplay);
 renderManual();
+syncAutoplay();

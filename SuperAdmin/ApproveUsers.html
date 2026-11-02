@@ -27,6 +27,7 @@
     <ul>
         <li class="active"><a href="ApproveUsers.html"><i class="bi bi-people"></i> Approve Users</a></li>
         <li><a href="StudentsList.html"><i class="bi bi-archive"></i> Students</a></li>
+        <li><a href="../help.html#admin-signin" target="_blank" rel="noopener" title="Open the Super Admin manual in a new tab"><i class="bi bi-question-circle"></i> Help</a></li>
         <li onclick="showLogoutPopup()"><a href="#"><i class="bi bi-box-arrow-right"></i> LogOut</a></li>
     </ul>
 </nav>
@@ -52,7 +53,7 @@
     <div class="dropdown">
         <button class="dropbtn">Manage Users <i class="bi bi-chevron-down"></i></button>
         <div class="dropdown-content">
-            <button onclick="openAdminResetModal()">Reset Admin Password</button>
+            <button onclick="openAdminResetModal()">Reset Teacher Password</button>
             <button id="openArchiveBtn">View Archive</button>
             <button id="removeUsersBtn" class="reject">Remove Users</button>
         </div>
@@ -201,12 +202,12 @@
 <div id="admin-reset-modal" class="modal-overlay" style="display:none;">
     <div class="admin-modal-box">
         <h3 class="modal-title">
-            <i class="bi bi-person-badge-fill" style="color: #ef4444;"></i> Admin Password Reset
+            <i class="bi bi-person-badge-fill" style="color: #ef4444;"></i> Teacher Password Reset
         </h3>
         
         <div id="admin-step-1" class="admin-step">
-            <label class="input-label">SEARCH ADMIN EMAIL</label>
-            <input type="text" id="admin-search-input" class="admin-input" placeholder="Enter admin email...">
+            <label class="input-label">SEARCH TEACHER EMAIL</label>
+            <input type="text" id="admin-search-input" class="admin-input" placeholder="Enter teacher email...">
 
             <label class="input-label">SELECT EMAIL FROM LIST</label>
             <select id="admin-list-select" size="6" class="admin-select">
@@ -221,16 +222,14 @@
 
         <div id="admin-step-2" style="display:none;" class="admin-step">
             <div class="security-warning">
-                <p class="warning-title">⚠️ HIGH-LEVEL SECURITY WARNING</p>
+                <p class="warning-title">Send a password reset email</p>
                 <p id="admin-confirm-text"></p>
             </div>
+            <p class="reset-explainer">Firebase emails the teacher a secure link to choose a new password. Their current password keeps working until they use the link. Nobody else ever sees the new password.</p>
 
-            <label class="input-label">NEW ADMIN PASSWORD</label>
-            <input type="password" id="admin-new-pass" class="admin-input" placeholder="Enter secure password">
-            
             <div class="modal-footer">
                 <button onclick="backToAdminStep1()" class="cancel-btn">Go Back</button>
-                <button id="final-admin-reset-btn" class="confirm-btn">Confirm Change</button>
+                <button id="final-admin-reset-btn" class="confirm-btn">Send Reset Email</button>
             </div>
         </div>
     </div>

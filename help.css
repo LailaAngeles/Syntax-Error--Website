@@ -1,0 +1,148 @@
+/* User manual page (help.html). Light by default; follows the device's dark mode. */
+:root {
+  --hm-bg: #f3f6fb; --hm-surface: #ffffff; --hm-soft: #eef3fa; --hm-line: #dbe4ef;
+  --hm-ink: #13233b; --hm-muted: #5b6b82; --hm-blue: #00529b; --hm-accent: #1f6fd1; --hm-yellow: #ffc107;
+  --hm-good: #0f8a5f; --hm-bad: #b45f06;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --hm-bg: #0b111b; --hm-surface: #131c2a; --hm-soft: #1a2638; --hm-line: #2a3a52; --hm-ink: #eef4ff; --hm-muted: #9fb0c8; --hm-accent: #5aa4ff; --hm-good: #3ccf93; --hm-bad: #f0a640; }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--hm-bg); color: var(--hm-ink); font-family: Inter, 'Segoe UI', system-ui, sans-serif; line-height: 1.6; }
+code { overflow-wrap: anywhere; font-family: 'Fira Code', monospace; font-size: .86em; background: var(--hm-soft); border: 1px solid var(--hm-line); padding: 1px 6px; border-radius: 6px; }
+b { font-weight: 700; }
+
+/* Top bar */
+.hm-top { position: sticky; top: 0; z-index: 20; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px clamp(16px, 4vw, 40px); background: #072a52; color: #fff; box-shadow: 0 6px 20px rgba(0, 0, 0, .12); }
+.hm-brand { color: #fff; text-decoration: none; font: 900 1.05rem 'Orbitron', sans-serif; letter-spacing: .02em; display: flex; align-items: baseline; gap: 8px; }
+.hm-sti { color: #ffe766; }
+.hm-brand-sub { font: 600 .8rem Inter, sans-serif; color: #b9d6ff; letter-spacing: 0; }
+.hm-top-links { display: flex; gap: 6px; }
+.hm-top-links a, .hm-top-links button { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 12px; border-radius: 10px; color: #dcecff; text-decoration: none; font: 600 .86rem Inter, sans-serif; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14); cursor: pointer; }
+.hm-top-links a:hover, .hm-top-links button:hover { background: rgba(255, 255, 255, .16); }
+
+/* Hero */
+.hm-hero { max-width: 1180px; margin: 0 auto; padding: 44px clamp(16px, 4vw, 40px) 18px; text-align: center; }
+.hm-kicker { margin: 0; font: 700 .74rem 'Fira Code', monospace; letter-spacing: .14em; color: var(--hm-accent); }
+.hm-hero h1 { margin: 8px 0 10px; font-size: clamp(1.6rem, 4vw, 2.5rem); letter-spacing: -.02em; line-height: 1.2; }
+.hm-lead { max-width: 720px; margin: 0 auto 22px; color: var(--hm-muted); font-size: 1.02rem; }
+.hm-switch { display: inline-flex; gap: 6px; padding: 5px; border-radius: 14px; background: var(--hm-surface); border: 1px solid var(--hm-line); box-shadow: 0 6px 20px rgba(15, 35, 70, .06); }
+.hm-switch button { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 10px 20px; border: 0; border-radius: 10px; background: transparent; color: var(--hm-muted); font: 700 .95rem Inter, sans-serif; cursor: pointer; }
+.hm-switch button.active { background: var(--hm-blue); color: #fff; box-shadow: inset 0 -3px 0 var(--hm-yellow); }
+.hm-search { display: flex; align-items: center; gap: 10px; max-width: 560px; margin: 18px auto 0; padding: 0 14px; border-radius: 12px; background: var(--hm-surface); border: 1px solid var(--hm-line); }
+.hm-search i { color: var(--hm-muted); }
+.hm-search input { flex: 1; min-width: 0; min-height: 46px; border: 0; outline: none; background: transparent; color: var(--hm-ink); font: 500 .95rem Inter, sans-serif; }
+.hm-search:focus-within { border-color: var(--hm-accent); box-shadow: 0 0 0 3px rgba(31, 111, 209, .15); }
+.hm-search-result { min-height: 1.4em; margin: 8px 0 0; font-size: .84rem; color: var(--hm-muted); }
+
+/* Layout */
+.hm-layout { max-width: 1180px; margin: 0 auto; padding: 10px clamp(16px, 4vw, 40px) 40px; display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 28px; align-items: start; }
+.hm-toc { position: sticky; top: 84px; background: var(--hm-surface); border: 1px solid var(--hm-line); border-radius: 14px; padding: 14px; max-height: calc(100vh - 110px); overflow: auto; }
+.hm-toc-title { margin: 0 0 8px; font: 700 .72rem 'Fira Code', monospace; letter-spacing: .12em; color: var(--hm-muted); text-transform: uppercase; }
+.hm-toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+.hm-toc li { counter-increment: toc; }
+.hm-toc a { display: flex; gap: 8px; padding: 7px 8px; border-radius: 8px; color: var(--hm-ink); text-decoration: none; font-size: .88rem; font-weight: 600; line-height: 1.35; }
+.hm-toc a::before { content: counter(toc); flex: none; width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; font: 700 .7rem 'Fira Code', monospace; background: var(--hm-soft); color: var(--hm-muted); }
+.hm-toc a:hover { background: var(--hm-soft); }
+.hm-toc a.active { background: rgba(31, 111, 209, .1); color: var(--hm-accent); }
+.hm-toc a.active::before { background: var(--hm-yellow); color: #0b2f5c; }
+
+/* Sections */
+.hm-main { min-width: 0; counter-reset: sec; }
+.hm-sec { background: var(--hm-surface); border: 1px solid var(--hm-line); border-radius: 18px; padding: clamp(18px, 3vw, 28px); margin-bottom: 18px; scroll-margin-top: 84px; box-shadow: 0 6px 20px rgba(15, 35, 70, .04); counter-increment: sec; }
+.hm-sec[hidden] { display: none; }
+.hm-sec-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 16px; }
+.hm-num::before { content: counter(sec); }
+.hm-num { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--hm-blue); color: #fff; font: 800 1rem 'Fira Code', monospace; box-shadow: inset 0 -3px 0 var(--hm-yellow); }
+.hm-sec-head h2 { margin: 0; font-size: 1.25rem; letter-spacing: -.01em; }
+.hm-sec-head p { margin: 2px 0 0; color: var(--hm-muted); font-size: .94rem; }
+.hm-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: center; }
+
+/* Steps */
+.hm-steps { list-style: none; margin: 0; padding: 0; counter-reset: step; display: flex; flex-direction: column; gap: 10px; }
+.hm-steps li { counter-increment: step; position: relative; padding: 2px 0 2px 40px; font-size: .95rem; }
+.hm-steps li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--hm-soft); border: 1px solid var(--hm-line); color: var(--hm-accent); font: 800 .8rem 'Fira Code', monospace; }
+.hm-tip { display: flex; gap: 10px; align-items: flex-start; margin: 16px 0 0; padding: 11px 14px; border-radius: 12px; background: var(--hm-soft); border-left: 4px solid var(--hm-yellow); font-size: .9rem; }
+.hm-tip i { color: var(--hm-accent); font-size: 1.05rem; margin-top: 1px; }
+
+/* Cards */
+.hm-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.hm-mini { display: flex; flex-direction: column; gap: 4px; padding: 14px; border-radius: 14px; background: var(--hm-soft); border: 1px solid var(--hm-line); }
+.hm-mini > i { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; background: var(--hm-surface); color: var(--hm-accent); font-size: 1.15rem; margin-bottom: 6px; border: 1px solid var(--hm-line); }
+.hm-mini strong { font-size: .95rem; }
+.hm-mini span { font-size: .87rem; color: var(--hm-muted); }
+.hm-columns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.hm-columns span { padding: 6px 10px; border-radius: 999px; background: var(--hm-soft); border: 1px solid var(--hm-line); font-size: .82rem; color: var(--hm-muted); }
+.hm-columns b { color: var(--hm-ink); }
+
+/* Chart legend explanations */
+.hm-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.hm-legend li { display: flex; gap: 12px; align-items: flex-start; font-size: .9rem; color: var(--hm-muted); }
+.hm-legend b { display: block; color: var(--hm-ink); }
+.hm-swatch { flex: none; width: 28px; height: 12px; border-radius: 0 6px 6px 0; margin-top: 6px; }
+.hm-blue { background: #1f6fd1; } .hm-orange { background: #c26a00; } .hm-purple { background: #6d3fd1; } .hm-gray { background: var(--hm-line); }
+
+/* "How to read an attempt row" */
+.hm-read { margin-top: 18px; padding: 14px 16px; border-radius: 14px; border: 1px dashed var(--hm-line); background: var(--hm-soft); }
+.hm-read-title { margin: 0 0 10px; font-weight: 800; }
+.hm-read-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto 24px; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--hm-surface); border: 1px solid var(--hm-line); max-width: 460px; }
+.hm-att { font-weight: 800; color: var(--hm-muted); }
+.hm-bar { display: flex; align-items: center; gap: 8px; }
+.hm-bar i { height: 10px; border-radius: 0 5px 5px 0; background: #1f6fd1; }
+.hm-bar b { font-size: .82rem; white-space: nowrap; }
+.hm-dots { display: inline-flex; gap: 3px; }
+.hm-dots i, .hm-key-dot { width: 10px; height: 10px; border-radius: 50%; background: #c26a00; display: inline-block; }
+.hm-key-bar { display: inline-block; width: 24px; height: 8px; border-radius: 4px; background: #1f6fd1; }
+.hm-ok { color: var(--hm-good); }
+.hm-read-key { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: .88rem; }
+.hm-read-key li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.hm-chip-good, .hm-chip-bad { padding: 2px 9px; border-radius: 999px; font-size: .78rem; font-weight: 700; }
+.hm-chip-good { background: rgba(15, 138, 95, .12); color: var(--hm-good); }
+.hm-chip-bad { background: rgba(194, 106, 0, .12); color: var(--hm-bad); }
+
+/* Animated illustrations (scenes from welcome.css) */
+.hm-scene { margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--hm-line); background: #081325; }
+.hm-scene .manual-shot { position: relative; overflow: hidden; height: clamp(220px, 26vw, 290px); border-radius: 0; }
+.hm-scene figcaption { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 12px; background: #0c1a2e; color: #9fb6cf; font-size: .78rem; }
+.hm-replay { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(159, 182, 207, .35); background: transparent; color: #cfe3ff; font: 600 .78rem Inter, sans-serif; cursor: pointer; }
+.hm-replay:hover { background: rgba(255, 255, 255, .08); }
+
+/* FAQ */
+.hm-faq { display: flex; flex-direction: column; gap: 8px; }
+.hm-faq details { border: 1px solid var(--hm-line); border-radius: 12px; background: var(--hm-soft); }
+.hm-faq summary { cursor: pointer; list-style: none; padding: 12px 14px; font-weight: 700; display: flex; gap: 10px; align-items: center; }
+.hm-faq summary::-webkit-details-marker { display: none; }
+.hm-faq summary::before { content: '\F4FE'; font-family: 'bootstrap-icons'; color: var(--hm-accent); transition: transform .2s; }
+.hm-faq details[open] summary::before { transform: rotate(45deg); }
+.hm-faq p { margin: 0; padding: 0 14px 14px 40px; color: var(--hm-muted); font-size: .92rem; }
+
+mark { background: rgba(255, 193, 7, .45); color: inherit; border-radius: 3px; padding: 0 1px; }
+.hm-empty { text-align: center; padding: 30px; color: var(--hm-muted); border: 1px dashed var(--hm-line); border-radius: 14px; }
+.hm-foot { text-align: center; padding: 20px; color: var(--hm-muted); font-size: .82rem; }
+
+/* Responsive */
+@media (max-width: 960px) {
+  .hm-layout { grid-template-columns: minmax(0, 1fr); }
+  .hm-toc { position: static; max-height: none; }
+  .hm-toc ol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 8px; }
+  .hm-split { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .hm-top-links span { display: none; }
+  .hm-brand-sub { display: none; }
+  .hm-switch { display: flex; width: 100%; }
+  .hm-switch button { flex: 1; padding: 10px 8px; font-size: .85rem; justify-content: center; }
+  .hm-toc ol { grid-template-columns: minmax(0, 1fr); }
+  .hm-sec-head h2 { font-size: 1.1rem; }
+  .hm-read-row { grid-template-columns: 30px minmax(0, 1fr) auto 20px; }
+}
+
+/* Print: the whole manual for the chosen guide, no navigation or animations. */
+@media print {
+  .hm-top, .hm-toc, .hm-search, .hm-search-result, .hm-switch, .hm-scene, .hm-foot { display: none !important; }
+  body { background: #fff; color: #000; }
+  .hm-layout { display: block; padding: 0; }
+  .hm-sec { box-shadow: none; break-inside: avoid; border-color: #ccc; }
+  .hm-faq details > p { display: block; }
+}

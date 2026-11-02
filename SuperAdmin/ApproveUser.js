@@ -1,6 +1,6 @@
 // Firebase imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-import { 
+import { onSnapshot, 
     getFirestore, 
     collection, 
     getDocs, 
@@ -654,8 +654,9 @@ window.confirmAdminSelection = function() {
     
     document.getElementById("admin-step-1").style.display = "none";
     document.getElementById("admin-step-2").style.display = "block";
-    document.getElementById("admin-confirm-text").innerHTML = 
-        `You are changing the password for <strong>${admin.name}</strong> (${admin.email}). This will affect their login access to the dashboard.`;
+    const confirmText = document.getElementById("admin-confirm-text");
+    confirmText.textContent = "";
+    confirmText.append("The reset link will be sent to ", Object.assign(document.createElement("strong"), { textContent: admin.name || admin.email }), ` (${admin.email}).`);
 
     document.getElementById("final-admin-reset-btn").onclick = () => saveAdminPassword(admin);
 };
@@ -665,70 +666,120 @@ window.backToAdminStep1 = () => {
     document.getElementById("admin-step-2").style.display = "none";
 };
 
+// Teachers sign in with Firebase Authentication, so the reset must go through Firebase:
+// it emails the teacher a secure link. (Writing a password into Firestore would not change
+// their sign-in password and would leave it stored as plain text.)
 async function saveAdminPassword(admin) {
-    const newPass = document.getElementById("admin-new-pass").value.trim();
-    if (newPass.length < 6) return alert("Security Requirement: Admin passwords must be at least 6 characters.");
-
     toggleLoading(true);
     try {
-        const adminRef = doc(db, "approvedUsers", admin.docId);
-        await updateDoc(adminRef, {
-            password: newPass
-        });
-
-        alert(`Successfully updated password for ${admin.name}.`);
+        await sendPasswordResetEmail(auth, admin.email);
+        alert(`A password reset email was sent to ${admin.email}.`);
         closeAdminResetModal();
     } catch (error) {
-        console.error("Admin Update Error:", error);
-        alert("Permission denied or connection error.");
+        console.error("Password reset email error:", error);
+        alert(error?.code === "auth/user-not-found"
+            ? "No sign-in account exists for this email. Create the teacher in Step 1 first."
+            : "The reset email could not be sent. Check the connection and try again.");
     } finally {
         toggleLoading(false);
     }
 }
 
 // --- INITIALIZATION ---
+// The teacher list and the section list are live: changes made elsewhere (another Super Admin tab,
+// a new teacher account, a renamed section) appear without refreshing.
+let latestApproved = null;
+const draftSections = new Map();   // unsaved ticks per teacher row, kept across live updates
+const checkedRows = new Set();     // rows ticked for removal, kept across live updates
+
+let listening = false;
 async function initializeDashboard() {
+    // Called again after section changes; the listeners already deliver those, so attach them once.
+    if (listening) { renderApprovedUsers(); return; }
+    listening = true;
     toggleLoading(true);
-    await loadSections();
-    await loadApprovedUsers();
-    toggleLoading(false);
+    let firstSections = true, firstUsers = true;
+    const done = () => { if (!firstSections && !firstUsers) toggleLoading(false); };
+    onSnapshot(collection(db, "sections"), snapshot => {
+        sections = [{ id: null, name: "No Section" }];
+        snapshot.forEach(docSnap => sections.push({ id: docSnap.id, name: docSnap.data().name }));
+        renderApprovedUsers();
+        firstSections = false; done();
+    }, error => { console.error("Sections listener error:", error); firstSections = false; done(); });
+    onSnapshot(collection(db, "approvedUsers"), snapshot => {
+        latestApproved = snapshot;
+        renderApprovedUsers();
+        firstUsers = false; done();
+    }, error => { console.error("Teacher listener error:", error); firstUsers = false; done(); });
 }
 
 // --- USER TABLE & ARCHIVE LOGIC ---
-async function loadApprovedUsers() {
-    const snapshot = await getDocs(collection(db, "approvedUsers"));
+// Kept for existing callers; the live listener already holds the newest data.
+async function loadApprovedUsers() { renderApprovedUsers(); }
+
+function renderApprovedUsers() {
+    if (!latestApproved) return;
+    const openRow = approvedTable.querySelector(".multi-select-container.active")?.closest("tr")?.dataset.id;
     approvedTable.innerHTML = "";
-    
-    if (snapshot.empty) {
-        approvedTable.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:gray;">No approved users found.</td></tr>`;
+    if (latestApproved.empty) {
+        approvedTable.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:gray;">No teacher accounts yet. Create one in Step 1.</td></tr>`;
         return;
     }
-
-    snapshot.forEach(docSnap => {
+    const liveIds = new Set();
+    latestApproved.forEach(docSnap => {
         const data = docSnap.data();
+        liveIds.add(docSnap.id);
         const row = document.createElement("tr");
-        const multiSelect = createMultiSelect(data.section || []);
+        row.dataset.id = docSnap.id;
+        const multiSelect = createMultiSelect(draftSections.get(docSnap.id) || data.section || []);
         row.innerHTML = `
             <td><input type="checkbox" class="approvedCheck" data-id="${docSnap.id}"></td>
             <td class="teacher-id-col"><strong></strong><small></small></td>
             <td class="select-col"></td>
             <td><button class="saveBtn" data-id="${docSnap.id}">Save</button></td>
         `;
+        row.querySelector(".approvedCheck").checked = checkedRows.has(docSnap.id);
         row.querySelector(".teacher-id-col strong").textContent = data.name || data.email;
         row.querySelector(".teacher-id-col small").textContent = data.name ? data.email : "";
+        if (draftSections.has(docSnap.id)) row.querySelector(".teacher-id-col small").textContent += " · unsaved changes";
         row.querySelector(".select-col").appendChild(multiSelect);
         approvedTable.appendChild(row);
     });
+    if (openRow) approvedTable.querySelector('tr[data-id="' + CSS.escape(openRow) + '"] .multi-select-container')?.classList.add("active");
+    [...draftSections.keys()].forEach(id => { if (!liveIds.has(id)) draftSections.delete(id); });
+    [...checkedRows].forEach(id => { if (!liveIds.has(id)) checkedRows.delete(id); });
+}
 
-    document.querySelectorAll(".saveBtn").forEach(btn => btn.addEventListener("click", async () => {
-        toggleLoading(true);
+// One delegated handler per action, so live re-renders never stack duplicate listeners.
+approvedTable.addEventListener("change", event => {
+    const row = event.target.closest("tr[data-id]");
+    if (!row) return;
+    if (event.target.classList.contains("approvedCheck")) {
+        event.target.checked ? checkedRows.add(row.dataset.id) : checkedRows.delete(row.dataset.id);
+        return;
+    }
+    const container = row.querySelector(".multi-select-container");
+    if (container && container.contains(event.target)) {
+        draftSections.set(row.dataset.id, Array.from(container.querySelectorAll("input:checked")).map(c => c.value));
+    }
+});
+approvedTable.addEventListener("click", async event => {
+    const btn = event.target.closest(".saveBtn");
+    if (!btn) return;
+    toggleLoading(true);
+    try {
         const container = btn.closest("tr").querySelector(".multi-select-container");
         const selected = Array.from(container.querySelectorAll("input:checked")).map(c => c.value);
         await updateDoc(doc(db, "approvedUsers", btn.dataset.id), { section: selected.length ? selected : ["No Section"] });
-        toggleLoading(false);
+        draftSections.delete(btn.dataset.id);
         alert("Updated!");
-    }));
-}
+    } catch (error) {
+        console.error("Section assignment failed:", error);
+        alert("The section assignment could not be saved. Please try again.");
+    } finally {
+        toggleLoading(false);
+    }
+});
 
 removeUsersBtn?.addEventListener("click", async () => {
     const selected = Array.from(document.querySelectorAll(".approvedCheck:checked"));
@@ -763,7 +814,10 @@ removeUsersBtn?.addEventListener("click", async () => {
 });
 
 document.getElementById('selectAllApproved')?.addEventListener('change', e => {
-    document.querySelectorAll('.approvedCheck').forEach(cb => cb.checked=e.target.checked);
+    document.querySelectorAll('.approvedCheck').forEach(cb => {
+        cb.checked = e.target.checked;
+        e.target.checked ? checkedRows.add(cb.dataset.id) : checkedRows.delete(cb.dataset.id);
+    });
 });
 
 // --- MULTI-SELECT HELPER ---

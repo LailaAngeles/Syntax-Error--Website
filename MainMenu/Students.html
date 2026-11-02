@@ -8,27 +8,22 @@
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <title>SyntaxError Analytics | Students</title>
+        <title>Students | SyntaxError</title>
 
         <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Orbitron:wght@700;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
         <link rel="stylesheet" href="dashboard.css">
-    <link rel="stylesheet" href="student-level-attempts.css">
     <link rel="stylesheet" href="student-analysis-modern.css">
     <link rel="stylesheet" href="modern-enhancements.css">
     <link rel="stylesheet" href="student-ui-polish.css">
-    <link rel="stylesheet" href="qa-learning-insights.css">
 
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
         <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
-        <script defer src="student-level-attempts.js"></script>
-        <script defer src="qa-learning-insights.js"></script>
-        <script defer src="student-analysis-modern.js"></script>
-        <script type="module" src="Students.js"></script><link rel="stylesheet" href="topic-time-errors.css"><link rel="stylesheet" href="terms-gate.css"><script type="module" src="terms-gate.js"></script>
+        <script type="module" src="Students.js"></script><link rel="stylesheet" href="data-analysis.css"><link rel="stylesheet" href="terms-gate.css"><script type="module" src="terms-gate.js"></script>
 
     </head>
 
@@ -76,6 +71,7 @@
 
             </li>
 
+            <li><a href="../help.html" target="_blank" rel="noopener" title="Open the user manual in a new tab"><i class="bi bi-question-circle"></i> <span>Help</span></a></li>
             <li onclick="showLogoutPopup()">
 
                 <a href="#"><i class="bi bi-box-arrow-right"></i> <span>LogOut</span></a>
@@ -98,7 +94,7 @@
 
                 <div>
 
-                    <h1>Student Progress Management</h1>
+                    <h1>Student Progress Management <span class="da-live" title="Updates automatically when the game saves new records"><span></span> Live</span></h1>
 
                     <p>Current Sections: <span id="user-section">Loading...</span></p>
 
@@ -168,126 +164,56 @@
 
 
 
-        <!-- STAT & CHART SECTION -->
-
-    <div class="stat-cards stat-cards-responsive">
-
-
-
-        <!-- Online / Total Students Card -->
-
-        <div class="card stat" style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px;">
-
-            <h3>Online Students</h3>
-
-            <h2 style="font-size: 2rem; color: var(--stat-icon, #3b82f6);">
-
-                <span id="online-count">0</span> / <span id="card-total-students">0</span>
-
-            </h2>
-
-            <p style="font-size: 0.8rem; color: var(--text-muted);">Online / Total Students</p>
-
-        </div>
-
-
-
-        <!-- Section Game Difficulty Pie Chart -->
-
-        <div class="card" style="padding: 16px;">
-
-            <h3>Section Hardest Concepts</h3>
-
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
-
-                Students struggling per concept in selected section
-
-            </p>
-
-            <div style="position: relative; height: 200px; width: 100%;">
-
-                <canvas id="sectionPieChart"></canvas>
-
-            </div>
-
-        </div>
-
-
-
-        <!-- Overall Section Comparison Column Chart -->
-
-        <div class="card" style="padding: 16px;">
-
-            <h3>Overall Comparison</h3>
-
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
-
-                Students facing issues per concept across all sections
-
-            </p>
-
-            <div style="position: relative; height: 200px; width: 100%;">
-
-                <canvas id="overallColumnChart"></canvas>
-
-            </div>
-
-        </div>
-
-
-
-
-
-
-
+    <!-- Factual counts for the selected section -->
+    <div class="da-kpis students-kpis">
+        <div class="da-kpi"><span><i class="bi bi-people"></i> Students</span><strong id="card-total-students">0</strong><small>In the selected section</small></div>
+        <div class="da-kpi da-kpi-level"><span><i class="bi bi-wifi"></i> Online</span><strong id="online-count">0</strong><small>As reported by the game right now</small></div>
+        <div class="da-kpi da-kpi-time"><span><i class="bi bi-controller"></i> Started playing</span><strong id="started-count">0</strong><small>Have at least one game record</small></div>
+        <div class="da-kpi da-kpi-error"><span><i class="bi bi-hourglass"></i> Not started</span><strong id="not-started-count">0</strong><small>No game records yet</small></div>
     </div>
-
-
-
-
-
-
 
     <div class="card student-table-card">
 
 
 
-        <div class="student-table-search">
-
-            <i class="bi bi-search" aria-hidden="true"></i>
-
-
-
-            <input type="text" id="search-student" placeholder="Search by name or ID...">
-
+        <div class="student-table-tools">
+            <div class="student-table-search">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <input type="text" id="search-student" placeholder="Search by name or ID...">
+            </div>
+            <label class="da-filter" for="student-filter">Show
+                <select id="student-filter">
+                    <option value="all">All students</option>
+                    <option value="started">Started playing</option>
+                    <option value="notstarted">Not started</option>
+                    <option value="online">Online (reported by the game)</option>
+                </select>
+            </label>
+            <label class="da-filter" for="student-sort">Sort by
+                <select id="student-sort">
+                    <option value="name">Name (A–Z)</option>
+                    <option value="levels-desc">Most levels completed</option>
+                    <option value="levels-asc">Fewest levels completed</option>
+                    <option value="wrong-desc">Most wrong submissions</option>
+                    <option value="time-desc">Most time recorded</option>
+                    <option value="recent">Most recent activity</option>
+                </select>
+            </label>
+            <button type="button" class="da-btn" id="export-students-csv"><i class="bi bi-download"></i> Export CSV</button>
         </div>
-
-
-
+        <p class="student-table-count" id="table-results"></p>
         <div class="table-responsive">
-
-            <table>
-
+            <table class="students-data-table">
                 <thead>
-
                     <tr>
-
-                        <th>Student ID</th>
-
-                        <th>Full Name</th>
-
-                        <th>Game Progress</th>
-
-                        <th>Status</th>
-
+                        <th>Student</th>
+                        <th>Levels completed</th>
+                        <th>Time recorded</th>
+                        <th>Wrong submissions</th>
+                        <th>Last activity</th>
                         <th>Action</th>
-
                     </tr>
-
                 </thead>
-
-
-
                 <tbody id="students-table">
 
                     <tr>
@@ -739,369 +665,27 @@
     <!-- STUDENT DETAILS MODAL -->
 
     <div id="student-details-modal" class="modal-overlay" style="display: none;">
-
-        <div class="student-modal-box">
-
-
-
-            <!-- Close Button -->
-
-            <button onclick="closeStudentModal()" class="close-student-btn" aria-label="Close Modal">&times;</button>
-
-
-
-            
+        <div class="student-modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-student-name">
+            <button onclick="closeStudentModal()" class="close-student-btn" aria-label="Close student record">&times;</button>
             <div class="modal-grid-container">
-
-
-
-                <!-- LEFT COLUMN: Quick Stats -->
-
+                <!-- LEFT: who the student is and their key numbers (pinned at the top-left) -->
                 <div class="modal-left-col">
-
-
-
                     <div class="student-info-header">
-
                         <h2 id="modal-student-name">Student Name</h2>
-
                         <p id="modal-student-id">0000000000</p>
-
+                        <p id="modal-student-section">Section: --</p>
                         <p id="modal-student-birthday">Birthday: --</p>
-
                     </div>
-
-
-
-                    <!-- Status Highlight Card -->
-
-                    <div id="status-card" class="side-stat-card status-box">
-
-                        <div class="icon-circle">
-
-                            <i class="bi bi-check-lg"></i>
-
-                        </div>
-
-                        <div>
-
-                            <strong id="modal-status-title">Good Progress</strong>
-
-                            <p id="modal-short-summary">Proceeding with manageable difficulty.</p>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- Progress Card -->
-
-                    <div class="side-stat-card">
-
-                        <div class="icon-wrap text-red">
-
-                            <i class="bi bi-x-circle"></i>
-
-                        </div>
-
-                        <div>
-
-                            <span>Progress</span>
-
-                            <h4 id="modal-progress">0%</h4>
-
-                        </div>
-
-                    </div>
-
-
-
-                <!-- Ranking for this student, directly below Difficulty Score -->
-                <section class="student-topic-ranking" aria-labelledby="student-topic-ranking-title">
-                                        <div class="student-topic-ranking-head">
-                                            <div>
-                                                <h3 id="student-topic-ranking-title"><i class="bi bi-bar-chart-steps"></i> Topic Difficulty Ranking</h3>
-                                                <p>Difficulty score and incorrect submissions per topic (latest recorded attempts)</p>
-                                            </div>
-                                            <span class="student-topic-ranking-sort">Hardest to Easiest</span>
-                                        </div>
-                                        <div id="student-topic-ranking-list" class="student-topic-ranking-list" aria-live="polite">
-                                            <p class="student-topic-ranking-empty">Select a student to view topic ranking.</p>
-                                        </div>
-                                    </section>
-
-                <section class="student-level-attempts" aria-label="Individual student level attempt times">
-                    <div class="student-level-heading">
-                        <h3><i class="bi bi-clock-history"></i> Level Times & Attempts</h3>
-                        <p>Levels 1–19 · Times recorded in Firebase for this student</p>
-                    </div>
-                    <div id="student-level-attempts-list" class="student-level-attempts-list" aria-live="polite"></div>
-                </section>
-
+                    <div id="student-summary"></div>
+                    <p class="student-summary-note">Levels light up from the completion markers the game saves. Times and wrong submissions add up every attempt.</p>
                 </div>
-
-                <!-- RIGHT COLUMN: Chart & Detailed Analysis -->
-
+                <!-- RIGHT: charts, attempt history and error messages -->
                 <div class="modal-right-col">
-
-                    <div class="analysis-overview-banner"><span class="analysis-overview-eyebrow"><i class="bi bi-activity"></i> STUDENT PERFORMANCE / LIVE FIRESTORE</span><h2>Learning Insights</h2><p>Review progress, difficulty by C# topic, and changes across recorded attempts.</p><div class="analysis-jump-links"><button type="button" data-jump="student-topic-ranking-title"><i class="bi bi-list-ol"></i> Topic ranking</button><button type="button" data-jump="student-level-attempts-list"><i class="bi bi-clock-history"></i> Level history</button><button type="button" data-jump="attemptProgressChart"><i class="bi bi-graph-up-arrow"></i> Attempt trends</button></div></div>
-                    <section class="qa-top-section" aria-label="Student learning analysis"><div class="qa-anchor"><div id="qa-learning-insights" class="qa-insights" aria-live="polite"><p>Open a student record to review evidence quality.</p></div></div></section>
-
-                    <section id="stte-section" class="chart-section" aria-labelledby="stte-title">
-                        <div class="tte-head">
-                            <div>
-                                <span class="tte-eyebrow">DATA ANALYSIS BY TOPIC</span>
-                                <h3 id="stte-title">Time Spent and Errors per Topic</h3>
-                                <p>What this student's game records show, across all attempts.</p>
-                            </div>
-                        </div>
-                        <div class="stte-stats">
-                            <div><span>Total time</span><strong id="stte-total-time">--</strong></div>
-                            <div><span>Wrong submissions</span><strong id="stte-total-errors">--</strong></div>
-                            <div><span>Topics played</span><strong id="stte-topics">0</strong></div>
-                        </div>
-                        <div class="tte-charts">
-                            <figure class="tte-chart tte-chart-time">
-                                <figcaption><strong><i class="bi bi-hourglass-split"></i> Time spent per topic</strong><span>Total minutes this student spent on each topic. Longer bar = more time.</span></figcaption>
-                                <div class="tte-canvas"><canvas id="stteTimeChart" role="img" aria-label="Bar chart of minutes spent on each topic"></canvas></div>
-                                <p class="tte-summary" id="stte-time-summary"></p>
-                            </figure>
-                            <figure class="tte-chart tte-chart-error">
-                                <figcaption><strong><i class="bi bi-bug"></i> Errors per topic</strong><span>Wrong submissions this student made in each topic. Longer bar = more errors.</span></figcaption>
-                                <div class="tte-canvas"><canvas id="stteErrorChart" role="img" aria-label="Bar chart of wrong submissions in each topic"></canvas></div>
-                                <p class="tte-summary" id="stte-error-summary"></p>
-                            </figure>
-                        </div>
-                        <p id="stte-empty" class="tte-empty" hidden><i class="bi bi-inbox"></i> No game records for this student yet. This fills in after they finish a level in the mobile game.</p>
-                        <div class="tte-lower">
-                            <div>
-                                <h4>Per topic</h4>
-                                <p class="tte-hint">Topics with the most wrong submissions are listed first.</p>
-                                <div class="tte-table-wrap">
-                                    <table class="tte-table">
-                                        <thead><tr><th>Topic</th><th>Time spent</th><th>Wrong submissions</th><th>Attempts</th></tr></thead>
-                                        <tbody id="stte-breakdown"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div>
-                                <h4>This student's most common errors</h4>
-                                <p class="tte-hint">Messages the game showed when an answer was wrong.</p>
-                                <ol id="stte-errors" class="tte-errors"></ol>
-                            </div>
-                        </div>
-                    </section>
-
-
-
-                    <!-- CHART SECTION -->
-
-                    <div class="chart-section">
-
-                        <div class="chart-header">
-
-                            <h3>Topic Difficulty Overview</h3>
-
-                            <div class="chart-legend">
-
-                                <span><span class="dot easy"></span> Low (0–3)</span>
-
-                                <span><span class="dot moderate"></span> Medium (4–6)</span>
-
-                                <span><span class="dot hard"></span> High (7+)</span>
-
-                            </div>
-
-                        </div>
-
-
-
-                        <!-- Responsive Container for Chart -->
-
-                        <div class="student-chart-box" style="min-height: 300px;">
-
-                            <canvas id="modalDifficultyChart"></canvas>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- LEARNING PROGRESS BY ATTEMPT -->
-
-                    <div class="chart-section attempt-progress-section">
-
-                        <div class="attempt-progress-header">
-
-                            <div class="attempt-progress-title">
-
-                                <h3>Learning Progress by Attempt</h3>
-
-                                <p>Compare incorrect code submissions across the recorded attempts for a selected topic.</p>
-
-                            </div>
-
-
-
-                            <div class="attempt-subject-control">
-
-                                <label for="attempt-subject-select">Main Subject:</label>
-
-                                <select id="attempt-subject-select">
-
-                                    <option value="">Select Subject</option>
-
-                                </select>
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div id="attempt-summary-cards" class="attempt-summary-cards">
-
-                            <div class="attempt-summary-card attempt-first-card">
-
-                                <span class="attempt-card-label">1st Attempt</span>
-
-                                <strong id="first-attempt-wrongs" class="attempt-card-value">--</strong>
-
-                                <small>Incorrect submissions</small>
-
-                            </div>
-
-
-
-                            <div class="attempt-summary-card attempt-second-card">
-
-                                <span class="attempt-card-label">2nd Attempt</span>
-
-                                <strong id="second-attempt-wrongs" class="attempt-card-value">--</strong>
-
-                                <small>Incorrect submissions</small>
-
-                            </div>
-
-
-
-                            <div class="attempt-summary-card attempt-third-card">
-
-                                <span class="attempt-card-label">3rd Attempt</span>
-
-                                <strong id="third-attempt-wrongs" class="attempt-card-value">--</strong>
-
-                                <small>Incorrect submissions</small>
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div id="attempt-improvement-summary" class="attempt-improvement-summary">
-
-                            Select a main subject to view the student's improvement.
-
-                        </div>
-
-
-
-                        <div class="student-chart-box attempt-chart-box">
-
-                            <canvas id="attemptProgressChart"></canvas>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- BOTTOM GRID LAYOUT -->
-
-                    <div class="analysis-bottom-grid">
-
-
-
-                        <!-- Learning Analysis Box -->
-
-                        <div class="analysis-card">
-
-                            <h3><i class="bi bi-diagram-3"></i> Concept-Level Breakdown</h3>
-
-                            <p class="analysis-subtext">Granular view of student errors per concept</p>
-
-
-
-                            <div id="modal-concept-breakdown" class="concept-scroll-box">
-
-                                <p class="empty-concept-text">Select a student to view concept performance.</p>
-
-                            </div>
-
-                        </div>
-
-
-
-                        <!-- Key Indicators Box -->
-
-                        <div class="analysis-card key-indicators-card">
-
-                            <h3><i class="bi bi-lightning-charge"></i> Key Indicators</h3>
-
-
-
-                            <div class="indicator-item">
-
-                                <span>Weakest Topic:</span>
-
-                                <strong id="modal-weakest-topic">--</strong>
-
-                            </div>
-
-
-
-                            <div class="indicator-item">
-
-                                <span>Performance:</span>
-
-                                <span id="modal-performance-text" class="status-badge">On Track</span>
-
-                            </div>
-
-                            <div class="indicator-evidence" id="modal-performance-evidence" aria-live="polite">
-                                Select a student to view the Firebase evidence behind this status.
-                            </div>
-
-                            
-
-                            <div class="indicator-item indicator-method-row">
-                                <span>Evaluation rule</span>
-                                <span>7+ latest incorrect submissions = At Risk</span>
-
-                            </div>
-
-                        </div>
-
-
-
-                    </div>
-
-
-
+                    <div id="student-detail" data-da-detail></div>
                 </div>
-
-
-
             </div>
-
         </div>
-
     </div>
-
-
 
     <div id="loading-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
 

@@ -85,3 +85,6 @@
 #teacher-section-assignment .teacher-step-two p{font-size:.84rem;line-height:1.5;color:var(--text-muted,#64748b)}
 .teacher-id-col strong{display:block;font-weight:650}
 .teacher-id-col small{display:block;color:var(--text-muted,#64748b);font-size:.78rem;overflow-wrap:anywhere}
+
+/* Teacher password reset popup */
+.reset-explainer { margin: 12px 0 4px; font-size: .84rem; line-height: 1.55; color: var(--sa-muted, #64748b); }
