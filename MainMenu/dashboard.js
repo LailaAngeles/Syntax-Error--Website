@@ -3,6 +3,7 @@ import { getFirestore, collection, onSnapshot, query, where } from "https://www.
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 import { renderClassOverview, downloadCsv, studentCsvRows, STUDENT_CSV_HEADER } from "./record-analysis.js";
 import { expireStaleCodes } from "./level-codes.js";
+import { isCurrentSection, closedYearNotice, watchSchoolYears } from "./school-years.js";
 
 // ----------------------------
 // CONFIG & INITIALIZATION
@@ -32,12 +33,14 @@ let allStudentsData = [];
 let mySections = [];
 let unsubscribeTeacher = null;
 let unsubscribeSections = null;
+let unsubscribeYears = null;
 const teacherClassListeners = new Map();
 const teacherClassData = new Map();
 
 function stopTeacherListeners() {
     if (unsubscribeTeacher) { unsubscribeTeacher(); unsubscribeTeacher = null; }
     if (unsubscribeSections) { unsubscribeSections(); unsubscribeSections = null; }
+    if (unsubscribeYears) { unsubscribeYears(); unsubscribeYears = null; }
     teacherClassListeners.forEach(stop => stop());
     teacherClassListeners.clear();
     teacherClassData.clear();
@@ -100,10 +103,11 @@ async function loadTeacherDashboard(user) {
 
     let assignedSections = [];
     let sectionsSnapshot = null;
+    let schoolYears = null;
     let codesCleaned = false;
 
     function syncTeacherSections() {
-        if (!sectionsSnapshot) return;
+        if (!sectionsSnapshot || !schoolYears) return;
         const select = document.getElementById("section-select");
         const previousSelection = select?.value || "";
         if (select) select.innerHTML = '<option value="">All my sections</option>';
@@ -111,7 +115,8 @@ async function loadTeacherDashboard(user) {
 
         sectionsSnapshot.forEach(sDoc => {
             const name = sDoc.data().name;
-            if (!assignedSections.includes(name)) return;
+            // Only this school year's sections; same-named sections of past years are history.
+            if (!assignedSections.includes(name) || !isCurrentSection(sDoc.data(), schoolYears)) return;
             wanted.set(sDoc.id, name);
             if (select) select.add(new Option(name, name));
         });
@@ -141,6 +146,9 @@ async function loadTeacherDashboard(user) {
             if (name) students.forEach(student => { student.section = name; });
         });
         renderLiveTeacherData();
+        const closed = closedYearNotice(schoolYears);
+        const display = document.getElementById("user-section-display");
+        if (display && closed) display.textContent = closed;
         if (loader) loader.style.display = "none";
         // Level codes whose 5 minutes ran out while no page was open: expire them so they cannot be used.
         if (!codesCleaned && wanted.size) {
@@ -159,6 +167,7 @@ async function loadTeacherDashboard(user) {
         syncTeacherSections();
     }, error => { console.error("Teacher permission listener error:", error); if (loader) loader.style.display = "none"; });
 
+    unsubscribeYears = watchSchoolYears(db, years => { schoolYears = years; syncTeacherSections(); });
     unsubscribeSections = onSnapshot(collection(db, "sections"), snap => {
         sectionsSnapshot = snap;
         syncTeacherSections();

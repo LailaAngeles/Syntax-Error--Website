@@ -17,6 +17,7 @@ import {
     signOut,
     sendPasswordResetEmail // Added for password reset functionality
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import { activeYear, isCurrentSection, watchSchoolYears } from "../MainMenu/school-years.js";
 
 // Firebase Config
 const firebaseConfig = {
@@ -146,6 +147,28 @@ const confirmEditSections = editSectionModal.querySelector("#confirmEditSections
 const cancelEditSections = editSectionModal.querySelector("#cancelEditSections");
 
 let sections = [{ id: null, name: "No Section" }];
+// School years: Manage Sections and Step 2 work on the active year's sections only. Sections of
+// ended years stay untouched as history. Without any school year, everything works as before.
+let schoolYears = [];
+let sectionSnapshot = null;
+const currentYear = () => activeYear(schoolYears);
+function applySections(snapshot) {
+    sectionSnapshot = snapshot;
+    sections = [{ id: null, name: "No Section" }];
+    snapshot.forEach(docSnap => {
+        if (isCurrentSection(docSnap.data(), schoolYears)) sections.push({ id: docSnap.id, name: docSnap.data().name });
+    });
+}
+// New sections belong to the active year. Returns false (after telling the admin) when no year is open.
+function newSectionFields(name) {
+    if (!schoolYears.length) return { name };
+    const year = currentYear();
+    if (!year) {
+        showNotice("No school year is active. Start a school year first (Manage School Years > View School Years).", "No Active School Year");
+        return null;
+    }
+    return { name, schoolYearId: year.id };
+}
 
 // --- UTILS ---
 async function showCustomConfirm(message) {
@@ -169,9 +192,7 @@ async function showCustomConfirm(message) {
 }
 
 async function loadSections() {
-    const snapshot = await getDocs(collection(db, "sections"));
-    sections = [{ id: null, name: "No Section" }];
-    snapshot.forEach(docSnap => sections.push({ id: docSnap.id, name: docSnap.data().name }));
+    applySections(await getDocs(collection(db, "sections")));
 }
 
 // --- USER ARCHIVE (CHECKBOX RESTORE / PERMANENT DELETE) ---
@@ -421,9 +442,12 @@ archiveSectionBtn?.addEventListener("click", async () => {
                 info.append(name);
                 const btn=document.createElement('button');btn.type='button';btn.className='sa-section-primary';btn.innerHTML='<i class="bi bi-arrow-counterclockwise"></i> Restore';
                 btn.addEventListener('click',async()=>{
+                    const fields=newSectionFields(entry.name);
+                    if(!fields)return;
+                    if(sections.some(s=>s.id&&String(s.name).toLowerCase()===String(entry.name||'').toLowerCase()))return showNotice(`A section named "${entry.name}" already exists in this school year.`,'Already Exists');
                     if(!(await showCustomConfirm(`Restore section "${entry.name||'Unnamed section'}"?`)))return;
                     toggleLoading(true);
-                    try{await setDoc(doc(collection(db,'sections')),{name:entry.name});await deleteDoc(doc(db,'archivedSections',entry.id));
+                    try{await setDoc(doc(collection(db,'sections')),fields);await deleteDoc(doc(db,'archivedSections',entry.id));
                         viewArchiveModal.classList.add('hidden');await initializeDashboard();}
                     catch(error){console.error(error);await showNotice('Could not restore section: '+error.message);}
                     finally{toggleLoading(false);}
@@ -441,6 +465,7 @@ closeArchiveView?.addEventListener("click", () => viewArchiveModal.classList.add
 
 // --- SECTION MANAGEMENT ---
 addSectionBtn?.addEventListener("click", () => {
+    if (schoolYears.length && !currentYear()) { newSectionFields(""); return; }
     sectionInput.value = "";
     sectionModal.classList.remove("hidden");
 });
@@ -450,10 +475,12 @@ saveSectionBtn?.addEventListener("click", async () => {
     if (!name) return alert("Enter section name");
 
     const isDuplicate = sections.some(s => s.name.toLowerCase() === name.toLowerCase());
-    if (isDuplicate) return alert(`The section "${name}" already exists!`);
+    if (isDuplicate) return alert(`The section "${name}" already exists${currentYear() ? " in this school year" : ""}!`);
+    const fields = newSectionFields(name);
+    if (!fields) return;
 
     toggleLoading(true);
-    await setDoc(doc(collection(db, "sections")), { name });
+    await setDoc(doc(collection(db, "sections")), fields);
     sectionModal.classList.add("hidden");
     await initializeDashboard();
     toggleLoading(false);
@@ -507,7 +534,10 @@ confirmEditSections?.addEventListener("click", async () => {
             let userSections = userData.section || [];
             if (userSections.includes(oldName)) {
                 const updatedSections = userSections.map(s => s === oldName ? newName : s);
-                return updateDoc(doc(db, "approvedUsers", userDoc.id), { section: updatedSections });
+                const year = currentYear();
+                return updateDoc(doc(db, "approvedUsers", userDoc.id), year
+                    ? { section: updatedSections, [`sectionsByYear.${year.id}`]: updatedSections.filter(s => s !== "No Section") }
+                    : { section: updatedSections });
             }
         });
         await Promise.all(updatePromises);
@@ -700,9 +730,13 @@ async function initializeDashboard() {
     toggleLoading(true);
     let firstSections = true, firstUsers = true;
     const done = () => { if (!firstSections && !firstUsers) toggleLoading(false); };
+    watchSchoolYears(db, list => {
+        schoolYears = list;
+        if (sectionSnapshot) applySections(sectionSnapshot);
+        renderApprovedUsers();
+    });
     onSnapshot(collection(db, "sections"), snapshot => {
-        sections = [{ id: null, name: "No Section" }];
-        snapshot.forEach(docSnap => sections.push({ id: docSnap.id, name: docSnap.data().name }));
+        applySections(snapshot);
         renderApprovedUsers();
         firstSections = false; done();
     }, error => { console.error("Sections listener error:", error); firstSections = false; done(); });
@@ -770,12 +804,19 @@ approvedTable.addEventListener("click", async event => {
     try {
         const container = btn.closest("tr").querySelector(".multi-select-container");
         const selected = Array.from(container.querySelectorAll("input:checked")).map(c => c.value);
-        await updateDoc(doc(db, "approvedUsers", btn.dataset.id), { section: selected.length ? selected : ["No Section"] });
+        const year = currentYear();
+        if (schoolYears.length && !year) throw new Error("No active school year");
+        const update = { section: selected.length ? selected : ["No Section"] };
+        // Kept per school year, so each year's teacher assignment stays on record.
+        if (year) update[`sectionsByYear.${year.id}`] = selected.filter(s => s !== "No Section");
+        await updateDoc(doc(db, "approvedUsers", btn.dataset.id), update);
         draftSections.delete(btn.dataset.id);
         alert("Updated!");
     } catch (error) {
         console.error("Section assignment failed:", error);
-        alert("The section assignment could not be saved. Please try again.");
+        alert(error?.message === "No active school year"
+            ? "No school year is active. Start the school year first (Manage School Years), then assign sections."
+            : "The section assignment could not be saved. Please try again.");
     } finally {
         toggleLoading(false);
     }

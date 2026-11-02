@@ -4,6 +4,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 import { renderStudentSummary, renderStudentDetail, studentSummary, studentCsvRows, STUDENT_CSV_HEADER, downloadCsv, fmtDate } from "./record-analysis.js";
+import { isCurrentSection, closedYearNotice, watchSchoolYears } from "./school-years.js";
 import { checkStudentNumber, checkName, checkMiddleInitial, formatMiddleInitial, checkFullName, checkEmail, checkBirthday, birthdayBounds, cleanSpaces, showFieldError } from "./student-rules.js";
 
 // 1. FIREBASE CONFIG
@@ -32,12 +33,15 @@ let currentUserSection = [];
 let sectionDocMapping = {};
 let unsubscribeStudentUser = null;
 let unsubscribeStudentSections = null;
+let unsubscribeStudentYears = null;
+let studentSchoolYears = null;
 const studentClassListeners = new Map();
 const studentClassSnapshots = new Map();
 
 function stopStudentRealtimeListeners() {
     if (unsubscribeStudentUser) { unsubscribeStudentUser(); unsubscribeStudentUser = null; }
     if (unsubscribeStudentSections) { unsubscribeStudentSections(); unsubscribeStudentSections = null; }
+    if (unsubscribeStudentYears) { unsubscribeStudentYears(); unsubscribeStudentYears = null; }
     studentClassListeners.forEach(stop => stop());
     studentClassListeners.clear();
     studentClassSnapshots.clear();
@@ -145,12 +149,17 @@ async function getUserData(user) {
     let sectionSnapshot = null;
 
     function syncAssignedSections() {
-        if (!sectionSnapshot) return;
+        if (!sectionSnapshot || !studentSchoolYears) return;
+        const closed = closedYearNotice(studentSchoolYears);
+        const display = document.getElementById("user-section");
+        if (display) display.textContent = closed || currentUserSection.join(", ");
         const selected = select?.value || "";
         sectionDocMapping = {};
         if (select) select.innerHTML = '<option value="">-- All My Sections --</option>';
         sectionSnapshot.forEach(d => {
             const name = d.data().name;
+            // Only this school year's sections; same-named sections of past years are history.
+            if (!isCurrentSection(d.data(), studentSchoolYears)) return;
             sectionDocMapping[name] = d.id;
             if (currentUserSection.includes(name) && select) {
                 const opt = document.createElement("option");
@@ -172,6 +181,7 @@ async function getUserData(user) {
         syncAssignedSections();
     }, error => console.error("Error listening for user sections:", error));
 
+    unsubscribeStudentYears = watchSchoolYears(db, years => { studentSchoolYears = years; syncAssignedSections(); });
     unsubscribeStudentSections = onSnapshot(collection(db, "sections"), snap => {
         sectionSnapshot = snap;
         syncAssignedSections();

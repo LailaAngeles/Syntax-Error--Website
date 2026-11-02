@@ -1,0 +1,28 @@
+// School years: Firestore rules to add (Firebase console > Firestore > Rules), inside
+// `match /databases/{database}/documents { ... }`. Not deployed by the website.
+//
+// The website now reads and writes the schoolYears collection. If your current rules only list
+// specific collections (no open `match /{document=**}` rule), add this block or the
+// Manage School Years menu shows "permission denied" and the pages fall back to showing all sections.
+//
+// Who may write: the Super Admin signs in with the email PIN, not Firebase Authentication, so the
+// rules cannot tell the Super Admin apart from a visitor. Use the same condition your rules already
+// use for writing the `sections` collection, so school years are exactly as protected as sections.
+
+    match /schoolYears/{yearId} {
+      // Teacher pages, Super Admin pages (and later the game) read the active year.
+      allow read: if true;
+      // Replace `true` with the condition your rules use for writes to /sections/{id}.
+      allow create, update: if true
+        && request.resource.data.status in ['upcoming', 'active', 'completed', 'archived']
+        && request.resource.data.startYear is int
+        && request.resource.data.endYear == request.resource.data.startYear + 1;
+      // Only a year that never started can be removed; started years are history.
+      allow delete: if resource.data.status == 'upcoming';
+    }
+
+// Fields added to existing documents (no new rules needed if those documents are already writable):
+//   sections/{id}.schoolYearId, .teachers, .studentCount, .closedAt, .reusedFromSection
+//   approvedUsers/{uid}.sectionsByYear.{yearId}
+//   sections/{id}/classList/{student}: schoolYearId, gradeLevel, enrolledAt, previousRecord (new record)
+//                                      movedTo, recordEmail, formerUid (old record after a move)

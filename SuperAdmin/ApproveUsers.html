@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="superadmin-section-archive-redesign.css">
     <link rel="stylesheet" href="superadmin-section-archive-compact.css">
     <link rel="stylesheet" href="teacher-onboarding.css">
+    <link rel="stylesheet" href="school-years.css">
 </head>
 <body>
 <div class="dashboard">
@@ -36,7 +37,7 @@
 
         <!-- HEADER -->
         <div class="header">
-            <h1>Approve Users</h1>
+            <h1>Approve Users <span id="syActiveBadge" class="sy-badge" hidden></span></h1>
              <div class="panel-header">
 
            <div class="controls-wrapper">
@@ -58,6 +59,15 @@
             <button id="removeUsersBtn" class="reject">Remove Users</button>
         </div>
     </div>
+
+    <div class="dropdown">
+        <button class="dropbtn">Manage School Years <i class="bi bi-chevron-down"></i></button>
+        <div class="dropdown-content">
+            <button id="syCreateBtn">Create School Year</button>
+            <button id="syViewBtn">View School Years</button>
+            <button id="syMoveBtn">Move Students to New Year</button>
+        </div>
+    </div>
 </div>
         </div>
      </div>
@@ -67,8 +77,8 @@
         <div class="teacher-card-heading">
             <div>
                 <span class="teacher-eyebrow">TEACHER ACCOUNT MANAGEMENT · STEP 1 OF 2</span>
-                <h2><span class="teacher-step-num">1</span> Create teacher account</h2>
-                <p>Create the teacher's login. Then assign their section(s) in Step 2 below. The teacher signs in with this email and default password, then must accept the Terms and Privacy Notice before using the dashboard.</p>
+                <h2><span class="teacher-step-num">1</span> Add teacher account</h2>
+                <p>Add a teacher. Then assign their section(s) in Step 2 below. The teacher signs in with this email and default password, then must accept the Terms and Privacy Notice before using the dashboard.</p>
             </div>
             <div class="teacher-heading-icon"><i class="bi bi-person-plus"></i></div>
         </div>
@@ -86,7 +96,7 @@
             </div>
             <div class="teacher-form-footer">
                 <p id="teacherCreateMessage" role="status" aria-live="polite"></p>
-                <button type="submit" id="createTeacherButton"><i class="bi bi-person-check"></i> Create Teacher</button>
+                <button type="submit" id="createTeacherButton"><i class="bi bi-person-check"></i> Add Teacher</button>
             </div>
         </form>
     </section>
@@ -97,6 +107,7 @@
                 <span class="teacher-eyebrow">TEACHER ACCOUNT MANAGEMENT · STEP 2 OF 2</span>
                 <h2><span class="teacher-step-num">2</span> Assign sections</h2>
                 <p>Tick the section(s) each teacher handles, then click <strong>Save</strong> on that row. New teachers start with <strong>No Section</strong> and see no students until a section is assigned.</p>
+                <p class="sy-step-note" id="syStep2Year"></p>
             </div>
         </div>
         <div class="table-container">
@@ -119,7 +130,7 @@
 <!-- SECTION MODAL -->
 <div id="sectionModal" class="modal hidden">
     <div class="modal-box sa-section-dialog">
-        <div class="sa-section-heading"><div class="sa-section-icon"><i class="bi bi-folder-plus"></i></div><div><span class="sa-section-eyebrow">MANAGE SECTIONS</span><h3>Add New Section</h3><p>Create a section that can be assigned to approved users.</p></div></div>
+        <div class="sa-section-heading"><div class="sa-section-icon"><i class="bi bi-folder-plus"></i></div><div><span class="sa-section-eyebrow">MANAGE SECTIONS</span><h3>Add New Section</h3><p>Add a section that can be assigned to approved users.</p></div></div>
         <label class="sa-section-input-label" for="sectionInput">SECTION NAME</label>
         <input type="text" id="sectionInput" placeholder="e.g. ICT1202" autocomplete="off" />
         <p class="sa-section-input-help"><i class="bi bi-info-circle"></i> Enter a unique section name to avoid duplicates.</p>
@@ -237,7 +248,7 @@
 <div id="teacherConfirmModal" class="teacher-confirm-overlay" hidden>
     <div class="teacher-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="teacherConfirmTitle">
         <div class="teacher-confirm-icon"><i class="bi bi-person-plus"></i></div>
-        <h2 id="teacherConfirmTitle">Create this teacher account?</h2>
+        <h2 id="teacherConfirmTitle">Add this teacher account?</h2>
         <p>Check the details below. A Firebase login and a teacher record will be created.</p>
         <dl class="teacher-confirm-details">
             <div><dt>Name</dt><dd id="teacherConfirmName"></dd></div>
@@ -246,7 +257,7 @@
         <p class="teacher-confirm-note">Give the default password to the teacher privately.</p>
         <div class="teacher-confirm-actions">
             <button type="button" id="teacherConfirmCancel">Cancel</button>
-            <button type="button" id="teacherConfirmYes"><i class="bi bi-check-circle"></i> Yes, Create Teacher</button>
+            <button type="button" id="teacherConfirmYes"><i class="bi bi-check-circle"></i> Yes, Add Teacher</button>
         </div>
     </div>
 </div>
@@ -267,6 +278,7 @@
 </div>
 <script type="module" src="ApproveUser.js"></script>
 <script type="module" src="TeacherOnboarding.js"></script>
+<script type="module" src="SchoolYears.js"></script>
 <script>
     
     document.querySelectorAll('.dropbtn').forEach(button => {

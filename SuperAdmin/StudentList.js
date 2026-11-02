@@ -5,6 +5,7 @@ import {
     renderClassOverview, renderStudentSummary, renderStudentDetail, classSummary, studentSummary, topBy,
     downloadCsv, studentCsvRows, STUDENT_CSV_HEADER, fmtDate, safeText, TOTAL_LEVELS
 } from "../MainMenu/record-analysis.js";
+import { STATUS_LABEL, activeYear, sectionYearId, watchSchoolYears } from "../MainMenu/school-years.js";
 
 // ----------------------------
 // CONFIG & INITIALIZATION
@@ -59,6 +60,14 @@ window.logoutUser = async function() {
 // 1. DATA FETCHING (read-only, realtime)
 // ----------------------------
 let stopSectionList = null;
+// School years: one year is shown at a time, so records of different years never mix.
+let schoolYears = null;
+let sectionSnapshot = null;
+let teacherSnapshot = null;
+let sectionMeta = new Map();
+const yearFromLink = new URLSearchParams(location.search).get('year');
+const selectedYearId = () => document.getElementById('year-select')?.value || '';
+const selectedYear = () => (schoolYears || []).find(y => y.id === selectedYearId()) || null;
 const activeClassListeners = new Map();
 const latestClasses = new Map();
 let selectedStudentKey = null;
@@ -80,12 +89,36 @@ function fetchAllDatabaseContent() {
     toggleLoading(true);
     if (stopSectionList) stopSectionList();
     stopSectionList = onSnapshot(collection(db, 'sections'), snapshot => {
+        sectionSnapshot = snapshot;
+        syncSections();
+    }, err => { console.error('Sections listener error', err); toggleLoading(false); });
+    watchSchoolYears(db, years => { schoolYears = years; renderYearPicker(); syncSections(); });
+}
+
+function renderYearPicker() {
+    const picker = document.getElementById('year-picker');
+    const select = document.getElementById('year-select');
+    if (!picker || !select) return;
+    picker.hidden = !schoolYears.length;
+    const keep = select.value || yearFromLink || activeYear(schoolYears)?.id || schoolYears[0]?.id || '';
+    select.replaceChildren(...schoolYears.map(y => new Option(`${y.label} · ${STATUS_LABEL[y.status] || y.status}`, y.id)));
+    if (schoolYears.some(y => y.id === keep)) select.value = keep;
+}
+
+function syncSections() {
+    if (!sectionSnapshot || !schoolYears) return;
+    const snapshot = sectionSnapshot;
+    const yearId = selectedYearId();
+    {
         const wanted = new Map();
         const select = document.getElementById('section-select');
         const current = select?.value || '';
         if (select) select.innerHTML = '<option value="">All sections</option>';
+        sectionMeta = new Map();
         snapshot.forEach(d => {
+            if (schoolYears.length && sectionYearId(d.data(), schoolYears) !== yearId) return;
             const name = d.data().name || d.id;
+            sectionMeta.set(name, d.data());
             wanted.set(d.id, name);
             select?.add(new Option(name, name));
         });
@@ -107,29 +140,63 @@ function fetchAllDatabaseContent() {
                 latestClasses.get(id)?.forEach(s => { s.sectionName = name; s.section = name; });
             }
         }
+        buildTeachers();
+        renderYearNote();
         renderAll();
         toggleLoading(false);
-    }, err => { console.error('Sections listener error', err); toggleLoading(false); });
+    }
+}
+
+function renderYearNote() {
+    const note = document.getElementById('year-note');
+    const year = selectedYear();
+    if (!note) return;
+    note.hidden = !year || year.status === 'active';
+    if (year && year.status !== 'active') {
+        note.innerHTML = '<i class="bi bi-clock-history"></i>';
+        note.append(year.status === 'upcoming'
+            ? `School year ${year.label} has not started yet.`
+            : `You are viewing School Year ${year.label} (${STATUS_LABEL[year.status]}). These records are kept as history and are not changed.`);
+    }
 }
 window.addEventListener('pagehide', () => { stopSectionList?.(); activeClassListeners.forEach(stop => stop()); activeClassListeners.clear(); });
 
 // Teachers per section, from approvedUsers (names when available, otherwise the email).
 function listenToTeachers() {
     onSnapshot(collection(db, 'approvedUsers'), snapshot => {
-        const map = new Map();
-        snapshot.forEach(d => {
+        teacherSnapshot = snapshot;
+        buildTeachers();
+        renderAll();
+    }, err => console.error('Teacher listener error', err));
+}
+// Active year (or no school years): the teachers' current assignment. Ended years: the teachers
+// saved on each section when the year ended, or else the year's saved assignment.
+function buildTeachers() {
+    if (!teacherSnapshot) return;
+    const year = selectedYear();
+    const past = year && year.status !== 'active';
+    const map = new Map();
+    if (past) {
+        sectionMeta.forEach((data, name) => {
+            if (Array.isArray(data.teachers)) map.set(name, data.teachers.map(t => t.name || t.email).filter(Boolean));
+        });
+    }
+    {
+        teacherSnapshot.forEach(d => {
             const data = d.data();
             if (data.status && data.status !== 'approved') return;
             const label = data.name || data.email;
-            (Array.isArray(data.section) ? data.section : [data.section]).forEach(section => {
+            const assigned = past ? (data.sectionsByYear?.[year.id] || []) : data.section;
+            (Array.isArray(assigned) ? assigned : [assigned]).forEach(section => {
                 if (!section || section === 'No Section') return;
+                if (schoolYears?.length && !sectionMeta.has(section)) return;
+                if (past && Array.isArray(sectionMeta.get(section)?.teachers)) return;
                 if (!map.has(section)) map.set(section, []);
-                map.get(section).push(label);
+                if (!map.get(section).includes(label)) map.get(section).push(label);
             });
         });
-        teachersBySection = map;
-        renderAll();
-    }, err => console.error('Teacher listener error', err));
+    }
+    teachersBySection = map;
 }
 function teacherNames(sectionName) {
     const names = teachersBySection.get(sectionName) || [];
@@ -174,10 +241,17 @@ function renderTable(section) {
             <td><strong>${safeText(s.name || 'Unknown')}</strong><br><small style="color:var(--sa-muted)">${safeText(s.id || s.firebaseId)}</small></td>
             <td><span style="background:var(--sa-soft);border:1px solid var(--sa-line);padding:4px 10px;border-radius:20px;white-space:nowrap">${safeText(s.sectionName)}</span></td>
             <td><strong>${r.levels} of ${TOTAL_LEVELS}</strong><div style="width:100px;background:var(--sa-line);height:6px;border-radius:10px;margin-top:6px"><div style="width:${percent}%;background:#0f8a5f;height:100%;border-radius:10px"></div></div></td>
-            <td>${r.lastActivity ? fmtDate(r.lastActivity) : '<span style="color:var(--sa-muted)">No activity yet</span>'}${r.online ? '<br><small style="color:#15803d;font-weight:700">Online (reported by the game)</small>' : ''}</td>
+            <td>${r.lastActivity ? fmtDate(r.lastActivity) : '<span style="color:var(--sa-muted)">No activity yet</span>'}${movedNote(s)}${r.online ? '<br><small style="color:#15803d;font-weight:700">Online (reported by the game)</small>' : ''}</td>
             <td><button data-student-id="${safeText(s.firebaseId)}" data-section-id="${safeText(s.parentDocId)}" class="open-student-summary" style="background:#2563eb;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer">Details</button></td>
         </tr>`;
     }).join("");
+}
+
+// A record left behind when the student moved into a later school year.
+function movedNote(s) {
+    if (!s.movedTo) return '';
+    const year = (schoolYears || []).find(y => y.id === s.movedTo.schoolYearId);
+    return `<br><small style="color:var(--sa-muted)">Moved to ${safeText(s.movedTo.sectionName || 'a new section')}${year ? ' · S.Y. ' + safeText(year.label) : ''}</small>`;
 }
 
 function renderSectionOverview(selected) {
@@ -282,6 +356,12 @@ fetchAllDatabaseContent();
 listenToTeachers();
 
 document.getElementById("section-select")?.addEventListener("change", renderAll);
+document.getElementById("year-select")?.addEventListener("change", () => {
+    const section = document.getElementById("section-select");
+    if (section) section.value = "";
+    closeStudentSummary();
+    syncSections();
+});
 document.getElementById("search-student")?.addEventListener("input", () => renderTable(selectedSection()));
 document.getElementById('students-table')?.addEventListener('click', (event) => {
     const button = event.target.closest('.open-student-summary');
@@ -290,5 +370,6 @@ document.getElementById('students-table')?.addEventListener('click', (event) => 
 document.getElementById("export-csv")?.addEventListener("click", () => {
     const section = selectedSection();
     const students = [...studentsInSection(section)].sort((a, b) => String(a.sectionName).localeCompare(String(b.sectionName)) || String(a.name ?? "").localeCompare(String(b.name ?? "")));
-    downloadCsv(`syntaxerror-${section || "all-sections"}-${new Date().toISOString().slice(0, 10)}.csv`, STUDENT_CSV_HEADER, studentCsvRows(students));
+    const year = selectedYear() ? `${selectedYear().id}-` : "";
+    downloadCsv(`syntaxerror-${year}${section || "all-sections"}-${new Date().toISOString().slice(0, 10)}.csv`, STUDENT_CSV_HEADER, studentCsvRows(students));
 });

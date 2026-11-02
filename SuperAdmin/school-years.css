@@ -1,0 +1,57 @@
+/* Manage School Years: dialogs, status chips and the active-year badge. Uses the dashboard's tokens. */
+.sy-badge{display:inline-flex;align-items:center;gap:6px;vertical-align:middle;margin-left:10px;padding:5px 12px;border-radius:999px;font-size:.78rem;font-weight:750;letter-spacing:.01em;white-space:nowrap}
+.sy-badge[hidden]{display:none}
+.sy-badge.sy-active{background:#ffd400;color:#0a2a5c}
+.sy-badge.sy-none{background:rgba(200,59,83,.12);color:#c83b53}
+.sy-step-note{margin-top:6px!important;font-weight:700;color:var(--sa-accent,#0866c9)!important}
+.sy-step-note:empty{display:none}
+
+.sy-modal{z-index:2100}
+.sy-dialog.sy-wide{width:min(720px,calc(100vw - 24px))!important;max-width:720px!important}
+.sy-input{width:100%;min-height:48px;margin-top:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--sa-line,var(--border-color));background:var(--sa-soft,var(--bg-main));color:var(--sa-fg,var(--text-primary));font-size:16px;font-weight:600}
+.sy-points{list-style:none;display:grid;gap:10px;margin:4px 0 6px;padding:0}
+.sy-points li{display:flex;gap:11px;align-items:flex-start;font-size:.86rem;line-height:1.5}
+.sy-points i{color:var(--sa-accent,#0866c9);font-size:1.05rem;margin-top:1px}
+.sy-options{display:grid;gap:10px}
+.sy-check{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1px solid var(--sa-line,var(--border-color));border-radius:13px;background:var(--sa-soft,var(--bg-main));font-size:.86rem;line-height:1.5;cursor:pointer}
+.sy-check input{width:18px;height:18px;flex:none;margin-top:2px;accent-color:#0866c9}
+.sy-check.sy-inline{display:inline-flex;padding:8px 12px;margin-bottom:12px}
+.sy-check:has(input:disabled){opacity:.55;cursor:default}
+
+.sy-list{display:grid;gap:10px;max-height:55dvh;overflow-y:auto;scrollbar-width:none}
+.sy-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:15px;border:1px solid var(--sa-line,var(--border-color));border-radius:15px;background:var(--sa-soft,var(--bg-main))}
+.sy-row>div:first-child{display:grid;gap:4px;min-width:0}
+.sy-row small{font-size:.77rem;color:var(--sa-muted,var(--text-secondary))}
+.sy-row-sections{overflow-wrap:anywhere}
+.sy-row-title{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.sy-row-title strong{font-size:1.02rem}
+.sy-row-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.sy-row-actions button,.sy-row-actions a{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:8px 14px;border-radius:11px;font-weight:700;font-size:.84rem;text-decoration:none;cursor:pointer}
+.sy-row-actions .sa-section-primary{background:linear-gradient(115deg,#1377d8,#0aa1b1);color:#fff;border:0}
+.sy-row-actions .sa-section-danger{background:#c83b53;color:#fff;border:0}
+.sy-row-actions .sa-section-cancel{background:var(--sa-surface,var(--bg-panel));border:1px solid var(--sa-line,var(--border-color));color:var(--sa-fg,var(--text-primary))}
+
+.sy-status{padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.sy-status.sy-active{background:#ffd400;color:#0a2a5c}
+.sy-status.sy-upcoming{background:rgba(8,102,201,.12);color:var(--sa-accent,#0866c9)}
+.sy-status.sy-completed{background:rgba(22,163,74,.13);color:#15803d}
+.sy-status.sy-archived{background:rgba(100,116,139,.16);color:var(--sa-muted,#62748e)}
+
+.sy-move-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:6px}
+.sy-move-grid label{margin:0}
+.sy-students>label{justify-content:flex-start}
+.sy-students small.sy-muted{flex-basis:100%;margin-left:29px;font-weight:500;color:var(--sa-muted,var(--text-secondary))}
+
+/* Students page: school year picker */
+.sy-year-picker{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:.85rem}
+.sy-year-picker select{min-height:40px;padding:6px 10px;border-radius:10px;border:1px solid var(--sa-line,#dce5f2);background:var(--sa-surface,#fff);color:var(--sa-fg,#192a42);font-size:16px;font-weight:600}
+.sy-history-note{display:flex;gap:10px;align-items:center;margin:0 0 14px;padding:11px 14px;border-radius:12px;background:rgba(255,212,0,.16);border:1px solid rgba(255,190,0,.45);font-size:.85rem;line-height:1.5}
+.sy-history-note[hidden]{display:none}
+
+@media(max-width:700px){
+  .sy-badge{display:flex;width:max-content;margin:8px 0 0}
+  .sy-row{flex-direction:column;align-items:stretch}
+  .sy-row-actions{justify-content:stretch}
+  .sy-row-actions>*{flex:1;justify-content:center}
+  .sy-move-grid{grid-template-columns:1fr}
+}

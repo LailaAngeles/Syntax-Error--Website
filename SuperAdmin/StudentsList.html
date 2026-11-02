@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="superadmin-mobile-fix.css">
     <link rel="stylesheet" href="student-insights.css">
     <link rel="stylesheet" href="../MainMenu/data-analysis.css">
+    <link rel="stylesheet" href="school-years.css">
 </head>
 <body>
     <nav class="sidebar">
@@ -36,7 +37,11 @@
         </div>
 
         <div class="main-container">
+            <p class="sy-history-note" id="year-note" hidden></p>
             <div class="controls insight-filters">
+                <label for="year-select" class="sy-year-picker" id="year-picker" hidden><i class="bi bi-calendar3"></i> School year
+                    <select id="year-select"></select>
+                </label>
                 <label for="section-select" class="insight-filter-label"><i class="bi bi-funnel"></i> Section</label>
                 <select id="section-select"><option value="">All sections</option></select>
                 <div class="insight-teacher">

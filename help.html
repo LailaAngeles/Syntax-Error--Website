@@ -323,6 +323,23 @@
     <p class="hm-tip"><i class="bi bi-exclamation-triangle"></i> Removing a teacher hides their access in the portal, but their sign-in account still exists in Firebase Authentication. Disable it in the Firebase console if the person must not sign in again.</p>
 </section>
 
+<section class="hm-sec" id="admin-school-years" data-audience="admin">
+    <div class="hm-sec-head"><span class="hm-num"></span><div><h2>School years</h2><p>Use the <b>Manage School Years</b> menu at the top of Approve Users. The badge beside the page title shows the active school year.</p></div></div>
+    <div class="hm-cards">
+        <div class="hm-mini"><i class="bi bi-calendar-plus"></i><strong>Create School Year</strong><span>Enter the year it starts, for example 2026 for S.Y. 2026–2027. It starts as Not started.</span></div>
+        <div class="hm-mini"><i class="bi bi-calendar3"></i><strong>View School Years</strong><span>See every year and its status (Active, Completed, Archived). Start, end or archive a year, or open its data.</span></div>
+        <div class="hm-mini"><i class="bi bi-arrow-up-right-circle"></i><strong>Move Students to New Year</strong><span>Put returning students into their new section, or promote them from Grade 11 to Grade 12.</span></div>
+    </div>
+    <ol class="hm-steps">
+        <li><b>End the year:</b> in View School Years, select <b>End school year</b> and read the confirmation. The year becomes Completed. Nothing is deleted: accounts, game progress, time spent and wrong attempts are all kept.</li>
+        <li><b>Create and start the next year:</b> select <b>Start</b>. You can create the same section names again (they start empty) and keep each teacher on the same names.</li>
+        <li><b>Assign teachers</b> in Step 2. Assignments are saved for each school year.</li>
+        <li><b>Move returning students</b> with Move Students to New Year: choose last year's section, this year's section and the grade level, tick the students, and confirm. Each student keeps the same account and password and starts the new year with a fresh record. Their old record stays with the old year.</li>
+        <li>Teachers add <b>new students</b> on their Students page as usual.</li>
+    </ol>
+    <p class="hm-tip"><i class="bi bi-info-circle"></i> Teachers only see the active year's sections. Manage Sections and Step 2 also work on the active year only, and nothing can be added while no year is active. To review a past year, choose it under <b>School year</b> on the Students page.</p>
+</section>
+
 <section class="hm-sec" id="admin-students" data-audience="admin">
     <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Student Records page</h2><p>Every section's game records and who teaches each section, in three tabs.</p></div></div>
     <ol class="hm-steps">

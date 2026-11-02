@@ -1,6 +1,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
-import { getFirestore, collection, doc, setDoc, deleteDoc, writeBatch, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, writeBatch, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js';
+import { isCurrentSection, toYears } from './school-years.js';
 
 // Original Firebase project, authentication verification, and archive paths preserved.
 const firebaseConfig = {
@@ -126,6 +127,9 @@ async function restoreOne(id) {
   const row=allArchived.find(r=>r.docId===id);
   if (!row) return;
   if (!row.parentDocId || !row.id) throw new Error(`Student ${row.id||id} is missing its original section reference.`);
+  // A section whose school year has ended is history: nothing new goes into it.
+  const [section, years]=await Promise.all([getDoc(doc(db,'sections',row.parentDocId)), getDocs(collection(db,'schoolYears')).then(toYears).catch(()=>[])]);
+  if (section.exists() && !isCurrentSection(section.data(), years)) throw new Error(`The school year of ${row.section||'this section'} has ended.`);
   const {archivedAt, expiresAt, status, docId, ...payload}=row;
   const batch=writeBatch(db);
   batch.set(doc(db,'sections',row.parentDocId,'classList',String(row.id)),payload);
@@ -139,9 +143,9 @@ async function restoreIds(ids) {
   try {
     for(const id of ids){
       try{await restoreOne(id);selected.delete(id);success++;}
-      catch(e){console.error('Restore failed',id,e);failures.push(id);}
+      catch(e){console.error('Restore failed',id,e);failures.push(e?.message?.includes('school year')?e.message:id);}
     }
-    if(failures.length) alert(`${success} restored. ${failures.length} could not be restored; check missing section IDs or permissions.`);
+    if(failures.length) alert(`${success} restored. ${failures.length} could not be restored: ${failures.join('; ')}. Check missing section IDs, permissions, or whether the school year has ended.`);
   } finally {busy=false;toggleLoading(false);renderTable();}
 }
 async function clearExpiredWhileOpen() {
