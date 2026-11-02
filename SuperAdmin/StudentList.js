@@ -308,7 +308,7 @@ document.addEventListener('keydown', event => {
 });
 
 // ----------------------------
-// 4. LEARNING ANALYTICS (time spent, errors, hardest topics, assigned teachers)
+// 4. DATA ANALYSIS BY TOPIC (time spent, errors, assigned teachers)
 // ----------------------------
 // Game data shape: Subject Content > main topic > topic (level) > attempt (FirstAttemp...) > task
 // { timeSeconds, wrongAttempts, errors: [{message}] }. The attempt also stores completionTime.
@@ -360,20 +360,17 @@ function aggregateTopics(students) {
         const records = topicRecords(student);
         if (records.length) withData++;
         for (const r of records) {
-            const t = topics.get(r.key) || { main: r.main, topic: r.topic, students: 0, time: 0, errors: 0, messages: new Map() };
+            const t = topics.get(r.key) || { main: r.main, topic: r.topic, students: 0, withErrors: 0, time: 0, errors: 0, messages: new Map() };
             t.students++; t.time += r.time; t.errors += r.errors;
+            if (r.errors > 0) t.withErrors++;
             r.messages.forEach(m => t.messages.set(m, (t.messages.get(m) || 0) + 1));
             topics.set(r.key, t);
         }
     }
+    // Recorded facts only (time and wrong submissions); no computed difficulty score.
     const list = [...topics.values()].map(t => ({ ...t, avgTime: t.time / t.students, avgErrors: t.errors / t.students }));
-    const maxTime = Math.max(0, ...list.map(t => t.avgTime));
-    const maxErrors = Math.max(0, ...list.map(t => t.avgErrors));
-    list.forEach(t => {
-        t.difficulty = Math.round(100 * (0.5 * (maxErrors ? t.avgErrors / maxErrors : 0) + 0.5 * (maxTime ? t.avgTime / maxTime : 0)));
-    });
-    const top = key => list.length ? [...list].sort((a, b) => b[key] - a[key] || a.topic.localeCompare(b.topic))[0] : null;
-    return { list, withData, hardest: top('difficulty'), mostTime: top('avgTime'), mostErrors: top('avgErrors') };
+    const top = (items, key) => items.length ? [...items].sort((a, b) => b[key] - a[key] || a.topic.localeCompare(b.topic))[0] : null;
+    return { list, withData, mostStudents: top(list.filter(t => t.withErrors > 0), 'withErrors'), mostTime: top(list, 'avgTime'), mostErrors: top(list, 'avgErrors') };
 }
 
 function teacherNames(sectionName) {
@@ -404,10 +401,24 @@ function setText(id, text) { const el = document.getElementById(id); if (el) el.
 function chartColors() {
     const css = getComputedStyle(document.documentElement);
     const read = (name, fallback) => css.getPropertyValue(name).trim() || fallback;
-    return { time: read('--insight-time', '#1f6fd1'), error: read('--insight-error', '#c26a00'), text: read('--sa-muted', '#64748b'), grid: read('--sa-line', '#e2e8f0') };
+    return { time: read('--insight-time', '#1f6fd1'), error: read('--insight-error', '#c26a00'), text: read('--sa-muted', '#64748b'), ink: read('--sa-fg', '#14233b'), grid: read('--sa-line', '#e2e8f0') };
 }
 
-function drawBarChart(existing, canvasId, topics, valueOf, color, formatValue, axisTitle) {
+// Prints each bar's value just past its end, so nobody has to read the axis.
+const valueLabels = {
+    id: 'insightValueLabels',
+    afterDatasetsDraw(chart, args, options) {
+        const { ctx } = chart;
+        ctx.save();
+        ctx.font = '600 12px Inter, "Segoe UI", sans-serif';
+        ctx.fillStyle = options.color;
+        ctx.textBaseline = 'middle';
+        chart.getDatasetMeta(0).data.forEach((bar, i) => ctx.fillText(options.format(i), bar.x + 6, bar.y));
+        ctx.restore();
+    }
+};
+
+function drawBarChart(existing, canvasId, topics, valueOf, color, formatValue, axisTitle, labelOf) {
     existing?.destroy();
     const canvas = document.getElementById(canvasId);
     if (!canvas || typeof Chart === 'undefined' || !topics.length) return null;
@@ -417,10 +428,12 @@ function drawBarChart(existing, canvasId, topics, valueOf, color, formatValue, a
     return new Chart(canvas.getContext('2d'), {
         type: 'bar',
         data: { labels: sorted.map(t => t.topic), datasets: [{ data: sorted.map(valueOf), backgroundColor: color, hoverBackgroundColor: color, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 22 }] },
+        plugins: [valueLabels],
         options: {
             indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: { duration: 250 },
             plugins: {
                 legend: { display: false },
+                insightValueLabels: { color: colors.ink, format: i => labelOf(sorted[i]) },
                 tooltip: { callbacks: {
                     title: items => { const t = sorted[items[0].dataIndex]; return `${t.topic} (${t.main})`; },
                     label: item => formatValue(sorted[item.dataIndex]),
@@ -428,7 +441,7 @@ function drawBarChart(existing, canvasId, topics, valueOf, color, formatValue, a
                 } }
             },
             scales: {
-                x: { beginAtZero: true, grid: { color: colors.grid }, border: { display: false }, ticks: { color: colors.text }, title: { display: true, text: axisTitle, color: colors.text } },
+                x: { beginAtZero: true, grace: '28%', grid: { color: colors.grid }, border: { display: false }, ticks: { color: colors.text }, title: { display: true, text: axisTitle, color: colors.text } },
                 y: { grid: { display: false }, border: { color: colors.grid }, ticks: { color: colors.text, autoSkip: false } }
             }
         }
@@ -448,26 +461,26 @@ function renderInsights(filterSection) {
         setText(`tile-${prefix}-topic`, topic ? topic.topic : 'No data yet');
         setText(`tile-${prefix}-note`, topic ? note(topic) : 'Appears once students finish a level');
     };
-    tile('hard', stats.hardest, t => `${t.main} · difficulty ${t.difficulty}/100`);
+    tile('hard', stats.mostStudents, t => `${t.withErrors} of ${t.students} students made at least one error here`);
     tile('time', stats.mostTime, t => `${fmtMinutes(t.avgTime)} average per student`);
     tile('error', stats.mostErrors, t => `${fmtNumber(t.avgErrors)} wrong submissions per student`);
 
     const empty = !stats.list.length;
     document.getElementById('insight-empty').hidden = !empty;
     document.querySelectorAll('.insight-chart').forEach(el => { el.hidden = empty; });
-    timeChart = drawBarChart(timeChart, 'timeChart', stats.list, t => Number(minutes(t.avgTime).toFixed(2)), colors.time, t => `Average time: ${fmtMinutes(t.avgTime)}`, 'Minutes per student');
-    errorChart = drawBarChart(errorChart, 'errorChart', stats.list, t => Number(t.avgErrors.toFixed(2)), colors.error, t => `Average errors: ${fmtNumber(t.avgErrors)} (${t.errors} total)`, 'Wrong submissions per student');
+    timeChart = drawBarChart(timeChart, 'timeChart', stats.list, t => Number(minutes(t.avgTime).toFixed(2)), colors.time, t => `Average time: ${fmtMinutes(t.avgTime)}`, 'Minutes per student', t => fmtMinutes(t.avgTime));
+    errorChart = drawBarChart(errorChart, 'errorChart', stats.list, t => Number(t.avgErrors.toFixed(2)), colors.error, t => `Average errors: ${fmtNumber(t.avgErrors)} (${t.errors} total)`, 'Wrong submissions per student', t => fmtNumber(t.avgErrors));
 
     const breakdown = document.getElementById('topic-breakdown');
     breakdown.innerHTML = empty
         ? '<tr><td colspan="5" class="insight-muted">No topic records yet.</td></tr>'
-        : [...stats.list].sort((a, b) => b.difficulty - a.difficulty).map(t => `
+        : [...stats.list].sort((a, b) => b.avgErrors - a.avgErrors || b.avgTime - a.avgTime).map(t => `
             <tr>
                 <td><strong>${safeText(t.topic)}</strong><small>${safeText(t.main)}</small></td>
                 <td>${t.students}</td>
                 <td>${fmtMinutes(t.avgTime)}</td>
                 <td>${fmtNumber(t.avgErrors)}</td>
-                <td><span class="insight-meter"><i style="width:${Math.max(2, t.difficulty * 0.8)}px"></i><b>${t.difficulty}</b></span></td>
+                <td>${t.withErrors} of ${t.students}</td>
             </tr>`).join('');
 
     const messages = [];
@@ -496,7 +509,7 @@ function renderSectionOverview(filterSection) {
             <td><strong>${safeText(name)}</strong></td>
             <td>${teachers.length ? teachers.map(t => `<span class="insight-pill">${safeText(t)}</span>`).join('') : '<span class="insight-muted">No teacher assigned</span>'}</td>
             <td>${students.length}<small>${stats.withData} with game data</small></td>
-            <td>${cell(stats.hardest, t => `difficulty ${t.difficulty}/100`)}</td>
+            <td>${cell(stats.mostStudents, t => `${t.withErrors} of ${t.students} students`)}</td>
             <td>${cell(stats.mostTime, t => fmtMinutes(t.avgTime) + ' avg')}</td>
             <td>${cell(stats.mostErrors, t => fmtNumber(t.avgErrors) + ' errors avg')}</td>
         </tr>`;

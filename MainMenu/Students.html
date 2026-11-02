@@ -28,7 +28,7 @@
         <script defer src="student-level-attempts.js"></script>
         <script defer src="qa-learning-insights.js"></script>
         <script defer src="student-analysis-modern.js"></script>
-        <script type="module" src="Students.js"></script><link rel="stylesheet" href="terms-gate.css"><script type="module" src="terms-gate.js"></script>
+        <script type="module" src="Students.js"></script><link rel="stylesheet" href="topic-time-errors.css"><link rel="stylesheet" href="terms-gate.css"><script type="module" src="terms-gate.js"></script>
 
     </head>
 
@@ -750,8 +750,7 @@
 
 
 
-            <div class="analysis-overview-banner"><span class="analysis-overview-eyebrow"><i class="bi bi-activity"></i> STUDENT PERFORMANCE / LIVE FIRESTORE</span><h2>Learning Insights</h2><p>Review progress, difficulty by C# topic, and changes across recorded attempts.</p><div class="analysis-jump-links"><button type="button" data-jump="student-topic-ranking-title"><i class="bi bi-list-ol"></i> Topic ranking</button><button type="button" data-jump="student-level-attempts-list"><i class="bi bi-clock-history"></i> Level history</button><button type="button" data-jump="attemptProgressChart"><i class="bi bi-graph-up-arrow"></i> Attempt trends</button></div></div>
-            <section class="qa-top-section" aria-label="Student learning analysis"><div class="qa-anchor"><div id="qa-learning-insights" class="qa-insights" aria-live="polite"><p>Open a student record to review evidence quality.</p></div></div></section>
+            
             <div class="modal-grid-container">
 
 
@@ -845,6 +844,54 @@
                 <!-- RIGHT COLUMN: Chart & Detailed Analysis -->
 
                 <div class="modal-right-col">
+
+                    <div class="analysis-overview-banner"><span class="analysis-overview-eyebrow"><i class="bi bi-activity"></i> STUDENT PERFORMANCE / LIVE FIRESTORE</span><h2>Learning Insights</h2><p>Review progress, difficulty by C# topic, and changes across recorded attempts.</p><div class="analysis-jump-links"><button type="button" data-jump="student-topic-ranking-title"><i class="bi bi-list-ol"></i> Topic ranking</button><button type="button" data-jump="student-level-attempts-list"><i class="bi bi-clock-history"></i> Level history</button><button type="button" data-jump="attemptProgressChart"><i class="bi bi-graph-up-arrow"></i> Attempt trends</button></div></div>
+                    <section class="qa-top-section" aria-label="Student learning analysis"><div class="qa-anchor"><div id="qa-learning-insights" class="qa-insights" aria-live="polite"><p>Open a student record to review evidence quality.</p></div></div></section>
+
+                    <section id="stte-section" class="chart-section" aria-labelledby="stte-title">
+                        <div class="tte-head">
+                            <div>
+                                <span class="tte-eyebrow">DATA ANALYSIS BY TOPIC</span>
+                                <h3 id="stte-title">Time Spent and Errors per Topic</h3>
+                                <p>What this student's game records show, across all attempts.</p>
+                            </div>
+                        </div>
+                        <div class="stte-stats">
+                            <div><span>Total time</span><strong id="stte-total-time">--</strong></div>
+                            <div><span>Wrong submissions</span><strong id="stte-total-errors">--</strong></div>
+                            <div><span>Topics played</span><strong id="stte-topics">0</strong></div>
+                        </div>
+                        <div class="tte-charts">
+                            <figure class="tte-chart tte-chart-time">
+                                <figcaption><strong><i class="bi bi-hourglass-split"></i> Time spent per topic</strong><span>Total minutes this student spent on each topic. Longer bar = more time.</span></figcaption>
+                                <div class="tte-canvas"><canvas id="stteTimeChart" role="img" aria-label="Bar chart of minutes spent on each topic"></canvas></div>
+                                <p class="tte-summary" id="stte-time-summary"></p>
+                            </figure>
+                            <figure class="tte-chart tte-chart-error">
+                                <figcaption><strong><i class="bi bi-bug"></i> Errors per topic</strong><span>Wrong submissions this student made in each topic. Longer bar = more errors.</span></figcaption>
+                                <div class="tte-canvas"><canvas id="stteErrorChart" role="img" aria-label="Bar chart of wrong submissions in each topic"></canvas></div>
+                                <p class="tte-summary" id="stte-error-summary"></p>
+                            </figure>
+                        </div>
+                        <p id="stte-empty" class="tte-empty" hidden><i class="bi bi-inbox"></i> No game records for this student yet. This fills in after they finish a level in the mobile game.</p>
+                        <div class="tte-lower">
+                            <div>
+                                <h4>Per topic</h4>
+                                <p class="tte-hint">Topics with the most wrong submissions are listed first.</p>
+                                <div class="tte-table-wrap">
+                                    <table class="tte-table">
+                                        <thead><tr><th>Topic</th><th>Time spent</th><th>Wrong submissions</th><th>Attempts</th></tr></thead>
+                                        <tbody id="stte-breakdown"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div>
+                                <h4>This student's most common errors</h4>
+                                <p class="tte-hint">Messages the game showed when an answer was wrong.</p>
+                                <ol id="stte-errors" class="tte-errors"></ol>
+                            </div>
+                        </div>
+                    </section>
 
 
 

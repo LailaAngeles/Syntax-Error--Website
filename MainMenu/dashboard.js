@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { getFirestore, collection, getDocs, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import { renderTopicTimeErrors } from "./topic-time-errors.js";
 
 // ----------------------------
 // CONFIG & INITIALIZATION
@@ -41,6 +42,7 @@ function renderLiveTeacherData() {
     const leaderboardSection = document.getElementById("leaderboard-section-select")?.value || "";
     updateLeaderboard(leaderboardSection);
     renderAnalytics(selected);
+    renderTopicTimeErrors(allStudentsData);
 }
 
 

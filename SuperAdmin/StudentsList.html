@@ -45,7 +45,7 @@
             <section class="panelL insight-panel" aria-labelledby="insight-title">
                 <div class="insight-head">
                     <div>
-                        <span class="insight-eyebrow">LEARNING ANALYTICS</span>
+                        <span class="insight-eyebrow">DATA ANALYSIS BY TOPIC</span>
                         <h3 id="insight-title">All sections</h3>
                         <p id="insight-sub" class="insight-sub">Loading game data...</p>
                     </div>
@@ -57,9 +57,9 @@
 
                 <div class="insight-tiles">
                     <div class="insight-tile tile-hard">
-                        <span><i class="bi bi-exclamation-diamond"></i> Hardest to understand</span>
+                        <span><i class="bi bi-people"></i> Most students with errors</span>
                         <strong id="tile-hard-topic">--</strong>
-                        <small id="tile-hard-note">Highest combined time and error score</small>
+                        <small id="tile-hard-note">Students with at least one wrong submission</small>
                     </div>
                     <div class="insight-tile tile-time">
                         <span><i class="bi bi-hourglass-split"></i> Most time spent</span>
@@ -90,7 +90,7 @@
                         <h4>Topic breakdown</h4>
                         <div class="table-scroll-wrapper">
                             <table class="insight-table">
-                                <thead><tr><th>Topic</th><th>Students</th><th>Avg. time</th><th>Avg. errors</th><th>Difficulty</th></tr></thead>
+                                <thead><tr><th>Topic</th><th>Students</th><th>Avg. time</th><th>Avg. errors</th><th>Students with errors</th></tr></thead>
                                 <tbody id="topic-breakdown"></tbody>
                             </table>
                         </div>
@@ -100,14 +100,14 @@
                         <ol id="common-errors" class="insight-errors"></ol>
                     </div>
                 </div>
-                <p class="insight-footnote">Difficulty combines average time and average errors, each scaled against the highest topic in this view (0–100). Higher means students struggle more.</p>
+                <p class="insight-footnote">All numbers come straight from the game records: time on each topic and wrong submissions, added up over every attempt.</p>
             </section>
 
             <section class="panelL insight-panel" aria-labelledby="section-overview-title">
                 <h3 id="section-overview-title">Sections and assigned teachers</h3>
                 <div class="table-scroll-wrapper">
                     <table class="insight-table">
-                        <thead><tr><th>Section</th><th>Assigned teacher(s)</th><th>Students</th><th>Hardest topic</th><th>Most time</th><th>Most errors</th></tr></thead>
+                        <thead><tr><th>Section</th><th>Assigned teacher(s)</th><th>Students</th><th>Most students with errors</th><th>Most time</th><th>Most errors</th></tr></thead>
                         <tbody id="section-overview"></tbody>
                     </table>
                 </div>

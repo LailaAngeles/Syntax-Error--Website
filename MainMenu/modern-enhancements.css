@@ -178,3 +178,11 @@ html[data-theme="dark"] #students-table .progress-state.is-complete {color: #6ee
 html[data-theme="light"] .theme-btn {color:#d18b00;background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2)}
 html[data-theme="dark"] .theme-btn {color:#fde047;background:rgba(250,204,21,.07);border-color:rgba(250,204,21,.23)}
 @media(max-width:768px){#students-table .student-name-cell{min-width:175px;gap:9px}#students-table .student-avatar{width:34px;height:34px;flex-basis:34px}}
+
+/* 2026-11 mobile pass */
+@media (max-width:768px) {
+  /* Hint that the menu scrolls sideways. */
+  .sidebar ul {scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+  .sidebar li {scroll-snap-align:center;flex:0 0 auto}
+  .sidebar li a {min-height:42px}
+}

@@ -545,3 +545,7 @@ body {background:radial-gradient(ellipse at 12% 15%,rgba(9,102,207,.27),transpar
  #popup .popup-content {padding:23px 19px !important;border-radius:18px !important;}
  #popup .popup-content button { flex-basis:100% !important; }
 }
+
+/* Mobile: finger-sized tap areas for the small text links. */
+.auth-return,#forgotPasswordLink{display:inline-flex;align-items:center;min-height:40px}
+.auth-return{margin-bottom:12px}

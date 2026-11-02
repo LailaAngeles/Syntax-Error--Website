@@ -3,6 +3,7 @@ import {
     getFirestore, collection, getDocs, onSnapshot, query, where, writeBatch, doc, updateDoc, deleteDoc, setDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import { renderStudentTimeErrors } from "./topic-time-errors.js";
 
 // 1. FIREBASE CONFIG
 const firebaseConfig = {
@@ -1302,6 +1303,7 @@ window.viewStudent = function(studentId) {
     const concepts = renderConceptDifficultyChart(student) || [];
     renderStudentTopicRanking(student);
     window.renderStudentLevelAttempts?.(student);
+    renderStudentTimeErrors(student);
     window.renderQALearningInsights?.(student);
 
     const hardestConcept = concepts.length > 0
@@ -1408,7 +1410,12 @@ window.viewStudent = function(studentId) {
 window.closeStudentModal = function(){
     activeStudentDetailsId = null;
     activeStudentDetailsSection = null;
-    document.getElementById("student-details-modal").style.display = "none";
+    const detailsModal = document.getElementById("student-details-modal");
+    detailsModal.style.display = "none";
+    // Open the next student at the top, with their details card in view.
+    detailsModal.scrollTop = 0;
+    const detailsBox = detailsModal.querySelector(".student-modal-box");
+    if (detailsBox) detailsBox.scrollTop = 0;
     if (modalAttemptProgressChart instanceof Chart) {
         modalAttemptProgressChart.destroy();
         modalAttemptProgressChart = null;

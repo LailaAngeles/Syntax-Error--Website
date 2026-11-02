@@ -53,10 +53,12 @@ html[data-theme="dark"] { --insight-time: #5aa4ff; --insight-error: #f0a640; --i
 .insight-table-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
 .insight-table-head input { flex: 1; min-width: 200px; max-width: 420px; }
 
-@media (max-width: 1100px) { .insight-lower { grid-template-columns: 1fr; } }
-@media (max-width: 900px) { .insight-charts { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .insight-lower { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 900px) { .insight-charts { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 700px) {
   .insight-tiles { grid-template-columns: 1fr; }
   .insight-filters select, .insight-teacher { width: 100%; min-width: 0; }
   .insight-table { min-width: 560px; }
 }
+/* Grid children must be allowed to shrink so wide tables scroll inside their wrapper instead of widening the page. */
+.insight-lower > div, .insight-panel, .insight-panel .table-scroll-wrapper { min-width: 0; max-width: 100%; }

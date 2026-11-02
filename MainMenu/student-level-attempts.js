@@ -118,7 +118,7 @@
     const rows = collect(student).map((r,i) => ({...r, level:i+1}))
       .filter(row => row.totals.length || row.attempts.some(arr => arr.length));
     if (!rows.length) {
-      mount.innerHTML = '<div class="level-no-data">No completion times found for mapped levels. Check TOPIC_LEVELS against your Firestore topic names.</div>';
+      mount.innerHTML = '<div class="level-no-data">No level times have been recorded for this student yet. They appear after the student finishes a level in the mobile game.</div>';
       return;
     }
     mount.innerHTML = rows.map(row => {

@@ -85,3 +85,23 @@ html,body{max-width:100%;overflow-x:clip}
  .manual-dots{gap:5px}
 }
 @media(prefers-reduced-motion:reduce){.flip-card-inner{transition:none!important}}
+
+/* 2026-11 mobile pass: the header's side padding was added on top of width:100%, so it overflowed. */
+.navbar{box-sizing:border-box;max-width:100%}
+/* Manual dots: keep the small look but give each a finger-sized tap area. */
+.manual-dot{position:relative}
+.manual-dot::after{content:"";position:absolute;inset:-14px -5px}
+@media(max-width:600px){
+ .navbar .auth-buttons>*{margin-left:0!important;margin-right:0!important}
+ .navbar .auth-buttons .btn,.navbar .nav-manual{font-size:.8rem;min-height:44px;padding:10px 16px}
+ .school-tag{font-size:.72rem!important}
+ .cta-actions .btn{font-size:.76rem}
+ .manual-tab{font-size:.78rem}
+ .preview-chrome{font-size:10px}
+}
+@media(max-width:360px){
+ .navbar .auth-buttons .btn,.navbar .nav-manual{padding:10px 12px}
+}
+/* Same padding-on-top-of-100% issue as the header. */
+.manual-section,.manual-shell{box-sizing:border-box}
+@media(max-width:600px){.preview-chrome>span,.manual-shot span{font-size:10.5px}}

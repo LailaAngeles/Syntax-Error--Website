@@ -50,3 +50,9 @@
 @media(max-width:850px){#student-details-modal .student-modal-box .modal-grid-container{grid-template-columns:minmax(0,1fr)!important}#student-details-modal .modal-left-col{padding:18px!important}#student-details-modal .student-topic-ranking-list,#student-details-modal .student-level-attempts-list{max-height:340px!important}}
 @media(max-width:520px){#student-details-modal{padding:6px!important}#student-details-modal .student-modal-box{width:100%!important;padding:12px!important;border-radius:16px!important}#student-details-modal .analysis-overview-banner{padding:20px 15px}#student-details-modal .attempt-summary-cards{gap:6px}#student-details-modal .attempt-summary-card{padding:12px 9px!important;min-height:116px}#student-details-modal .attempt-summary-card small{font-size:.66rem!important}#student-details-modal .modal-left-col{padding:14px!important}}
 @media(prefers-reduced-motion:reduce){#student-details-modal *,#student-details-modal *::before{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
+
+/* Student details popup: keep the student's details card at the top-left while the right column scrolls. */
+@media (min-width: 851px) {
+  #student-details-modal .student-modal-box .modal-left-col { position: sticky; top: 0; align-self: start; max-height: calc(100dvh - 120px); overflow-y: auto; scrollbar-width: thin; }
+}
+#student-details-modal .modal-right-col > .analysis-overview-banner { margin-top: 0; }

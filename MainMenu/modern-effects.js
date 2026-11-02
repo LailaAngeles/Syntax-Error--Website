@@ -27,3 +27,15 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
 })();
+
+/* Phones: the menu scrolls sideways, so bring the current page's tab into view. */
+(() => {
+  function revealActiveTab() {
+    const menu = document.querySelector('.sidebar ul');
+    const active = menu?.querySelector('li.active');
+    if (!menu || !active || menu.scrollWidth <= menu.clientWidth) return;
+    const offset = active.getBoundingClientRect().left - menu.getBoundingClientRect().left;
+    menu.scrollLeft += offset - (menu.clientWidth - active.offsetWidth) / 2;
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', revealActiveTab, {once:true}); else revealActiveTab();
+})();
