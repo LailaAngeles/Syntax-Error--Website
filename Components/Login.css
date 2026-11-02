@@ -549,3 +549,14 @@ body {background:radial-gradient(ellipse at 12% 15%,rgba(9,102,207,.27),transpar
 /* Mobile: finger-sized tap areas for the small text links. */
 .auth-return,#forgotPasswordLink{display:inline-flex;align-items:center;min-height:40px}
 .auth-return{margin-bottom:12px}
+
+/* Busy buttons and PIN resend (prevents repeated sign-in clicks from sending many emails) */
+.login-btn.is-busy, .login-btn:disabled { cursor: wait; opacity: .85; transform: none !important; }
+.btn-spinner { display: inline-block; width: 15px; height: 15px; margin-right: 8px; vertical-align: -2px; border: 2px solid rgba(255, 255, 255, .35); border-top-color: #fff; border-radius: 50%; animation: btn-spin .8s linear infinite; }
+@keyframes btn-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .btn-spinner { animation-duration: 2s; } }
+.otp-note { margin: 0 0 12px; padding: 8px 10px; border-radius: 8px; background: rgba(54, 180, 255, .12); color: #cfe6ff; font-size: 12px; }
+.resend-pin-btn { width: 100%; margin-top: 10px; min-height: 42px; border-radius: 12px; border: 1px solid rgba(146, 186, 255, .4); background: transparent; color: #cfe6ff; font: 600 13px Inter, 'Segoe UI', sans-serif; cursor: pointer; }
+.resend-pin-btn:hover:not(:disabled) { background: rgba(146, 186, 255, .12); }
+.resend-pin-btn:disabled { opacity: .6; cursor: not-allowed; }
+#forgotPasswordLink[aria-disabled="true"] { pointer-events: none; opacity: .6; }

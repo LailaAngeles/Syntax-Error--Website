@@ -3,7 +3,7 @@ import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/fi
 import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 import {
     renderClassOverview, renderStudentSummary, renderStudentDetail, classSummary, studentSummary, topBy,
-    downloadCsv, studentCsvRows, STUDENT_CSV_HEADER, fmtTime, fmtDate, safeText, TOTAL_LEVELS
+    downloadCsv, studentCsvRows, STUDENT_CSV_HEADER, fmtDate, safeText, TOTAL_LEVELS
 } from "../MainMenu/record-analysis.js";
 
 // ----------------------------
@@ -163,7 +163,7 @@ function renderTable(section) {
         .sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
 
     if (!filtered.length) {
-        tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--sa-muted)"><div style="font-size:2rem;margin-bottom:10px"><i class="bi bi-inbox"></i></div><h4>No students found</h4><p>Try a different search or section.</p></td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--sa-muted)"><div style="font-size:2rem;margin-bottom:10px"><i class="bi bi-inbox"></i></div><h4>No students found</h4><p>Try a different search or section.</p></td></tr>`;
         return;
     }
     tableBody.innerHTML = filtered.map(s => {
@@ -174,8 +174,6 @@ function renderTable(section) {
             <td><strong>${safeText(s.name || 'Unknown')}</strong><br><small style="color:var(--sa-muted)">${safeText(s.id || s.firebaseId)}</small></td>
             <td><span style="background:var(--sa-soft);border:1px solid var(--sa-line);padding:4px 10px;border-radius:20px;white-space:nowrap">${safeText(s.sectionName)}</span></td>
             <td><strong>${r.levels} of ${TOTAL_LEVELS}</strong><div style="width:100px;background:var(--sa-line);height:6px;border-radius:10px;margin-top:6px"><div style="width:${percent}%;background:#0f8a5f;height:100%;border-radius:10px"></div></div></td>
-            <td>${r.hasRecords ? fmtTime(r.time) : '<span style="color:var(--sa-muted)">--</span>'}</td>
-            <td>${r.hasRecords ? r.wrong : '<span style="color:var(--sa-muted)">--</span>'}</td>
             <td>${r.lastActivity ? fmtDate(r.lastActivity) : '<span style="color:var(--sa-muted)">No activity yet</span>'}${r.online ? '<br><small style="color:#15803d;font-weight:700">Online (reported by the game)</small>' : ''}</td>
             <td><button data-student-id="${safeText(s.firebaseId)}" data-section-id="${safeText(s.parentDocId)}" class="open-student-summary" style="background:#2563eb;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer">Details</button></td>
         </tr>`;

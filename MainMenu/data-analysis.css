@@ -213,3 +213,10 @@ html[data-theme="dark"] .da-live { color: #4ade80; }
 .da-more > .da-grid-2 { padding: 4px 16px 0; }
 .da-more-inline { margin: 4px 0 0; border-style: dashed; }
 .da-more-inline > .da-table-wrap { margin: 0 12px 12px; }
+
+/* Student form checks (Add / Edit Student) */
+.field-error { display: block; margin-top: 5px; color: #c0262d; font-size: .78rem; font-weight: 600; line-height: 1.4; }
+html[data-theme="dark"] .field-error { color: #ff8a8a; }
+input.is-invalid { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220, 38, 38, .15) !important; }
+.optional-tag { font-style: normal; font-weight: 600; font-size: .85em; color: var(--da-muted); text-transform: none; letter-spacing: 0; }
+.edit-note { display: flex; gap: 6px; margin-top: 8px; font-size: .78rem; line-height: 1.45; color: #64748b; }

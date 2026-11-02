@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/fireba
 import { getFirestore, collection, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 import { renderClassOverview, downloadCsv, studentCsvRows, STUDENT_CSV_HEADER } from "./record-analysis.js";
+import { expireStaleCodes } from "./level-codes.js";
 
 // ----------------------------
 // CONFIG & INITIALIZATION
@@ -99,6 +100,7 @@ async function loadTeacherDashboard(user) {
 
     let assignedSections = [];
     let sectionsSnapshot = null;
+    let codesCleaned = false;
 
     function syncTeacherSections() {
         if (!sectionsSnapshot) return;
@@ -140,6 +142,11 @@ async function loadTeacherDashboard(user) {
         });
         renderLiveTeacherData();
         if (loader) loader.style.display = "none";
+        // Level codes whose 5 minutes ran out while no page was open: expire them so they cannot be used.
+        if (!codesCleaned && wanted.size) {
+            codesCleaned = true;
+            expireStaleCodes(db, [...wanted.keys()], user.uid).catch(error => console.warn("Level code cleanup failed:", error));
+        }
     }
 
     const q = query(collection(db, "approvedUsers"), where("email", "==", user.email));

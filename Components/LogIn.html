@@ -73,10 +73,19 @@
 <div class="popup" id="forgotPopup">
 <div class="popup-content">
 <i class="bi bi-question-circle system-alert-icon" style="color: var(--sti-blue);"></i>
-<p id="popup-message">Forgot your password? We can send a reset link to your email. Do you want to proceed?</p>
+<p id="forgot-message">Forgot your password? We can send a reset link to your email. Do you want to proceed?</p>
 <div class="popup-actions">
 <button class="choice-btn yes-btn" id="confirmReset" type="button">Yes, Send Email</button>
 <button class="choice-btn" id="cancelReset" style="color:var(--error-red); border: 1px solid var(--error-red); margin-top:10px;" type="button">Cancel</button>
+</div>
+</div>
+</div>
+<div class="popup" id="popup" role="alertdialog" aria-modal="true" aria-labelledby="popup-message">
+<div class="popup-content">
+<i class="bi bi-info-circle system-alert-icon" style="color: var(--sti-blue);"></i>
+<p id="popup-message"></p>
+<div class="popup-actions">
+<button class="choice-btn yes-btn" id="popup-close" type="button">OK</button>
 </div>
 </div>
 </div>
@@ -101,10 +110,12 @@
         </p>
 <div class="input-group">
 <div class="input-box">
-<input id="otpInput" maxlength="6" placeholder="Enter 6-digit PIN" style="text-align: center; letter-spacing: 5px;" type="text"/>
+<input id="otpInput" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="Enter 6-digit PIN" style="text-align: center; letter-spacing: 5px;" type="text"/>
 </div>
 </div>
+<p class="otp-note" id="otpNote" role="status" hidden></p>
 <button class="login-btn" id="verifyOtpBtn" type="button">Verify and Login</button>
+<button class="resend-pin-btn" id="resendOtpBtn" type="button" disabled>Resend PIN in 60s</button>
 </div>
 </div>
 <script defer="" src="Login.js" type="module"></script>

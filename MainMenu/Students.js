@@ -1,9 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { 
-    getFirestore, collection, getDocs, onSnapshot, query, where, writeBatch, doc, updateDoc, deleteDoc, setDoc, serverTimestamp 
+    getFirestore, collection, getDocs, getDoc, onSnapshot, query, where, writeBatch, doc, updateDoc, deleteDoc, setDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-import { renderStudentSummary, renderStudentDetail, studentSummary, studentCsvRows, STUDENT_CSV_HEADER, downloadCsv, fmtTime, fmtDate } from "./record-analysis.js";
+import { renderStudentSummary, renderStudentDetail, studentSummary, studentCsvRows, STUDENT_CSV_HEADER, downloadCsv, fmtDate } from "./record-analysis.js";
+import { checkStudentNumber, checkName, checkMiddleInitial, formatMiddleInitial, checkFullName, checkEmail, checkBirthday, birthdayBounds, cleanSpaces, showFieldError } from "./student-rules.js";
 
 // 1. FIREBASE CONFIG
 const firebaseConfig = {
@@ -238,8 +239,6 @@ function loadStudents(section) {
     const sorters = {
         "levels-desc": (a, b) => b.summary.levels - a.summary.levels || byName(a, b),
         "levels-asc": (a, b) => a.summary.levels - b.summary.levels || byName(a, b),
-        "wrong-desc": (a, b) => b.summary.wrong - a.summary.wrong || byName(a, b),
-        "time-desc": (a, b) => b.summary.time - a.summary.time || byName(a, b),
         "recent": (a, b) => b.summary.lastActivity - a.summary.lastActivity || byName(a, b)
     };
     rows.sort(sorters[sort] || byName);
@@ -248,7 +247,7 @@ function loadStudents(section) {
 
     if (!table) return;
     if (!rows.length) {
-        table.innerHTML = `<tr><td colspan="6" class="no-students">No students match your current filters.</td></tr>`;
+        table.innerHTML = `<tr><td colspan="4" class="no-students">No students match your current filters.</td></tr>`;
         return;
     }
     table.innerHTML = rows.map(({ student: s, summary: r }) => {
@@ -265,8 +264,6 @@ function loadStudents(section) {
                 <div class="progress-label-row"><strong>${r.levels} of ${TOTAL_GAME_LEVELS}</strong></div>
                 <div class="progress-track" role="progressbar" aria-valuenow="${r.levels}" aria-valuemin="0" aria-valuemax="${TOTAL_GAME_LEVELS}" aria-label="Levels completed"><div class="progress-fill ${stateClass}" style="width:${percent}%"></div></div>
             </td>
-            <td data-label="Time recorded">${r.hasRecords ? displayText(fmtTime(r.time)) : '<span class="cell-muted">--</span>'}</td>
-            <td data-label="Wrong submissions">${r.hasRecords ? r.wrong : '<span class="cell-muted">--</span>'}</td>
             <td data-label="Last activity">${last}</td>
             <td data-label="Action">
                 <div class="row-actions">
@@ -278,6 +275,13 @@ function loadStudents(section) {
         </tr>`;
     }).join("");
 }
+
+["add-student-id", "edit-id-input"].forEach(fieldId => document.getElementById(fieldId)?.addEventListener("input", event => {
+    const digits = event.target.value.replace(/\D/g, "").slice(0, 11);
+    if (digits !== event.target.value) event.target.value = digits;
+}));
+document.querySelectorAll("#add-student-modal input, #edit-modal input").forEach(input =>
+    input.addEventListener("input", () => showFieldError(input, "")));
 
 document.getElementById("student-filter")?.addEventListener("change", () => loadStudents(document.getElementById("section-select")?.value || ""));
 document.getElementById("export-students-csv")?.addEventListener("click", () => {
@@ -298,6 +302,10 @@ window.editStudent = function(studentId) {
     idInput.value = student.id;
     nameInput.value = student.name;
     bdayInput.value = student.birthday || "";
+    const bounds = birthdayBounds();
+    bdayInput.min = bounds.min;
+    bdayInput.max = bounds.max;
+    [idInput, nameInput, bdayInput].forEach(input => showFieldError(input, ""));
     
     document.getElementById("edit-modal").style.display = "flex";
     saveBtn.disabled = false;
@@ -307,38 +315,49 @@ window.editStudent = function(studentId) {
         const newId = idInput.value.trim();
         const newName = nameInput.value.trim();
         const newBday = bdayInput.value;
-        const newPassword = formatBirthdayToPassword(newBday);
 
-        if (!newId || !newName) {
-            alert("Student Number and Name are required!");
-            return;
-        }
+        const idTaken = newId !== String(student.id) && allStudents.some(s => String(s.id) === newId);
+        const checks = [
+            [idInput, checkStudentNumber(newId) || (idTaken ? `Student number ${newId} is already used in one of your sections.` : "")],
+            [nameInput, checkFullName(newName)],
+            [bdayInput, checkBirthday(newBday)]
+        ];
+        checks.forEach(([input, message]) => showFieldError(input, message));
+        const firstProblem = checks.find(([, message]) => message);
+        if (firstProblem) { firstProblem[0].focus(); return; }
 
         saveBtn.disabled = true;
         saveBtn.innerText = "Saving...";
         toggleLoading(true);
 
+        // Edit only changes details. The password is never touched here (use Reset Password),
+        // and only fields that actually changed are written.
+        const changes = {};
+        if (newName !== String(student.name ?? "").trim()) changes.name = newName;
+        if (newBday !== String(student.birthday ?? "")) changes.birthday = newBday;
+        const idChanged = newId !== String(student.id);
+        if (!idChanged && !Object.keys(changes).length) {
+            saveBtn.disabled = false;
+            saveBtn.innerText = "Save Changes";
+            toggleLoading(false);
+            closeEditModal();
+            return;
+        }
+
         try {
             const oldRef = doc(db, "sections", student.parentDocId, "classList", student.id);
-            
-            if (newId !== student.id) {
+
+            if (idChanged) {
+                // Copy the stored record (game data, password, everything), not the page's computed copy.
+                const stored = await getDoc(oldRef);
+                if (!stored.exists()) throw new Error("Student record not found.");
                 const newRef = doc(db, "sections", student.parentDocId, "classList", newId);
-                await setDoc(newRef, {
-                    ...student,
-                    id: newId,
-                    name: newName,
-                    birthday: newBday,
-                    password: newPassword
-                });
+                await setDoc(newRef, { ...stored.data(), ...changes, id: newId });
                 await deleteDoc(oldRef);
             } else {
-                await updateDoc(oldRef, { 
-                    name: newName,
-                    birthday: newBday,
-                    password: newPassword
-                });
+                await updateDoc(oldRef, changes);
             }
-            
+
             closeEditModal();
             await fetchClassList(); 
             alert("Student record updated!");
@@ -447,43 +466,41 @@ window.closeStudentModal = function(){
 
 
 
+// Class-list template: exactly four columns, in the order the import reads them.
+// Student Number and Birthday are text cells so Excel keeps leading zeros (02000452904)
+// and keeps the date as typed (mm/dd/yyyy) instead of converting it.
+const TEMPLATE_HEADERS = ["Student Number", "Full Name", "Student Email", "Birthday (mm/dd/yyyy)"];
+const TEMPLATE_ROWS = 300;
+
 window.downloadExcelTemplate = function () {
     try {
-        const templateRows = [{
-            "Student Number": "",
-            "Full Name": "",
-            "Student Email": "",
-            "Birthday (mm/dd/yyyy)": ""
-        }];
+        const rows = [TEMPLATE_HEADERS, ...Array.from({ length: TEMPLATE_ROWS }, () => ["", "", "", ""])];
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        for (let r = 1; r <= TEMPLATE_ROWS; r++) {
+            for (const col of ["A", "D"]) ws[`${col}${r + 1}`] = { t: "s", v: "", z: "@" };
+        }
+        ws["!cols"] = [{ wch: 20 }, { wch: 34 }, { wch: 38 }, { wch: 22 }];
 
-        const ws = XLSX.utils.json_to_sheet(templateRows, {
-            header: [
-                "Student Number",
-                "Full Name",
-                "Student Email",
-                "Birthday"
-            ]
-        });
-
-        ws["!cols"] = [
-            { wch: 20 },
-            { wch: 32 },
-            { wch: 38 },
-            { wch: 16 }
-        ];
+        const guide = XLSX.utils.aoa_to_sheet([
+            ["How to fill in the class list"],
+            [],
+            ["Column", "Rule", "Example"],
+            ["Student Number", "10 or 11 digits only, no dashes or spaces", "02000452904"],
+            ["Full Name", "Surname, First name Middle initial. Letters only (2 to 120 characters)", "Dela Cruz, Juan M."],
+            ["Student Email", "A valid email address (optional)", "juan.delacruz@caloocan.sti.edu.ph"],
+            ["Birthday (mm/dd/yyyy)", "Month/day/year; the student must be at least 16 years old", "01/15/2008"],
+            [],
+            ["Notes"],
+            ["Fill in the 'Class List' sheet only and keep row 1 (the headings) as it is."],
+            ["The game password is the birthday as YYYYMMDD, for example 20080115."],
+            ["Rows that break a rule are skipped and listed after the import so you can fix them."]
+        ]);
+        guide["!cols"] = [{ wch: 24 }, { wch: 70 }, { wch: 36 }];
 
         const workbook = XLSX.utils.book_new();
-
-        XLSX.utils.book_append_sheet(
-            workbook,
-            ws,
-            "Class List Template"
-        );
-
-        XLSX.writeFile(
-            workbook,
-            "Student_Class_List_Template.xlsx"
-        );
+        XLSX.utils.book_append_sheet(workbook, ws, "Class List");
+        XLSX.utils.book_append_sheet(workbook, guide, "How to fill in");
+        XLSX.writeFile(workbook, "Student_Class_List_Template.xlsx");
 
     } catch (error) {
         console.error("Template download error:", error);
@@ -530,8 +547,14 @@ window.openAddStudentModal = function () {
     ).value = "";
 
     document.getElementById(
-        "add-student-last-name"
+        "add-student-middle-initial"
     ).value = "";
+
+    const birthdayInput = document.getElementById("add-student-birthday");
+    const bounds = birthdayBounds();
+    birthdayInput.min = bounds.min;
+    birthdayInput.max = bounds.max;
+    document.querySelectorAll("#add-student-modal input").forEach(input => showFieldError(input, ""));
 
     document.getElementById(
         "add-student-email"
@@ -600,8 +623,8 @@ window.saveManualStudent = async function () {
             .value
             .trim();
 
-    const lastName =
-        document.getElementById("add-student-last-name")
+    const middleInitial =
+        document.getElementById("add-student-middle-initial")
             .value
             .trim();
 
@@ -623,56 +646,27 @@ window.saveManualStudent = async function () {
     }
 
 
-    if (
-        !id ||
-        !surname ||
-        !firstName ||
-        !lastName ||
-        !email ||
-        !birthday
-    ) {
-
-        alert("Please complete all student fields.");
-
+    // Check every field and show each problem under its own field.
+    const checks = [
+        ["add-student-id", checkStudentNumber(id) ||
+            (allStudents.some(s => String(s.id) === id) ? `Student number ${id} is already used in one of your sections.` : "")],
+        ["add-student-surname", checkName(surname, "Surname")],
+        ["add-student-first-name", checkName(firstName, "First name")],
+        ["add-student-middle-initial", checkMiddleInitial(middleInitial)],
+        ["add-student-email", checkEmail(email)],
+        ["add-student-birthday", checkBirthday(birthday)]
+    ];
+    checks.forEach(([fieldId, message]) => showFieldError(document.getElementById(fieldId), message));
+    const firstProblem = checks.find(([, message]) => message);
+    if (firstProblem) {
+        document.getElementById(firstProblem[0])?.focus();
         return;
     }
 
 
-    const emailInput =
-        document.getElementById("add-student-email");
-
-    if (
-        emailInput &&
-        !emailInput.checkValidity()
-    ) {
-
-        alert(
-            "Please enter a valid student email address."
-        );
-
-        emailInput.focus();
-
-        return;
-    }
-
-
-    if (!/^\d+$/.test(id)) {
-
-        alert(
-            "Student Number must contain numbers only."
-        );
-
-        document
-            .getElementById("add-student-id")
-            .focus();
-
-        return;
-    }
-
-
+    // Stored the same way as existing records, e.g. "Acabo, Jerick B."
     const fullName =
-        `${surname}, ${firstName} ${lastName}`
-            .replace(/\s+/g, " ")
+        `${cleanSpaces(surname)}, ${cleanSpaces(firstName)} ${formatMiddleInitial(middleInitial)}`
             .trim();
 
 
@@ -896,17 +890,27 @@ function excelDateToJSDate(value) {
         const parts = raw.split(/[\/\-\.]/);
 
         if (parts.length === 3) {
-            let [day, month, year] = parts;
+            // yyyy-mm-dd, otherwise mm/dd/yyyy as written on the template's column header.
+            let [month, day, year] = parts[0].length === 4 ? [parts[1], parts[2], parts[0]] : parts;
             day = day.padStart(2, "0");
             month = month.padStart(2, "0");
 
             if (year.length === 2) {
-                year = "20" + year;
+                // 2-digit years: 00 up to this year → 20xx, otherwise 19xx.
+                const thisYear = new Date().getFullYear() % 100;
+                year = (Number(year) <= thisYear ? "20" : "19") + year;
             }
             return `${year}-${month}-${day}`;
         }
     }
     return "";
+}
+
+// Lists the first rows that were skipped because they broke the input rules.
+function invalidReport(rows) {
+    if (!rows.length) return "";
+    const shown = rows.slice(0, 8).join("\n");
+    return `\n\nSkipped ${rows.length} row(s) with problems:\n${shown}${rows.length > 8 ? `\n…and ${rows.length - 8} more` : ""}\nFix them in the file and import again.`;
 }
 
 window.importExcel = async function () {
@@ -925,7 +929,8 @@ window.importExcel = async function () {
         toggleLoading(true);
         try {
             const wb = XLSX.read(new Uint8Array(e.target.result), { type: "array" });
-            const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+            // Fixed columns A–D (header row skipped); raw:false keeps text such as leading zeros.
+            const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: "", raw: false, blankrows: false }).slice(1);
             const batch = writeBatch(db);
 
             const allExistingIds = new Set(allStudents.map(s => String(s.id)));
@@ -942,21 +947,29 @@ window.importExcel = async function () {
 
             let addedCount = 0;
             let skippedCount = 0;
+            const invalidRows = [];
             let skippedActiveCount = 0;
             let skippedArchiveCount = 0;
 
-            data.forEach(row => {
-                const values = Object.values(row);
+            data.forEach((values, index) => {
 
                 const sId = String(values[0] || "").trim();
-                const sName = values[1] || "Unknown";
-                const sEmail = values[2] || "No Email";
+                const sName = cleanSpaces(values[1]);
+                const sEmail = String(values[2] || "").trim() || "No Email";
                 const rawBirthday = values[3];
 
                 const sBirthday = excelDateToJSDate(rawBirthday);
                 const sPassword = formatBirthdayToPassword(sBirthday);
 
-                if (!sId) return;
+                if (!sId && !sName) return; // empty row
+
+                // Same rules as Add Student; row numbers match Excel (row 1 is the header).
+                const problem = checkStudentNumber(sId) || checkFullName(sName) || checkBirthday(sBirthday) ||
+                    (sEmail !== "No Email" ? checkEmail(sEmail) : "");
+                if (problem) {
+                    invalidRows.push(`Row ${index + 2}${sId ? " (" + sId + ")" : ""}: ${problem}`);
+                    return;
+                }
 
                 if (!allExistingIds.has(sId)) {
                     const studentRef = doc(db, "sections", parentDocId, "classList", sId);
@@ -991,12 +1004,14 @@ window.importExcel = async function () {
                 alert(`Import Complete!\n` +
                       `Added: ${addedCount} new students\n` +
                       `Skipped Active: ${skippedActiveCount}\n` +
-                      `Skipped Archived: ${skippedArchiveCount}`);
+                      `Skipped Archived: ${skippedArchiveCount}` +
+                      invalidReport(invalidRows));
                 await fetchClassList();
             } else {
                 alert(`No new students found.\n` +
                       `Active duplicates: ${skippedActiveCount}\n` +
-                      `Archived duplicates: ${skippedArchiveCount}`);
+                      `Archived duplicates: ${skippedArchiveCount}` +
+                      invalidReport(invalidRows));
             }
 
             input.value = "";

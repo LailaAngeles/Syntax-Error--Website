@@ -44,6 +44,34 @@ const DASHBOARD_URL = "../MainMenu/dashboard.html";
 let otpExpiresAt = 0;
 let loginInProgress = false;
 
+// Busy buttons + one PIN email per minute per address, so repeated clicks cannot flood the inbox.
+const loginButton = loginForm?.querySelector('button[type="submit"]');
+const PIN_COOLDOWN_MS = 60 * 1000;
+const PIN_SENT_KEY = "syntaxerror_pin_sent";
+const RESET_SENT_KEY = "syntaxerror_reset_sent";
+const buttonLabels = new WeakMap();
+
+function setBusy(button, busy, text = "") {
+    if (!button) return;
+    if (!buttonLabels.has(button)) buttonLabels.set(button, button.innerHTML);
+    button.disabled = busy;
+    button.classList.toggle("is-busy", busy);
+    button.setAttribute("aria-busy", String(busy));
+    button.innerHTML = busy ? `<span class="btn-spinner" aria-hidden="true"></span> ${text}` : buttonLabels.get(button);
+}
+
+// Milliseconds left before another email may be sent to this address (0 = allowed now).
+function cooldownLeft(key, address) {
+    try {
+        const record = JSON.parse(sessionStorage.getItem(key) || "null");
+        if (record && record.email === address.trim().toLowerCase()) return Math.max(0, PIN_COOLDOWN_MS - (Date.now() - record.at));
+    } catch (error) { /* storage unavailable: no cooldown memory */ }
+    return 0;
+}
+function rememberSent(key, address) {
+    try { sessionStorage.setItem(key, JSON.stringify({ email: address.trim().toLowerCase(), at: Date.now() })); } catch (error) { /* ignore */ }
+}
+
 // Resume only sessions that have successfully completed the email PIN step.
 onAuthStateChanged(auth, async (user) => {
     if (loginInProgress || !user) return;
@@ -124,6 +152,7 @@ function hideErrors() {
 
 loginForm?.addEventListener("submit", async function (e) {
     e.preventDefault();
+    if (loginInProgress) return; // a sign-in is already running
     hideErrors();
 
     const allowedDomain = /^[a-zA-Z0-9._%+-]+@caloocan\.sti\.edu\.ph$/;
@@ -144,7 +173,15 @@ loginForm?.addEventListener("submit", async function (e) {
 
     if (hasError) return;
 
+    // A valid PIN for this same account is already waiting: show it again instead of emailing a new one.
+    if (generatedOtp && Date.now() < otpExpiresAt &&
+        auth.currentUser?.email?.toLowerCase() === email.value.trim().toLowerCase()) {
+        openOtpPopup("Your PIN was already sent. Enter it below.");
+        return;
+    }
+
     loginInProgress = true;
+    setBusy(loginButton, true, "Checking your account…");
     try {
         // Do not persist an authenticated session until PIN verification succeeds.
         await setPersistence(auth, inMemoryPersistence);
@@ -171,6 +208,7 @@ loginForm?.addEventListener("submit", async function (e) {
         }
 
         // Credentials valid, initiate OTP
+        setBusy(loginButton, true, "Sending your PIN…");
         await handleLoginAttempt(email.value);
 
     } catch (error) {
@@ -192,6 +230,7 @@ loginForm?.addEventListener("submit", async function (e) {
         }
     } finally {
         loginInProgress = false;
+        setBusy(loginButton, false);
     }
 });
 
@@ -219,15 +258,32 @@ document.getElementById("closeFeedbackBtn")?.addEventListener("click", function(
     toggleFeedbackPopup(false);
 });
 
+let resetInProgress = false;
 reset?.addEventListener("click", function(event) {
     event.preventDefault();
-    const emailValue = document.getElementById("email").value;
+    if (resetInProgress) return;
+    const emailValue = document.getElementById("email").value.trim();
     if (!emailValue) {
         alert("Please enter your email address.");
         return;
     }
+    // One reset email per minute for the same address.
+    const wait = cooldownLeft(RESET_SENT_KEY, emailValue);
+    if (wait) {
+        showPopup(`A password reset email was already sent. Check your inbox and Junk folder, or try again in ${Math.ceil(wait / 1000)} seconds.`);
+        return;
+    }
+    resetInProgress = true;
+    reset.setAttribute("aria-disabled", "true");
+    reset.textContent = "Sending…";
     sendPasswordResetEmail(auth, emailValue)
+        .finally(() => {
+            resetInProgress = false;
+            reset.removeAttribute("aria-disabled");
+            reset.textContent = "Forgot Password?";
+        })
         .then(() => {
+            rememberSent(RESET_SENT_KEY, emailValue);
             const forgotPopup = document.getElementById("forgotPopup");
             if (forgotPopup) forgotPopup.style.display = "none";
             toggleFeedbackPopup(true);
@@ -243,7 +299,46 @@ reset?.addEventListener("click", function(event) {
 
 emailjs.init({ publicKey: "SZvtmcDCW3hy4qm5v" });
 
+const resendButton = document.getElementById("resendOtpBtn");
+let resendTimer = null;
+
+function startResendCountdown(ms = PIN_COOLDOWN_MS) {
+    clearInterval(resendTimer);
+    if (!resendButton) return;
+    const until = Date.now() + ms;
+    const tick = () => {
+        const left = Math.ceil((until - Date.now()) / 1000);
+        if (left <= 0) {
+            clearInterval(resendTimer);
+            resendButton.disabled = false;
+            resendButton.textContent = "Resend PIN";
+        } else {
+            resendButton.disabled = true;
+            resendButton.textContent = `Resend PIN in ${left}s`;
+        }
+    };
+    tick();
+    resendTimer = setInterval(tick, 1000);
+}
+
+function openOtpPopup(note = "") {
+    const noteEl = document.getElementById("otpNote");
+    if (noteEl) { noteEl.textContent = note; noteEl.hidden = !note; }
+    document.getElementById("otpPopup").style.display = "flex";
+    const left = cooldownLeft(PIN_SENT_KEY, auth.currentUser?.email || email.value);
+    startResendCountdown(left);
+    setTimeout(() => document.getElementById("otpInput")?.focus(), 50);
+}
+
 async function handleLoginAttempt(userEmail) {
+    // At most one PIN email per minute for the same address (also across page reloads).
+    const wait = cooldownLeft(PIN_SENT_KEY, userEmail);
+    if (wait) {
+        await signOut(auth).catch(() => {});
+        generatedOtp = "";
+        showPopup(`A PIN was sent to this email less than a minute ago. Check your inbox and Junk folder, or try again in ${Math.ceil(wait / 1000)} seconds.`);
+        return;
+    }
     generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
     otpExpiresAt = Date.now() + 15 * 60 * 1000;
     try {
@@ -252,7 +347,10 @@ async function handleLoginAttempt(userEmail) {
             passcode: generatedOtp,
             time: "15 minutes"
         });
-     document.getElementById("otpPopup").style.display = "flex";
+        rememberSent(PIN_SENT_KEY, userEmail);
+        const otpInput = document.getElementById("otpInput");
+        if (otpInput) otpInput.value = "";
+        openOtpPopup();
     } catch (error) {
         console.error("Email failed:", error);
         await signOut(auth).catch(() => {});
@@ -260,6 +358,19 @@ async function handleLoginAttempt(userEmail) {
         showPopup("Failed to send PIN. Please check your internet.");
     }
 }
+
+// Resend: only after the countdown, and only for the account that passed the password check.
+resendButton?.addEventListener("click", async () => {
+    const userEmail = auth.currentUser?.email;
+    if (!userEmail || resendButton.disabled) return;
+    setBusy(resendButton, true, "Sending…");
+    await handleLoginAttempt(userEmail);
+    setBusy(resendButton, false);
+    if (generatedOtp) openOtpPopup("A new PIN was sent. The previous one no longer works.");
+});
+document.getElementById("otpInput")?.addEventListener("keydown", event => {
+    if (event.key === "Enter") document.getElementById("verifyOtpBtn")?.click();
+});
 
 document.getElementById("verifyOtpBtn")?.addEventListener("click", async () => {
     const verifyButton = document.getElementById("verifyOtpBtn");
