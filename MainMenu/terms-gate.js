@@ -177,9 +177,10 @@ function showPasswordForm(recordRef) {
     const field = (id, label, placeholder, autocomplete) => `
         <label class="tg-field" for="${id}">${label}
             <span class="tg-input">
-                <input type="password" id="${id}" placeholder="${placeholder}" autocomplete="${autocomplete}" maxlength="128">
+                <input type="password" id="${id}" placeholder="${placeholder}" autocomplete="${autocomplete}" maxlength="128" aria-describedby="${id}Note">
                 <button type="button" class="tg-eye" data-for="${id}" aria-label="Show password"><i class="bi bi-eye-slash"></i></button>
             </span>
+            <small class="tg-note" id="${id}Note" aria-live="polite" hidden></small>
         </label>`;
     const gate = mountGate(`
         <div class="tg-dialog tg-small" role="dialog" aria-modal="true" aria-labelledby="tgPwFormTitle">
@@ -209,7 +210,55 @@ function showPasswordForm(recordRef) {
     const confirm = gate.querySelector("#tgConfirmPw");
     const save = gate.querySelector("#tgSave");
     const errorBox = gate.querySelector("#tgError");
+    const dialogBox = gate.querySelector(".tg-dialog");
     const fail = message => { errorBox.textContent = message; errorBox.hidden = false; };
+    const syncDialog = () => dialogBox.classList.toggle("tg-has-error", !!gate.querySelector(".tg-invalid") || !errorBox.hidden);
+
+    // Turns one field red with its own message, green when good is set, or back to normal.
+    function markField(input, message = "", good = "") {
+        const box = input.closest(".tg-field");
+        const note = gate.querySelector(`#${input.id}Note`);
+        const wasInvalid = box.classList.contains("tg-invalid");
+        box.classList.toggle("tg-invalid", !!message);
+        box.classList.toggle("tg-valid", !message && !!good);
+        input.setAttribute("aria-invalid", message ? "true" : "false");
+        note.hidden = !message && !good;
+        note.replaceChildren();
+        if (message || good) {
+            const icon = document.createElement("i");
+            icon.className = `bi ${message ? "bi-exclamation-circle-fill" : "bi-check-circle-fill"}`;
+            icon.setAttribute("aria-hidden", "true");
+            note.append(icon, document.createTextNode(` ${message || good}`));
+        }
+        if (message && !wasInvalid) {
+            box.classList.add("tg-shake");
+            box.addEventListener("animationend", () => box.classList.remove("tg-shake"), { once: true });
+        }
+        syncDialog();
+    }
+    const currentProblem = () => current.value ? "" : "Enter your current (default) password.";
+    const newProblem = () => next.value.length < 8 ? "Use at least 8 characters."
+        : next.value === current.value ? "Must be different from your default password." : "";
+    const confirmProblem = () => !confirm.value ? "Re-enter your new password."
+        : confirm.value !== next.value ? "Passwords do not match." : "";
+    const checkConfirm = () => markField(confirm, confirmProblem(), confirmProblem() ? "" : "Passwords match.");
+
+    // Red appears as soon as a mistake is certain, not while the person is still typing it.
+    current.addEventListener("input", () => {
+        markField(current);
+        if (next.closest(".tg-invalid")) markField(next, newProblem());
+    });
+    next.addEventListener("input", () => {
+        if (next.closest(".tg-invalid") || next.value.length >= 8) markField(next, newProblem());
+        if (confirm.value) checkConfirm();
+    });
+    next.addEventListener("blur", () => { if (next.value) markField(next, newProblem()); });
+    confirm.addEventListener("input", () => {
+        if (!confirm.value) return markField(confirm);
+        if (confirm.closest(".tg-invalid") || confirm.value.length >= next.value.length) checkConfirm();
+        else markField(confirm);
+    });
+    confirm.addEventListener("blur", () => { if (confirm.value) checkConfirm(); });
 
     gate.querySelectorAll(".tg-eye").forEach(eye => eye.addEventListener("click", () => {
         const input = gate.querySelector("#" + eye.dataset.for);
@@ -223,10 +272,11 @@ function showPasswordForm(recordRef) {
     form.addEventListener("submit", async event => {
         event.preventDefault();
         errorBox.hidden = true;
-        if (!current.value) return fail("Enter your current (default) password.");
-        if (next.value.length < 8) return fail("The new password must contain at least 8 characters.");
-        if (next.value !== confirm.value) return fail("The new passwords do not match.");
-        if (next.value === current.value) return fail("The new password must be different from the default password.");
+        // Show every problem at once and go to the first one.
+        const problems = [[current, currentProblem()], [next, newProblem()], [confirm, confirmProblem()]];
+        problems.forEach(([input, message]) => markField(input, message, input === confirm && !message ? "Passwords match." : ""));
+        const first = problems.find(([, message]) => message);
+        if (first) return first[0].focus();
 
         save.disabled = true;
         save.textContent = "Saving...";
@@ -240,11 +290,22 @@ function showPasswordForm(recordRef) {
             save.textContent = "Save";
             switch (error.code) {
                 case "auth/invalid-credential":
-                case "auth/wrong-password": return fail("The current password is incorrect.");
-                case "auth/weak-password": return fail("The new password is too weak. Use at least 8 characters.");
-                case "auth/too-many-requests": return fail("Too many attempts. Try again later.");
-                default: return fail("Your password could not be changed. Please try again.");
+                case "auth/invalid-login-credentials":
+                case "auth/wrong-password":
+                    markField(current, "This is not your current password. Check it and try again.");
+                    current.focus();
+                    current.select();
+                    return;
+                case "auth/weak-password":
+                    markField(next, "This password is too weak. Try a longer one that is harder to guess.");
+                    next.focus();
+                    return;
+                case "auth/too-many-requests": fail("Too many attempts. Please wait a few minutes and try again."); break;
+                case "auth/network-request-failed": fail("No connection. Check your internet and try again."); break;
+                default: fail("Your password could not be changed. Please try again.");
             }
+            syncDialog();
+            return;
         }
         // The password is already changed; a failed flag update only means the prompt may appear again.
         await updateDoc(recordRef, { isFirstLogin: false, passwordChangedAt: serverTimestamp() })
@@ -254,7 +315,7 @@ function showPasswordForm(recordRef) {
                 <div class="tg-status">
                     <p id="tgDoneTitle"><strong>Password updated.</strong><br>Use your new password the next time you sign in.</p>
                     <div class="tg-actions" style="justify-content:center">
-                        <button type="button" class="tg-accept" id="tgContinue">Continue to dashboard</button>
+                        <button type="button" class="tg-accept" id="tgContinue">Continue</button>
                     </div>
                 </div>
             </div>`).querySelector("#tgContinue").addEventListener("click", clearGate);

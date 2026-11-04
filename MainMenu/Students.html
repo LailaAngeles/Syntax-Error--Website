@@ -37,7 +37,7 @@
 
             <h2 class="logo"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></h2>
 
-            <button id="theme-toggle" class="theme-btn" title="Toggle System Mode">
+            <button id="theme-toggle" class="theme-btn" title="Switch light or dark mode" aria-label="Switch light or dark mode">
 
                 <i class="bi bi-moon-stars-fill"></i>
 
@@ -46,38 +46,15 @@
         </div>
 
         <ul>
-
-            <li onclick="window.location.href='dashboard.html'">
-
-                <a href="#"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a>
-
-            </li>
-
-            <li>
-
-                <a href="Levels.html"><i class="bi bi-key-fill"></i> <span>Levels</span></a>
-
-            </li>
-
-            <li class="active">
-
-                <a href="#"><i class="bi bi-people"></i> <span>Students</span></a>
-
-            </li>
-
-            <li onclick="window.location.href='archive.html'">
-
-                <a href="#"><i class="bi bi-archive"></i> <span>Archive</span></a>
-
-            </li>
-
-            <li onclick="showLogoutPopup()">
-
-                <a href="#"><i class="bi bi-box-arrow-right"></i> <span>LogOut</span></a>
-
-            </li>
-
-        </ul>
+        <li><a href="welcome.html"><i class="bi bi-house-door"></i> <span>Home</span></a></li>
+        <li><a href="dashboard.html"><i class="bi bi-speedometer2"></i> <span>Class Overview</span></a></li>
+        <li><a href="Levels.html"><i class="bi bi-key-fill"></i> <span>Level Access</span></a></li>
+        <li class="active"><a href="Students.html" aria-current="page"><i class="bi bi-people"></i> <span>Students</span></a></li>
+        <li><a href="archive.html"><i class="bi bi-archive"></i> <span>Archive</span></a></li>
+        <li><a href="../help.html" target="_blank" rel="noopener" title="Open the user manual in a new tab"><i class="bi bi-question-circle"></i> <span>Help</span></a></li>
+        <li onclick="showLogoutPopup()"><a href="#"><i class="bi bi-box-arrow-right"></i> <span>Log Out</span></a></li>
+    
+</ul>
 
     </div>
 
@@ -165,10 +142,10 @@
 
     <!-- Factual counts for the selected section -->
     <div class="da-kpis students-kpis">
-        <div class="da-kpi"><span><i class="bi bi-people"></i> Students</span><strong id="card-total-students">0</strong><small>In the selected section</small></div>
-        <div class="da-kpi da-kpi-level"><span><i class="bi bi-wifi"></i> Online</span><strong id="online-count">0</strong><small>As reported by the game right now</small></div>
-        <div class="da-kpi da-kpi-time"><span><i class="bi bi-controller"></i> Started playing</span><strong id="started-count">0</strong><small>Have at least one game record</small></div>
-        <div class="da-kpi da-kpi-error"><span><i class="bi bi-hourglass"></i> Not started</span><strong id="not-started-count">0</strong><small>No game records yet</small></div>
+        <div class="da-kpi"><span><i class="bi bi-people"></i> Students <button type="button" class="da-info" data-da-info="students" title="How is this computed?" aria-label="How is this computed? Students"><i class="bi bi-info-circle" aria-hidden="true"></i></button></span><strong id="card-total-students">0</strong><small>In the selected section</small></div>
+        <div class="da-kpi da-kpi-level"><span><i class="bi bi-wifi"></i> Online <button type="button" class="da-info" data-da-info="online" title="How is this computed?" aria-label="How is this computed? Online"><i class="bi bi-info-circle" aria-hidden="true"></i></button></span><strong id="online-count">0</strong><small>As reported by the game right now</small></div>
+        <div class="da-kpi da-kpi-time"><span><i class="bi bi-controller"></i> Started playing <button type="button" class="da-info" data-da-info="started" title="How is this computed?" aria-label="How is this computed? Started playing"><i class="bi bi-info-circle" aria-hidden="true"></i></button></span><strong id="started-count">0</strong><small>Have at least one game record</small></div>
+        <div class="da-kpi da-kpi-error"><span><i class="bi bi-hourglass"></i> Not started <button type="button" class="da-info" data-da-info="not-started-count" title="How is this computed?" aria-label="How is this computed? Not started"><i class="bi bi-info-circle" aria-hidden="true"></i></button></span><strong id="not-started-count">0</strong><small>No game records yet</small></div>
     </div>
 
     <div class="card student-table-card">
@@ -193,6 +170,8 @@
                     <option value="name">Name (A–Z)</option>
                     <option value="levels-desc">Most levels completed</option>
                     <option value="levels-asc">Fewest levels completed</option>
+                    <option value="wrong-desc">Most wrong submissions</option>
+                    <option value="time-desc">Most time recorded</option>
                     <option value="recent">Most recent activity</option>
                 </select>
             </label>
@@ -204,8 +183,10 @@
                 <thead>
                     <tr>
                         <th>Student</th>
-                        <th>Levels completed</th>
-                        <th>Last activity</th>
+                        <th>Levels completed <button type="button" class="da-info" data-da-info="col-levels" title="How is this computed?" aria-label="How is this computed? Levels completed"><i class="bi bi-info-circle" aria-hidden="true"></i></button></th>
+                        <th>Time recorded <button type="button" class="da-info" data-da-info="col-time" title="How is this computed?" aria-label="How is this computed? Time recorded"><i class="bi bi-info-circle" aria-hidden="true"></i></button></th>
+                        <th>Wrong submissions <button type="button" class="da-info" data-da-info="col-wrong" title="How is this computed?" aria-label="How is this computed? Wrong submissions"><i class="bi bi-info-circle" aria-hidden="true"></i></button></th>
+                        <th>Last activity <button type="button" class="da-info" data-da-info="col-last" title="How is this computed?" aria-label="How is this computed? Last activity"><i class="bi bi-info-circle" aria-hidden="true"></i></button></th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -213,7 +194,7 @@
 
                     <tr>
 
-                        <td colspan="5" style="text-align:center;">
+                        <td colspan="6" style="text-align:center;">
 
                             Select a section to load students
 
@@ -230,62 +211,6 @@
 
 
     </div>
-
-        <div id="analysis-section" class="student-analysis-grid" style="display: none; margin-top: 30px;">
-
-            <div class="analysis-box" id="student-info-card">
-
-                <h4>Student Details</h4>
-
-                <div id="student-details-content">Select a student to see details</div>
-
-            </div>
-
-
-
-            <div class="analysis-box">
-
-                <h4>Recent Level Attempts</h4>
-
-                <div id="attempts-list">No data available</div>
-
-            </div>
-
-
-
-            <div style="background: var(--card-bg, #161a22); border: 1px solid var(--border, #21262d); border-radius: 12px; padding: 16px;">
-
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-
-                    <h3 style="font-size: 1rem; color: #fff; margin: 0;">Difficulty Trend</h3>
-
-                    <span style="font-size: 0.75rem; color: #8b949e;">Easy (0-3) | Moderate (4-6) | Hard (7-10)</span>
-
-                </div>
-
-
-
-                <!-- CHART CANVAS TARGET -->
-
-                <div style="position: relative; height: 180px; width: 100%;">
-
-                    <canvas id="difficultyTrendChart"></canvas>
-
-                </div>
-
-            </div>
-
-
-
-            <div class="card analysis-tier">
-
-                <h3><i class="bi bi-person"></i> Student Learning Gaps</h3>
-
-                <div id="student-analysis"></div>
-
-            </div>
-
-        </div>
 
     </div>
 
@@ -319,65 +244,11 @@
 
 
 
-    <div id="custom-archive-modal" class="modal-overlay" style="display:none;">
-
-        <div class="archive-modal-box">
-
-            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; padding-bottom: 15px; margin-bottom: 15px;">
-
-                <h3 style="font-size: 1.2rem; font-weight: 600;"><i class="bi bi-archive"></i> Archived Students</h3>
-
-                <button onclick="closeArchiveModal()" style="background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #9ca3af;">&times;</button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <p style="font-size: 0.85rem; color: #ef4444; margin-bottom: 15px;">
-
-                    <i class="bi bi-info-circle"></i> These students are scheduled for deletion. Click 'Restore' to move them back to the active list.
-
-                </p>
-
-                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-
-                    <table style="width: 100%; border-collapse: collapse;">
-
-                        <thead>
-
-                            <tr style="background: #f9fafb; text-align: left;">
-
-                                <th style="padding: 12px;">Name</th>
-
-                                <th style="padding: 12px;">Section</th>
-
-                                <th style="padding: 12px;">Action</th>
-
-                            </tr>
-
-                        </thead>
-
-                        <tbody id="archived-students-table">
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
     <div id="edit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center;">
 
         <div style="background:white; padding:30px; border-radius:12px; width:90%; max-width:450px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
 
-            <h3 style="margin-top:0; color:#1e293b; font-size:1.25rem;">Update Student Information</h3>
+            <h3 style="margin:0 0 16px; color:#1e293b; font-size:1.25rem;">Update Student Information</h3>
 
 
 
@@ -406,7 +277,7 @@
                 <label style="display:block; font-size:0.8rem; font-weight:bold; color:#64748b; margin-bottom:5px;">BIRTHDAY (YYYY-MM-DD)</label>
 
                 <input type="date" id="edit-birthday-input" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:6px; box-sizing: border-box;">
-                <small class="edit-note"><i class="bi bi-info-circle"></i> Saving here never changes the student's game password. Use <b>Reset Password</b> for that.</small>
+                <small class="edit-note"><i class="bi bi-info-circle"></i> <span>Saving here never changes the student's game password. Use <b>Reset Password</b> for that.</span></small>
 
             </div>
 
@@ -548,9 +419,9 @@
 
     <div id="reset-password-modal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
 
-        <div style="background:white; padding:25px; border-radius:12px; width:420px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="background:white; padding:25px; border-radius:12px; width:min(420px, calc(100vw - 32px)); max-height:calc(100dvh - 32px); overflow-y:auto; box-sizing:border-box; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
 
-            <h3 style="margin-top:0; color:#1e293b; display:flex; align-items:center; gap:10px;">
+            <h3 style="margin:0 0 16px; color:#1e293b; display:flex; align-items:center; gap:10px;">
 
                 <i class="bi bi-shield-lock"></i> Reset Password
 
@@ -640,7 +511,7 @@
 
         <div class="logout-box">
 
-            <h3>Confirm Logout</h3>
+            <h3>Confirm Log Out</h3>
 
             <p>Are you sure you want to exit?</p>
 
@@ -648,7 +519,7 @@
 
                 <button onclick="closeLogoutPopup()">Stay</button>
 
-                <button class="danger" onclick="logoutUser()">Logout</button>
+                <button class="danger" onclick="logoutUser()">Log Out</button>
 
             </div>
 
@@ -673,7 +544,7 @@
                         <p id="modal-student-birthday">Birthday: --</p>
                     </div>
                     <div id="student-summary"></div>
-                    <p class="student-summary-note">Levels light up from the completion markers the game saves. Times and wrong submissions add up every attempt.</p>
+                    <p class="student-summary-note">Yellow levels are finished. Time and wrong submissions add up all of this student's attempts.</p>
                 </div>
                 <!-- RIGHT: charts, attempt history and error messages -->
                 <div class="modal-right-col">

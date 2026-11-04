@@ -70,3 +70,22 @@ html:not(.terms-ok) body { overflow: hidden !important; }
 .tg-eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border: 0; border-radius: 8px; background: transparent; color: var(--tg-muted); cursor: pointer; font-size: 1rem; }
 .tg-eye:hover { background: var(--tg-soft); color: var(--tg-blue); }
 .tg-status strong { color: var(--tg-blue); font-size: 1.05rem; }
+
+/* Password form feedback: a field turns red as soon as something is wrong with it */
+.tg-dialog { transition: border-top-color .2s; }
+.tg-dialog.tg-has-error { border-top-color: #dc2626; }
+.tg-note { display: flex; align-items: flex-start; gap: 5px; font-size: .78rem; font-weight: 600; line-height: 1.4; }
+.tg-note[hidden] { display: none; }
+.tg-note .bi { flex: none; margin-top: 1px; }
+.tg-input input { transition: border-color .15s, background-color .15s, box-shadow .15s; }
+.tg-field.tg-invalid { color: #b91c1c; }
+.tg-field.tg-invalid .tg-note { color: #b91c1c; }
+.tg-field.tg-invalid .tg-input input, .tg-field.tg-invalid .tg-input input:focus { border: 2px solid #dc2626; background: #fef2f2; box-shadow: 0 0 0 3px rgba(220, 38, 38, .16); }
+.tg-field.tg-invalid .tg-eye { color: #b91c1c; }
+.tg-field.tg-valid .tg-note { color: #15803d; }
+.tg-field.tg-valid .tg-input input, .tg-field.tg-valid .tg-input input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, .14); }
+.tg-error { padding: 10px 12px; border: 1px solid #fecaca; border-left: 4px solid #dc2626; border-radius: 10px; background: #fef2f2; font-weight: 600; line-height: 1.45; }
+.tg-error[hidden] { display: none; }
+.tg-shake { animation: tg-shake .32s ease-in-out; }
+@keyframes tg-shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+@media (prefers-reduced-motion: reduce) { .tg-shake { animation: none; } }

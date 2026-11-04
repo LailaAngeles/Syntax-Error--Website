@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home | Super Admin</title>
+    <script>document.documentElement.setAttribute("data-theme", localStorage.getItem("theme") || "light");</script>
+    <link rel="stylesheet" href="StudentList.css">
+    <link rel="stylesheet" href="superadmin-modern.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="superadmin-unified.css">
+    <link rel="stylesheet" href="superadmin-premium.css">
+    <link rel="stylesheet" href="superadmin-mobile-fix.css">
+    <link rel="stylesheet" href="../MainMenu/data-analysis.css">
+    <link rel="stylesheet" href="../MainMenu/welcome-home.css">
+    <script type="module" src="welcome.js"></script>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2 class="logo"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></h2>
+            <button id="themeToggle" class="theme-btn" title="Switch light or dark mode" aria-label="Switch light or dark mode"><i class="bi bi-moon" id="themeIcon"></i></button>
+        </div>
+        <ul>
+            <li class="active"><a href="welcome.html" aria-current="page"><i class="bi bi-house-door"></i> Home</a></li>
+            <li><a href="ApproveUsers.html"><i class="bi bi-person-badge"></i> Teachers &amp; Sections</a></li>
+            <li><a href="StudentsList.html"><i class="bi bi-journal-text"></i> Student Records</a></li>
+            <li><a href="../help.html#admin-signin" target="_blank" rel="noopener" title="Open the Super Admin manual in a new tab"><i class="bi bi-question-circle"></i> Help</a></li>
+            <li onclick="showLogoutPopup()"><a href="#"><i class="bi bi-box-arrow-right"></i> Log Out</a></li>
+        
+</ul>
+    </nav>
+
+    <main class="content">
+        <section class="wh-hero" aria-labelledby="wh-greeting">
+            <div class="wh-hero-text">
+                <p class="wh-date"><i class="bi bi-calendar3" aria-hidden="true"></i> <span id="wh-date"></span></p>
+                <h1 id="wh-greeting">Welcome, Super Admin!</h1>
+                <p class="wh-lead">Manage teacher accounts, sections and school years, and see the game records of every section.</p>
+            </div>
+            <a class="wh-cta" href="ApproveUsers.html">Manage Teachers <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </section>
+
+        <p class="wh-notice" id="wh-notice" role="status" hidden><i class="bi bi-info-circle-fill" aria-hidden="true"></i> <span id="wh-notice-text"></span></p>
+
+        <h2 class="wh-title">The portal right now</h2>
+        <div class="da-kpis" id="wh-kpis">
+            <div class="da-kpi"><span><i class="bi bi-calendar3"></i> School year</span><strong id="wh-year" class="wh-kpi-text">--</strong><small id="wh-year-note">Currently active</small></div>
+            <div class="da-kpi da-kpi-level"><span><i class="bi bi-diagram-3"></i> Sections</span><strong id="wh-sections">--</strong><small>In the active school year</small></div>
+            <div class="da-kpi da-kpi-time"><span><i class="bi bi-person-badge"></i> Teachers</span><strong id="wh-teachers">--</strong><small>Approved accounts</small></div>
+            <div class="da-kpi da-kpi-error"><span><i class="bi bi-people"></i> Students
+                <button type="button" class="da-info" data-da-info="students" title="How is this computed?" aria-label="How is this computed? Students"><i class="bi bi-info-circle" aria-hidden="true"></i></button></span><strong id="wh-students">--</strong><small id="wh-students-note">In those sections</small></div>
+        </div>
+
+        <h2 class="wh-title">What would you like to do?</h2>
+        <div class="wh-grid">
+            <a class="wh-card" href="ApproveUsers.html"><span class="wh-icon" aria-hidden="true"><i class="bi bi-person-plus"></i></span><span class="wh-card-text"><strong>Manage teachers and sections</strong><small>Add teachers, assign sections and manage school years.</small></span><i class="bi bi-chevron-right wh-arrow" aria-hidden="true"></i></a>
+            <a class="wh-card" href="StudentsList.html"><span class="wh-icon" aria-hidden="true"><i class="bi bi-bar-chart-line"></i></span><span class="wh-card-text"><strong>See student records</strong><small>Results for every section, teacher and student.</small></span><i class="bi bi-chevron-right wh-arrow" aria-hidden="true"></i></a>
+            <a class="wh-card" href="../help.html#admin-signin" target="_blank" rel="noopener"><span class="wh-icon" aria-hidden="true"><i class="bi bi-question-circle"></i></span><span class="wh-card-text"><strong>Read the manual</strong><small>Step-by-step help, opens in a new tab.</small></span><i class="bi bi-chevron-right wh-arrow" aria-hidden="true"></i></a>
+        </div>
+    </main>
+
+    <div id="logout-popup" class="logout-modal" style="display:none;">
+        <div class="logout-box">
+            <h3>Confirm Log Out</h3>
+            <p>Are you sure you want to exit the dashboard?</p>
+            <div class="logout-btns">
+                <button onclick="closeLogoutPopup()">Stay</button>
+                <button class="danger" onclick="logoutUser()">Log Out</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

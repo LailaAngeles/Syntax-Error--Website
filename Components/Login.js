@@ -40,7 +40,7 @@ const togglePassword = document.getElementById("togglePassword");
 const loginForm = document.getElementById("loginForm");
 const rememberMe = document.getElementById("rememberMe");
 const VERIFIED_KEY = "syntaxerror_verified_uid";
-const DASHBOARD_URL = "../MainMenu/dashboard.html";
+const HOME_URL = "../MainMenu/welcome.html";
 let otpExpiresAt = 0;
 let loginInProgress = false;
 
@@ -86,7 +86,7 @@ onAuthStateChanged(auth, async (user) => {
             showPopup("Your account has been archived. You cannot log in.");
             return;
         }
-        window.location.replace(DASHBOARD_URL);
+        window.location.replace(HOME_URL);
     } catch (error) {
         console.error("Unable to check remembered session:", error);
         // Do not redirect if the archive check cannot be completed.
@@ -258,13 +258,33 @@ document.getElementById("closeFeedbackBtn")?.addEventListener("click", function(
     toggleFeedbackPopup(false);
 });
 
+// Firebase's email enumeration protection makes sendPasswordResetEmail "succeed" even for
+// unknown addresses, so look the email up in our own records before sending anything.
+// Returns "approved", "archived" or "missing".
+async function findAccountStatus(address) {
+    const variants = [...new Set([address, address.toLowerCase()])];
+    for (const value of variants) {
+        const archived = await getDocs(query(collection(db, "archivedUsers"), where("email", "==", value)));
+        if (!archived.empty) return "archived";
+    }
+    for (const value of variants) {
+        const approved = await getDocs(query(collection(db, "approvedUsers"), where("email", "==", value)));
+        if (!approved.empty && approved.docs.some(d => d.data().status === "approved")) return "approved";
+    }
+    return "missing";
+}
+
 let resetInProgress = false;
-reset?.addEventListener("click", function(event) {
+reset?.addEventListener("click", async function(event) {
     event.preventDefault();
     if (resetInProgress) return;
     const emailValue = document.getElementById("email").value.trim();
     if (!emailValue) {
-        alert("Please enter your email address.");
+        showPopup("Please enter your email address first, then click Forgot Password.");
+        return;
+    }
+    if (!/^[a-zA-Z0-9._%+-]+@caloocan\.sti\.edu\.ph$/.test(emailValue)) {
+        showPopup("Please enter a valid STI email (ending in @caloocan.sti.edu.ph).");
         return;
     }
     // One reset email per minute for the same address.
@@ -275,26 +295,51 @@ reset?.addEventListener("click", function(event) {
     }
     resetInProgress = true;
     reset.setAttribute("aria-disabled", "true");
-    reset.textContent = "Sending…";
-    sendPasswordResetEmail(auth, emailValue)
-        .finally(() => {
-            resetInProgress = false;
-            reset.removeAttribute("aria-disabled");
-            reset.textContent = "Forgot Password?";
-        })
-        .then(() => {
-            rememberSent(RESET_SENT_KEY, emailValue);
-            const forgotPopup = document.getElementById("forgotPopup");
-            if (forgotPopup) forgotPopup.style.display = "none";
-            toggleFeedbackPopup(true);
-        })
-        .catch((error) => {
-            if (error.code === 'auth/user-not-found') {
-                alert("Account not found. Please check the email address or sign up.");
-            } else {
-                alert("Error: " + error.message);
-            }
-        });
+    reset.textContent = "Checking…";
+    try {
+        let status;
+        try {
+            status = await findAccountStatus(emailValue);
+        } catch (error) {
+            console.error("Could not check account for reset:", error);
+            showPopup("We couldn't check your account right now. Please check your internet connection and try again.");
+            return;
+        }
+        if (status === "missing") {
+            showPopup("No account was found with this email. Please check the address, or contact your Super Admin to create your account.");
+            return;
+        }
+        if (status === "archived") {
+            showPopup("This account has been archived, so its password cannot be reset. Please contact your Super Admin.");
+            return;
+        }
+
+        reset.textContent = "Sending…";
+        await sendPasswordResetEmail(auth, emailValue);
+        rememberSent(RESET_SENT_KEY, emailValue);
+        const forgotPopup = document.getElementById("forgotPopup");
+        if (forgotPopup) forgotPopup.style.display = "none";
+        toggleFeedbackPopup(true);
+    } catch (error) {
+        console.error("Password reset failed:", error.code);
+        switch (error.code) {
+            case "auth/user-not-found":
+                showPopup("No account was found with this email. Please check the address, or contact your Super Admin to create your account.");
+                break;
+            case "auth/too-many-requests":
+                showPopup("Too many reset requests. Please wait a few minutes and try again.");
+                break;
+            case "auth/network-request-failed":
+                showPopup("Network error. Please check your internet connection and try again.");
+                break;
+            default:
+                showPopup("We couldn't send the reset email. Please try again.");
+        }
+    } finally {
+        resetInProgress = false;
+        reset.removeAttribute("aria-disabled");
+        reset.textContent = "Forgot Password?";
+    }
 });
 
 emailjs.init({ publicKey: "SZvtmcDCW3hy4qm5v" });
@@ -395,7 +440,7 @@ document.getElementById("verifyOtpBtn")?.addEventListener("click", async () => {
         sessionStorage.removeItem(VERIFIED_KEY);
         storage.setItem(VERIFIED_KEY, auth.currentUser.uid);
         generatedOtp = "";
-        window.location.replace(DASHBOARD_URL);
+        window.location.replace(HOME_URL);
     } catch (error) {
         console.error("Unable to finish login:", error);
         showPopup("Could not save your login session. Please try again.");

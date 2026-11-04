@@ -220,3 +220,125 @@ html[data-theme="dark"] .field-error { color: #ff8a8a; }
 input.is-invalid { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220, 38, 38, .15) !important; }
 .optional-tag { font-style: normal; font-weight: 600; font-size: .85em; color: var(--da-muted); text-transform: none; letter-spacing: 0; }
 .edit-note { display: flex; gap: 6px; margin-top: 8px; font-size: .78rem; line-height: 1.45; color: #64748b; }
+
+/* An author "display" rule beats the browser's [hidden] style, so restore it for these views. */
+[class^="da-"][hidden], [class*=" da-"][hidden] { display: none !important; }
+
+/* "How is this computed?" buttons */
+.da-hint { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; margin: -8px 0 16px; font-size: .84rem; line-height: 1.5; color: var(--da-muted); }
+.da-info { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; margin: -4px 0; padding: 0; flex: none; border: 0; border-radius: 50%; background: transparent; color: var(--da-accent); font-size: .95rem; line-height: 1; vertical-align: middle; cursor: pointer; }
+.da-info:hover { background: var(--da-soft); filter: none; }
+.da-info:focus-visible, .da-help-link:focus-visible, .da-help-close:focus-visible { outline: 2px solid var(--da-accent); outline-offset: 2px; }
+.da-kpi span .da-info { margin-left: auto; }
+.da-kpi span .da-info i, .da-card-head h3 .da-info i, .da-chart figcaption strong .da-info i { color: inherit; }
+.da-help-link { display: inline-flex; align-items: center; align-self: flex-start; gap: 6px; flex: none; min-height: 32px; padding: 5px 11px; border: 1px solid var(--da-line); border-radius: 999px; background: var(--da-surface); color: var(--da-accent); font: inherit; font-size: .78rem; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.da-help-link:hover { border-color: var(--da-accent); background: var(--da-soft); filter: none; }
+.da-card-head > div:first-child { flex: 1 1 260px; min-width: 0; }
+.da-table-title { display: flex; align-items: center; gap: 6px; margin: 4px 0 8px; font-size: .92rem; color: var(--da-ink); }
+.da-table td { font-variant-numeric: tabular-nums; }
+.da-stat-list span .da-info { width: 22px; height: 22px; margin: -3px 0 -3px 1px; color: inherit; font-size: .85rem; opacity: 1; }
+.da-stat-list span .da-info:hover { background: rgba(255, 255, 255, .16); }
+.da-light .da-stat-list span .da-info { color: var(--da-accent); }
+.da-light .da-stat-list span .da-info:hover { background: var(--da-line); }
+th .da-info { width: 24px; height: 24px; }
+.access-title .da-info { margin-left: auto; }
+.access-title .da-info i { display: inline; width: auto; height: auto; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; color: inherit; font-size: .95rem; }
+
+/* "How is this computed?" popup */
+dialog.da-help { width: min(520px, calc(100vw - 24px)); max-height: min(88dvh, 780px); margin: auto; padding: 0; overflow: hidden; border: 1px solid var(--da-line); border-radius: 18px; background: var(--da-surface); color: var(--da-ink); box-shadow: 0 28px 80px rgba(0, 0, 0, .3); }
+dialog.da-help[open] { display: flex; }
+dialog.da-help::backdrop { background: rgba(5, 13, 28, .62); backdrop-filter: blur(3px); }
+.da-help-box { display: flex; flex-direction: column; width: 100%; min-height: 0; }
+.da-help-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 18px 20px 14px; border-bottom: 1px solid var(--da-line); }
+.da-help-head h2 { margin: 4px 0 0; font-size: 1.15rem; line-height: 1.35; color: var(--da-ink); }
+.da-help-close { display: grid; place-items: center; flex: none; width: 36px; height: 36px; padding: 0; border: 1px solid var(--da-line); border-radius: 10px; background: var(--da-surface); color: var(--da-ink); cursor: pointer; }
+.da-help-close:hover { background: var(--da-soft); filter: none; }
+.da-help-body { display: flex; flex-direction: column; gap: 12px; padding: 16px 20px 20px; overflow-y: auto; overscroll-behavior: contain; }
+.da-help-part h3 { margin: 0 0 3px; font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--da-muted); }
+.da-help-part p { margin: 0; font-size: .9rem; line-height: 1.55; color: var(--da-ink); white-space: pre-line; overflow-wrap: anywhere; }
+.da-help-how p, .da-help-example p, .da-help-live p { padding: 9px 12px; border-radius: 10px; background: var(--da-soft); border-left: 3px solid var(--da-line); }
+.da-help-how p { border-left-color: var(--da-accent); }
+.da-help-live p { border-left-color: var(--da-level); font-weight: 600; font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) {
+  .da-hint { margin-top: -6px; font-size: .8rem; }
+  .da-help-head { padding: 14px 14px 11px; }
+  .da-help-body { padding: 12px 14px 16px; }
+  .da-help-link { align-self: stretch; justify-content: center; width: 100%; }
+  .da-card-head > div:first-child { flex-basis: 100%; }
+}
+
+/* Tables need more room than a half-width card on a laptop, so the paired cards stack earlier. */
+@media (max-width: 1500px) { .da-grid-2 { grid-template-columns: minmax(0, 1fr); gap: 0; } }
+
+/* Students table: every column stays in view without sideways scrolling */
+.student-table-card .students-data-table { min-width: 0; }
+.students-data-table th, .students-data-table td { padding-left: 10px; padding-right: 10px; }
+.students-data-table th { white-space: normal; line-height: 1.3; }
+#students-table td:first-child strong { white-space: normal; overflow-wrap: anywhere; }
+#students-table .student-name-cell { min-width: 0; }
+.students-data-table td[data-label="Levels completed"] { min-width: 110px; }
+.students-data-table td[data-label="Last activity"] { min-width: 112px; font-size: .84rem; }
+
+/* Below this width the table becomes one card per student; the headings remain as a row of explanations. */
+@media (max-width: 1300px) {
+  .students-data-table, .students-data-table tbody, .students-data-table tr, .students-data-table td { display: block; width: 100%; }
+  .students-data-table thead { display: block; }
+  .students-data-table thead tr { display: flex; flex-wrap: wrap; gap: 2px 10px; padding: 4px 2px 8px; }
+  .students-data-table th { display: flex; align-items: center; gap: 2px; width: auto; padding: 0; background: none; border: 0; font-size: .7rem; }
+  .students-data-table th:first-child, .students-data-table th:last-child { display: none; }
+  #students-table { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 10px; }
+  #students-table tr { box-sizing: border-box; min-width: 0; padding: 12px; border: 1px solid var(--da-line); border-radius: 14px; background: var(--da-surface); }
+  #students-table td { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 0; border: 0; text-align: right; }
+  #students-table td[data-label]::before { content: attr(data-label); flex: none; font-size: .74rem; font-weight: 700; color: var(--da-muted); text-align: left; }
+  #students-table td[data-label="Student"]::before, #students-table td[data-label="Action"]::before { content: none; }
+  #students-table td[data-label="Student"] { padding-top: 0; text-align: left; }
+  #students-table td[data-label="Levels completed"] .progress-label-row { flex: 1 1 0; width: auto; min-width: 0; margin: 0; justify-content: flex-end; text-align: right; }
+  #students-table td[data-label="Levels completed"] { flex-wrap: wrap; }
+  #students-table td[data-label="Levels completed"] .progress-track { flex: 0 0 100%; width: 100%; max-width: none; margin: 0; }
+  #students-table .last-activity { min-width: 0; }
+  #students-table td[data-label="Action"] { padding-bottom: 0; }
+  #students-table td[data-label="Action"] .row-actions { width: 100%; }
+  #students-table .row-btn-view { flex: 1; }
+  #students-table tr:has(.no-students) { grid-column: 1 / -1; }
+  #students-table td.no-students { display: block; text-align: center; }
+}
+
+/* Phones: rows of the analysis tables become labelled cards */
+@media (max-width: 600px) {
+  .da-table-wrap { overflow: visible; border: 0; }
+  .da-table { display: block; min-width: 0; background: none; }
+  .da-table thead { display: none; }
+  .da-table tbody { display: flex; flex-direction: column; gap: 8px; }
+  .da-table tr { display: block; padding: 10px 12px; border: 1px solid var(--da-line); border-radius: 12px; background: var(--da-surface); }
+  .da-table td { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 5px 0; border: 0; text-align: right; overflow-wrap: anywhere; }
+  .da-table td > small { margin: 0; }
+  .da-table td[data-label]::before { content: attr(data-label); flex: none; max-width: 48%; font-size: .74rem; font-weight: 700; color: var(--da-muted); text-align: left; }
+  .da-table td:first-child { display: block; padding-top: 0; text-align: left; }
+  .da-table td:first-child::before { content: none !important; }
+  .da-table td:not(:first-child) { flex-wrap: wrap; }
+  .da-table td:not(:first-child) > small { flex-basis: 100%; }
+  .da-table td[colspan] { display: block; text-align: center; }
+}
+
+/* "At a glance": the same figures in plain sentences */
+.da-glance { margin: 0 0 16px; padding: 14px 18px; border: 1px solid var(--da-line); border-left: 4px solid #ffc107; border-radius: 14px; background: var(--da-surface); box-shadow: var(--card-shadow, 0 4px 14px rgba(15, 35, 70, .05)); }
+.da-glance h3 { display: flex; align-items: center; gap: 7px; margin: 0 0 6px; font-size: .92rem; color: var(--da-ink); }
+.da-glance h3 i { color: #d99a00; }
+.da-glance ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
+.da-glance li { font-size: .88rem; line-height: 1.5; color: var(--da-ink); overflow-wrap: anywhere; }
+
+/* Student popups follow dark mode (their light colours are set inline or in dashboard.css). */
+#students-table td[data-label="Student"] { min-width: 170px; }
+html[data-theme="dark"] :is(#edit-modal, #reset-password-modal) > div,
+html[data-theme="dark"] #add-student-modal .add-student-box { background: var(--card-bg) !important; border: 1px solid var(--border); }
+html[data-theme="dark"] :is(#edit-modal, #reset-password-modal) :is(h3, p),
+html[data-theme="dark"] #add-student-modal :is(.add-student-modal-header h3, .add-student-section-note span, .add-student-section-note strong) { color: var(--text-main) !important; }
+html[data-theme="dark"] :is(#edit-modal, #reset-password-modal) label,
+html[data-theme="dark"] #add-student-modal :is(label, small, .add-student-modal-header p), html[data-theme="dark"] .edit-note { color: var(--text-muted) !important; }
+html[data-theme="dark"] :is(#edit-modal, #reset-password-modal) :is(input, select),
+html[data-theme="dark"] #add-student-modal input { background: var(--bg-color) !important; color: var(--text-main) !important; border-color: #3a424f !important; color-scheme: dark; }
+html[data-theme="dark"] :is(#edit-modal, #reset-password-modal) button[style*="#f1f5f9"],
+html[data-theme="dark"] #add-student-modal :is(.add-student-cancel, .add-student-close) { background: #21262d !important; color: var(--text-main) !important; border-color: #3a424f !important; }
+html[data-theme="dark"] #add-student-modal .add-student-section-note { background: rgba(59, 130, 246, .12) !important; border-color: rgba(59, 130, 246, .35) !important; }
+html[data-theme="dark"] #reset-step-2 > div:first-child { background: rgba(245, 158, 11, .12) !important; border-color: rgba(245, 158, 11, .35) !important; }
+html[data-theme="dark"] #reset-confirm-text { color: #fbbf24 !important; }

@@ -3,7 +3,8 @@ import {
     getFirestore, collection, getDocs, getDoc, onSnapshot, query, where, writeBatch, doc, updateDoc, deleteDoc, setDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-import { renderStudentSummary, renderStudentDetail, studentSummary, studentCsvRows, STUDENT_CSV_HEADER, downloadCsv, fmtDate } from "./record-analysis.js";
+import { renderStudentSummary, renderStudentDetail, studentSummary, uniqueStudents, studentCsvRows, STUDENT_CSV_HEADER, downloadCsv, fmtDate, fmtTime } from "./record-analysis.js";
+import { setLiveNumbers } from "./metric-help.js";
 import { isCurrentSection, closedYearNotice, watchSchoolYears } from "./school-years.js";
 import { checkStudentNumber, checkName, checkMiddleInitial, formatMiddleInitial, checkFullName, checkEmail, checkBirthday, birthdayBounds, cleanSpaces, showFieldError } from "./student-rules.js";
 
@@ -228,12 +229,17 @@ function loadStudents(section) {
     const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
 
     // Counts follow the section only, not the search box or the table filter.
-    const inSection = allStudents.filter(s => section === "" || s.section === section)
+    const inSection = uniqueStudents(allStudents.filter(s => section === "" || s.section === section))
         .map(s => ({ student: s, summary: studentSummary(s) }));
     setText("card-total-students", inSection.length);
     setText("online-count", inSection.filter(r => r.summary.online).length);
     setText("started-count", inSection.filter(r => r.summary.hasRecords).length);
-    setText("not-started-count", inSection.filter(r => !r.summary.hasRecords).length);
+    const startedCount = inSection.filter(r => r.summary.hasRecords).length;
+    setText("not-started-count", inSection.length - startedCount);
+    setLiveNumbers(document.querySelector(".students-kpis"), {
+        started: `${startedCount} of ${inSection.length} students have game records.`,
+        "not-started-count": `${inSection.length} students − ${startedCount} started = ${inSection.length - startedCount}.`
+    });
 
     const rows = inSection.filter(({ student: s, summary }) => {
         const matchesSearch = !searchTerm ||
@@ -249,6 +255,8 @@ function loadStudents(section) {
     const sorters = {
         "levels-desc": (a, b) => b.summary.levels - a.summary.levels || byName(a, b),
         "levels-asc": (a, b) => a.summary.levels - b.summary.levels || byName(a, b),
+        "wrong-desc": (a, b) => b.summary.wrong - a.summary.wrong || byName(a, b),
+        "time-desc": (a, b) => b.summary.time - a.summary.time || byName(a, b),
         "recent": (a, b) => b.summary.lastActivity - a.summary.lastActivity || byName(a, b)
     };
     rows.sort(sorters[sort] || byName);
@@ -257,7 +265,7 @@ function loadStudents(section) {
 
     if (!table) return;
     if (!rows.length) {
-        table.innerHTML = `<tr><td colspan="4" class="no-students">No students match your current filters.</td></tr>`;
+        table.innerHTML = `<tr><td colspan="6" class="no-students">No students match your current filters.</td></tr>`;
         return;
     }
     table.innerHTML = rows.map(({ student: s, summary: r }) => {
@@ -274,7 +282,9 @@ function loadStudents(section) {
                 <div class="progress-label-row"><strong>${r.levels} of ${TOTAL_GAME_LEVELS}</strong></div>
                 <div class="progress-track" role="progressbar" aria-valuenow="${r.levels}" aria-valuemin="0" aria-valuemax="${TOTAL_GAME_LEVELS}" aria-label="Levels completed"><div class="progress-fill ${stateClass}" style="width:${percent}%"></div></div>
             </td>
-            <td data-label="Last activity">${last}</td>
+            <td data-label="Time recorded">${r.attempts ? displayText(fmtTime(r.time)) : '<span class="cell-muted">--</span>'}</td>
+            <td data-label="Wrong submissions">${r.attempts ? r.wrong : '<span class="cell-muted">--</span>'}</td>
+            <td data-label="Last activity"><span class="last-activity">${last}</span></td>
             <td data-label="Action">
                 <div class="row-actions">
                     <button type="button" class="row-btn row-btn-view" onclick="viewStudent('${id}')"><i class="bi bi-eye"></i> Details</button>
@@ -435,7 +445,6 @@ async function proceedWithArchive(student) {
 }
 
 window.closeConfirmModal = () => document.getElementById("confirm-modal").style.display = "none";
-window.closeArchiveModal = () => document.getElementById("custom-archive-modal").style.display = "none";
 
 // 5. INDIVIDUAL STUDENT VIEW 
 
@@ -446,7 +455,7 @@ window.closeArchiveModal = () => document.getElementById("custom-archive-modal")
 
 
 window.viewStudent = function(studentId, options = {}) {
-    const student = allStudents.find(s => s.id === studentId);
+    const student = allStudents.find(s => String(s.id) === String(studentId));
     if (!student) return;
     activeStudentDetailsId = student.id;
     activeStudentDetailsSection = student.parentDocId == null ? null : String(student.parentDocId);
@@ -1216,5 +1225,4 @@ window.addEventListener('storage', (event) => {
 });
 
 // Additional presentation controls: use the existing section/search filtering pipeline.
-document.getElementById("progress-filter")?.addEventListener("change", () => loadStudents(document.getElementById("section-select")?.value || ""));
 document.getElementById("student-sort")?.addEventListener("change", () => loadStudents(document.getElementById("section-select")?.value || ""));

@@ -20,28 +20,20 @@
 <div class="sidebar">
     <div class="sidebar-header">
         <h2 class="logo"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></h2>
-        <button id="theme-toggle" class="theme-btn" title="Toggle System Matrix Mode">
+        <button id="theme-toggle" class="theme-btn" title="Switch light or dark mode" aria-label="Switch light or dark mode">
             <i class="bi bi-moon-stars-fill"></i>
         </button>
     </div>
     <ul>
-        <li onclick="window.location.href='dashboard.html'">
-            <a href="#"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a>
-        </li>
-         <li>
-            <a href="Levels.html"><i class="bi bi-key-fill"></i> <span>Levels</span></a>
-        </li>
-        <li onclick="window.location.href='Students.html'">
-            <a href="#"><i class="bi bi-people"></i> <span>Students</span></a>
-        </li>
-        <li class="active">
-            <a href="#"><i class="bi bi-archive"></i> <span>Archive</span></a>
-        </li>
+        <li><a href="welcome.html"><i class="bi bi-house-door"></i> <span>Home</span></a></li>
+        <li><a href="dashboard.html"><i class="bi bi-speedometer2"></i> <span>Class Overview</span></a></li>
+        <li><a href="Levels.html"><i class="bi bi-key-fill"></i> <span>Level Access</span></a></li>
+        <li><a href="Students.html"><i class="bi bi-people"></i> <span>Students</span></a></li>
+        <li class="active"><a href="archive.html" aria-current="page"><i class="bi bi-archive"></i> <span>Archive</span></a></li>
         <li><a href="../help.html" target="_blank" rel="noopener" title="Open the user manual in a new tab"><i class="bi bi-question-circle"></i> <span>Help</span></a></li>
-        <li onclick="showLogoutPopup()">
-            <a href="#"><i class="bi bi-box-arrow-right"></i> <span>LogOut</span></a>
-        </li>
-    </ul>
+        <li onclick="showLogoutPopup()"><a href="#"><i class="bi bi-box-arrow-right"></i> <span>Log Out</span></a></li>
+    
+</ul>
 </div>
 
 <div class="main-content">
@@ -55,7 +47,7 @@
         <div class="archive-metric"><span><i class="bi bi-hourglass-split"></i> Expiring soon</span><strong id="archive-expiring">0</strong><small>Less than 24 hours remaining</small></div>
         <div class="archive-metric"><span><i class="bi bi-check2-square"></i> Selected</span><strong id="archive-selected">0</strong><small>Checked student records</small></div>
     </div>
-    <div class="archive-notice"><i class="bi bi-shield-check"></i><p>Students can be restored for <b>7 days</b> after archiving. Records expire based on their archive date. Background deletion requires Firestore TTL setup; see the included README.</p></div>
+    <div class="archive-notice"><i class="bi bi-shield-check"></i><p>Students can be restored for <b>7 days</b> after archiving. After that, the record expires and is removed.</p></div>
     <section class="card archive-panel" aria-label="Archived students">
         <div class="archive-toolbar">
           <div class="archive-heading"><h3>Archived Students</h3><span id="archive-result-count">0 results</span></div>
@@ -83,11 +75,11 @@
 
 <div id="logout-popup" class="logout-modal" style="display:none;">
     <div class="logout-box">
-        <h3>Confirm Logout</h3>
+        <h3>Confirm Log Out</h3>
         <p>Are you sure you want to exit the dashboard?</p>
         <div class="logout-btns">
             <button class="btn-stay" onclick="closeLogoutPopup()">Stay</button>
-            <button class="danger" onclick="logoutUser()">Logout</button>
+            <button class="danger" onclick="logoutUser()">Log Out</button>
         </div>
     </div>
 </div>

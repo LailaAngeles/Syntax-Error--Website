@@ -1,13 +1,12 @@
 /* Manage School Years: dialogs, status chips and the active-year badge. Uses the dashboard's tokens. */
 .sy-badge{display:inline-flex;align-items:center;gap:6px;vertical-align:middle;margin-left:10px;padding:5px 12px;border-radius:999px;font-size:.78rem;font-weight:750;letter-spacing:.01em;white-space:nowrap}
 .sy-badge[hidden]{display:none}
-.sy-badge.sy-active{background:#ffd400;color:#0a2a5c}
+.sy-badge.sy-active{background:#fff200;color:#00529b}
 .sy-badge.sy-none{background:rgba(200,59,83,.12);color:#c83b53}
 .sy-step-note{margin-top:6px!important;font-weight:700;color:var(--sa-accent,#0866c9)!important}
 .sy-step-note:empty{display:none}
 
 .sy-modal{z-index:2100}
-.sy-dialog.sy-wide{width:min(720px,calc(100vw - 24px))!important;max-width:720px!important}
 .sy-input{width:100%;min-height:48px;margin-top:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--sa-line,var(--border-color));background:var(--sa-soft,var(--bg-main));color:var(--sa-fg,var(--text-primary));font-size:16px;font-weight:600}
 .sy-points{list-style:none;display:grid;gap:10px;margin:4px 0 6px;padding:0}
 .sy-points li{display:flex;gap:11px;align-items:flex-start;font-size:.86rem;line-height:1.5}
@@ -15,10 +14,9 @@
 .sy-options{display:grid;gap:10px}
 .sy-check{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1px solid var(--sa-line,var(--border-color));border-radius:13px;background:var(--sa-soft,var(--bg-main));font-size:.86rem;line-height:1.5;cursor:pointer}
 .sy-check input{width:18px;height:18px;flex:none;margin-top:2px;accent-color:#0866c9}
-.sy-check.sy-inline{display:inline-flex;padding:8px 12px;margin-bottom:12px}
 .sy-check:has(input:disabled){opacity:.55;cursor:default}
 
-.sy-list{display:grid;gap:10px;max-height:55dvh;overflow-y:auto;scrollbar-width:none}
+.sy-list{display:grid;gap:10px}
 .sy-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:15px;border:1px solid var(--sa-line,var(--border-color));border-radius:15px;background:var(--sa-soft,var(--bg-main))}
 .sy-row>div:first-child{display:grid;gap:4px;min-width:0}
 .sy-row small{font-size:.77rem;color:var(--sa-muted,var(--text-secondary))}
@@ -32,15 +30,10 @@
 .sy-row-actions .sa-section-cancel{background:var(--sa-surface,var(--bg-panel));border:1px solid var(--sa-line,var(--border-color));color:var(--sa-fg,var(--text-primary))}
 
 .sy-status{padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
-.sy-status.sy-active{background:#ffd400;color:#0a2a5c}
+.sy-status.sy-active{background:#fff200;color:#00529b}
 .sy-status.sy-upcoming{background:rgba(8,102,201,.12);color:var(--sa-accent,#0866c9)}
 .sy-status.sy-completed{background:rgba(22,163,74,.13);color:#15803d}
 .sy-status.sy-archived{background:rgba(100,116,139,.16);color:var(--sa-muted,#62748e)}
-
-.sy-move-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:6px}
-.sy-move-grid label{margin:0}
-.sy-students>label{justify-content:flex-start}
-.sy-students small.sy-muted{flex-basis:100%;margin-left:29px;font-weight:500;color:var(--sa-muted,var(--text-secondary))}
 
 /* Students page: school year picker */
 .sy-year-picker{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:.85rem}
@@ -53,5 +46,61 @@
   .sy-row{flex-direction:column;align-items:stretch}
   .sy-row-actions{justify-content:stretch}
   .sy-row-actions>*{flex:1;justify-content:center}
-  .sy-move-grid{grid-template-columns:1fr}
 }
+
+/* School years panel on Teachers & Sections */
+.sy-panel{margin:22px 0;overflow:hidden;border:1px solid var(--sa-line,var(--border-color,#dbe4f0));border-radius:18px;background:var(--sa-surface,var(--bg-panel,#fff));box-shadow:0 7px 22px rgba(0,40,96,.08);scroll-margin-top:24px}
+.sy-panel-head{display:flex;justify-content:space-between;align-items:center;gap:16px 24px;flex-wrap:wrap;padding:clamp(16px,2.4vw,24px);background:linear-gradient(110deg,#003a70,#00529b 70%,#0a6cc4);color:#fff}
+.sy-panel-head>div{flex:1 1 320px;min-width:0}
+.sy-panel-kicker{font-size:.7rem;font-weight:800;letter-spacing:.12em;color:#fff200}
+.sy-panel-head h2{margin:4px 0;font-size:clamp(1.15rem,2vw,1.45rem);color:#fff}
+.sy-panel-head p{margin:0;max-width:640px;font-size:.86rem;line-height:1.5;color:#e3eeff}
+.sy-add-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:none;min-height:48px;padding:12px 22px;border:0;border-radius:12px;background:#fff200;color:#00396d;font-size:.95rem;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.2);transition:transform .15s,box-shadow .15s}
+.sy-add-btn:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(0,0,0,.28)}
+.sy-add-btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.sy-panel-body{display:grid;gap:14px;padding:clamp(14px,2.2vw,22px)}
+.sy-group-title{margin:0 0 8px;font-size:.74rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--sa-muted,var(--text-secondary,#64748b))}
+#syOtherWrap[hidden]{display:none}
+.sy-row-active{border:2px solid #00529b;background:rgba(0,82,155,.06);box-shadow:inset 5px 0 0 #fff200}
+html[data-theme="dark"] .sy-row-active{border-color:#3d8fd9;background:rgba(61,143,217,.1)}
+.sy-no-active{margin:0;padding:14px;border:1px dashed var(--sa-line,var(--border-color,#dbe4f0));border-radius:13px;font-size:.87rem;line-height:1.5;color:var(--sa-muted,var(--text-secondary,#64748b))}
+.sy-link{box-sizing:border-box}
+.sy-archive{border:1px solid var(--sa-line,var(--border-color,#dbe4f0));border-radius:13px}
+.sy-archive>summary{display:flex;align-items:center;gap:8px;min-height:48px;padding:10px 14px;font-size:.9rem;font-weight:700;list-style:none;cursor:pointer;border-radius:13px}
+.sy-archive>summary::-webkit-details-marker{display:none}
+.sy-archive>summary::after{content:'\F282';margin-left:auto;font-family:'bootstrap-icons';transition:transform .2s}
+.sy-archive[open]>summary::after{transform:rotate(180deg)}
+.sy-archive>summary:hover{background:var(--sa-soft,var(--bg-main,#f5f8ff))}
+.sy-archive>summary:focus-visible{outline:2px solid #00529b;outline-offset:2px}
+.sy-count{padding:1px 9px;border-radius:999px;background:#00529b;color:#fff;font-size:.74rem;font-weight:800}
+.sy-archive>.sy-list{padding:2px 12px 12px}
+/* Add School Year form */
+.sy-field-note{margin:7px 0 0;font-size:.82rem;font-weight:600;line-height:1.4;color:#c0262d}
+.sy-field-note[hidden]{display:none}
+html[data-theme="dark"] .sy-field-note{color:#ff8a8a}
+.sy-input.is-invalid{border:2px solid #dc2626;box-shadow:0 0 0 3px rgba(220,38,38,.15)}
+.sy-year-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0 2px}
+.sy-year-facts div{padding:10px 12px;border:1px solid var(--sa-line,var(--border-color,#dbe4f0));border-radius:11px;background:var(--sa-soft,var(--bg-main,#f5f8ff))}
+.sy-year-facts dt{font-size:.7rem;font-weight:700;color:var(--sa-muted,var(--text-secondary,#64748b))}
+.sy-year-facts dd{margin:2px 0 0;font-size:1.05rem;font-weight:800}
+.sy-dialog .modal-actions button:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:700px){.sy-add-btn{width:100%}}
+@media(prefers-reduced-motion:reduce){.sy-add-btn{transition:none}.sy-add-btn:hover{transform:none}}
+
+/* The page's theme sheets restyle every button, paragraph and input, so these colours must win. */
+.sy-panel .sy-add-btn,html[data-theme="dark"] .sy-panel .sy-add-btn{background:#fff200!important;color:#00396d!important}
+.sy-panel .sy-add-btn i{color:inherit!important}
+.sy-row-actions button.sa-section-primary,.sy-row-actions button.sa-section-danger,
+.sy-row-actions button.sa-section-primary i,.sy-row-actions button.sa-section-danger i{color:#fff!important}
+.sy-row-actions button.sa-section-primary{background:#00529b!important}
+.sy-row-actions button.sa-section-danger{background:#b4233c!important}
+html[data-theme="dark"] .sy-status.sy-completed{background:rgba(74,222,128,.14);color:#4ade80}
+html[data-theme="dark"] .sy-status.sy-upcoming{background:rgba(125,189,255,.14);color:#7dbdff}
+html[data-theme="dark"] .sy-status.sy-archived{background:rgba(148,163,184,.18);color:#cbd5e1}
+.sy-dialog p.sy-field-note{color:#c0262d!important;font-weight:600}
+html[data-theme="dark"] .sy-dialog p.sy-field-note{color:#ff9a9a!important}
+.sy-dialog input.sy-input.is-invalid,.sy-dialog input.sy-input.is-invalid:focus{border:2px solid #dc2626!important;background:#fef2f2!important;color:#7f1d1d!important;box-shadow:0 0 0 3px rgba(220,38,38,.16)!important}
+html[data-theme="dark"] .sy-dialog input.sy-input.is-invalid,html[data-theme="dark"] .sy-dialog input.sy-input.is-invalid:focus{background:rgba(220,38,38,.14)!important;color:#ffd6d6!important}
+html[data-theme="light"] .sy-status.sy-upcoming{color:#00529b}
+html[data-theme="light"] .sy-status.sy-completed{color:#14632f}
+html[data-theme="light"] .sy-status.sy-archived{color:#44556b}

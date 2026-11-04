@@ -128,7 +128,7 @@ pinBtn.addEventListener("click", async () => {
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-            window.location.href = "ApproveUsers.html";
+            window.location.href = "welcome.html";
         } else {
             triggerError(pinInput);
             showError("pinError", "Invalid PIN. Check your email again.");

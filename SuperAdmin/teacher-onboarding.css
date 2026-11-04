@@ -77,14 +77,28 @@
 @media(max-width:960px){#createTeacherForm .teacher-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){#createTeacherForm .teacher-fields{grid-template-columns:1fr}}
 
-/* Step 1 / Step 2 headings */
-.teacher-step-num{display:inline-grid;place-items:center;width:28px;height:28px;margin-right:8px;border-radius:50%;background:#ffc107;color:#0b2f5c;font-size:.9rem;font-weight:800;vertical-align:middle}
+/* Current teachers heading */
 #teacher-section-assignment{scroll-margin-top:24px}
-#teacher-section-assignment .teacher-step-two{border-bottom:1px solid var(--border,#e2e8f0);padding-bottom:17px;margin-bottom:18px}
-#teacher-section-assignment .teacher-step-two h2{font-size:clamp(1.1rem,1.7vw,1.4rem);margin:6px 0}
-#teacher-section-assignment .teacher-step-two p{font-size:.84rem;line-height:1.5;color:var(--text-muted,#64748b)}
+#teacher-section-assignment .teacher-list-heading{border-bottom:1px solid var(--border,#e2e8f0);padding-bottom:17px;margin-bottom:18px}
+#teacher-section-assignment .teacher-list-heading h2{font-size:clamp(1.1rem,1.7vw,1.4rem);margin:6px 0}
+#teacher-section-assignment .teacher-list-heading p{font-size:.84rem;line-height:1.5;color:var(--text-muted,#64748b)}
 .teacher-id-col strong{display:block;font-weight:650}
 .teacher-id-col small{display:block;color:var(--text-muted,#64748b);font-size:.78rem;overflow-wrap:anywhere}
 
 /* Teacher password reset popup */
 .reset-explainer { margin: 12px 0 4px; font-size: .84rem; line-height: 1.55; color: var(--sa-muted, #64748b); }
+
+/* Sections inside the Add a teacher form */
+.teacher-sections{min-width:0;margin:18px 0 0;padding:0;border:0}
+.teacher-sections legend{padding:0;margin-bottom:8px;font-size:.79rem;font-weight:700;letter-spacing:.015em}
+.teacher-section-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.teacher-section-pick{display:flex;align-items:center;gap:9px;min-width:0;min-height:44px;padding:9px 11px;border:1px solid var(--sa-line,var(--border,#dbe4f0));border-radius:10px;background:var(--sa-surface,var(--card-bg,#fff));font-size:.86rem;font-weight:600;cursor:pointer;transition:border-color .15s,background-color .15s}
+.teacher-section-pick:hover{border-color:#00529b}
+.teacher-section-pick:has(input:checked){border-color:#00529b;background:rgba(0,82,155,.09)}
+.teacher-section-pick:has(input:focus-visible){outline:2px solid #00529b;outline-offset:2px}
+.teacher-section-pick input{flex:none;width:18px;height:18px;margin:0;accent-color:#00529b}
+.teacher-section-pick span{min-width:0;overflow-wrap:anywhere}
+.teacher-sections-note{grid-column:1/-1;margin:0;padding:11px 13px;border:1px dashed var(--sa-line,var(--border,#dbe4f0));border-radius:10px;font-size:.84rem;line-height:1.5;color:var(--sa-muted,var(--text-muted,#64748b))}
+.teacher-sections-summary{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:10px 0 0;font-size:.82rem;line-height:1.5;color:var(--sa-muted,var(--text-muted,#64748b))}
+.teacher-section-chip{padding:2px 10px;border-radius:999px;background:#00529b;color:#fff;font-weight:700;font-size:.77rem;overflow-wrap:anywhere}
+.teacher-confirm-dialog .teacher-note-warning{padding:10px 12px;border:1px solid #fecaca;border-left:4px solid #dc2626;border-radius:10px;background:#fef2f2;color:#991b1b;font-weight:600}

@@ -3,7 +3,7 @@ import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/fi
 import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 import {
     renderClassOverview, renderStudentSummary, renderStudentDetail, classSummary, studentSummary, topBy,
-    downloadCsv, studentCsvRows, STUDENT_CSV_HEADER, fmtDate, safeText, TOTAL_LEVELS
+    downloadCsv, studentCsvRows, STUDENT_CSV_HEADER, fmtDate, safeText, TOTAL_LEVELS, fmtWhole, aboutCount
 } from "../MainMenu/record-analysis.js";
 import { STATUS_LABEL, activeYear, sectionYearId, watchSchoolYears } from "../MainMenu/school-years.js";
 
@@ -271,8 +271,8 @@ function renderSectionOverview(selected) {
             <td>${teachers.length ? teachers.map(t => `<span class="insight-pill">${safeText(t)}</span>`).join('') : '<span class="insight-muted">No teacher assigned</span>'}</td>
             <td>${s.total}</td>
             <td>${s.started} of ${s.total}</td>
-            <td>${s.total ? (Math.round(s.totalLevels / s.total * 10) / 10) : 0} of ${TOTAL_LEVELS}</td>
-            <td>${mostWrong?.avgWrong ? `${safeText(mostWrong.topic)}<small>about ${Math.round(mostWrong.avgWrong * 10) / 10} per student</small>` : '<span class="insight-muted">--</span>'}</td>
+            <td>${fmtWhole(s.total ? s.totalLevels / s.total : 0)} of ${TOTAL_LEVELS}</td>
+            <td>${mostWrong?.avgWrong ? `${safeText(mostWrong.topic)}<small>${aboutCount(mostWrong.avgWrong)} per student</small>` : '<span class="insight-muted">--</span>'}</td>
         </tr>`;
     }).join('');
 }

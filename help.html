@@ -88,16 +88,18 @@
 </section>
 
 <section class="hm-sec" id="teacher-overview" data-audience="teacher">
-    <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Class Overview (Dashboard)</h2><p>The summary of your sections' game records. It updates live while students play.</p></div></div>
+    <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Class Overview</h2><p>The summary of your sections' game records. It updates live while students play.</p></div></div>
     <div class="hm-split">
         <div>
             <ol class="hm-steps">
+                <li>After signing in you start on <b>Home</b>, which greets you and shows your class counts and quick links. Select <b>Open Class Overview</b>, or <b>Class Overview</b> in the menu.</li>
                 <li>Use the <b>Section</b> menu at the top right to see all your sections or just one.</li>
                 <li>Read the four numbers: <b>Students</b> (and how many started playing), <b>Levels completed</b> per student, <b>Time recorded</b> and <b>Wrong submissions</b>.</li>
                 <li><b>Level completion</b>: each bar is a game level; its height is how many students finished it.</li>
                 <li>Select <b>Export student summary (CSV)</b> for a spreadsheet of every student in the selected section.</li>
             </ol>
             <p class="hm-tip"><i class="bi bi-broadcast"></i> The green <b>LIVE</b> badge means you never need to refresh. New attempts appear by themselves.</p>
+            <p class="hm-tip"><i class="bi bi-info-circle"></i> Select the <b>info icon</b> or <b>How is this computed?</b> beside any number. It explains what the number means, the data and formula behind it, a simple example, your current figures where available, and how to read the result.</p>
         </div>
         <figure class="hm-scene" aria-label="Sample view · Class Overview"><div class="manual-shot manual-scene"><div class="scene scene-overview" aria-hidden="true"><span class="sc-tag">Sample view</span>
   <div class="sc-app">
@@ -127,21 +129,21 @@
         <div class="sc-bar sc-time"><span>Data types</span><i style="--w:92%;--d:0.50s"></i><b style="--d:1.40s">5 min</b></div><div class="sc-bar sc-time"><span>Comments</span><i style="--w:74%;--d:0.75s"></i><b style="--d:1.65s">4 min</b></div><div class="sc-bar sc-time"><span>Printing</span><i style="--w:52%;--d:1.00s"></i><b style="--d:1.90s">3 min</b></div><div class="sc-bar sc-time"><span>Arithmetic</span><i style="--w:30%;--d:1.25s"></i><b style="--d:2.15s">1 min</b></div><div class="sc-bar sc-time"><span>User input</span><i style="--w:18%;--d:1.50s"></i><b style="--d:2.40s">35 s</b></div>
       </div>
       <div class="sc-panel"><small><i class="bi bi-bug"></i> Wrong submissions per student</small>
-        <div class="sc-bar sc-err"><span>Data types</span><i style="--w:90%;--d:1.20s"></i><b style="--d:2.10s">4.7</b></div><div class="sc-bar sc-err"><span>Arithmetic</span><i style="--w:60%;--d:1.45s"></i><b style="--d:2.35s">3</b></div><div class="sc-bar sc-err"><span>User input</span><i style="--w:40%;--d:1.70s"></i><b style="--d:2.60s">2</b></div><div class="sc-bar sc-err"><span>Comments</span><i style="--w:40%;--d:1.95s"></i><b style="--d:2.85s">2</b></div><div class="sc-bar sc-err"><span>Printing</span><i style="--w:6%;--d:2.20s"></i><b style="--d:3.10s">0</b></div>
-        <div class="sc-tip">Data types · about 4.7 per student</div>
+        <div class="sc-bar sc-err"><span>Data types</span><i style="--w:90%;--d:1.20s"></i><b style="--d:2.10s">5</b></div><div class="sc-bar sc-err"><span>Arithmetic</span><i style="--w:60%;--d:1.45s"></i><b style="--d:2.35s">3</b></div><div class="sc-bar sc-err"><span>User input</span><i style="--w:40%;--d:1.70s"></i><b style="--d:2.60s">2</b></div><div class="sc-bar sc-err"><span>Comments</span><i style="--w:40%;--d:1.95s"></i><b style="--d:2.85s">2</b></div><div class="sc-bar sc-err"><span>Printing</span><i style="--w:6%;--d:2.20s"></i><b style="--d:3.10s">0</b></div>
+        <div class="sc-tip">Data types · about 5 per student</div>
       </div>
     </div>
   </div>
   <i class="sc-cursor"></i>
 </div></div><figcaption><span>Sample view · time and errors per topic</span><button type="button" class="hm-replay"><i class="bi bi-arrow-counterclockwise"></i> Replay</button></figcaption></figure>
         <ul class="hm-legend">
-            <li><span class="hm-swatch hm-blue"></span><div><b>Blue bars: time</b>Average minutes per student on each topic, all attempts added up. The number at the end of each bar is the exact value.</div></li>
+            <li><span class="hm-swatch hm-blue"></span><div><b>Blue bars: time</b>Average minutes per student on each topic, all attempts added up. The number at the end of each bar is the rounded value; select a bar to see the total behind it.</div></li>
             <li><span class="hm-swatch hm-orange"></span><div><b>Orange bars: wrong submissions</b>Average wrong answers per student on each topic.</div></li>
             <li><span class="hm-swatch hm-purple"></span><div><b>Most students with errors</b>The topic where the most students made at least one mistake.</div></li>
             <li><span class="hm-swatch hm-gray"></span><div><b>Further down the page</b>The coding tasks with the most wrong submissions, the most common error messages, recent activity, and students who have not started yet.</div></li>
         </ul>
     </div>
-    <p class="hm-tip"><i class="bi bi-info-circle"></i> Every number is counted directly from the game's records. The portal does not guess "difficulty" or label students.</p>
+    <p class="hm-tip"><i class="bi bi-info-circle"></i> Every number is counted directly from the game's records. Averages are rounded to whole numbers; "&lt;1" means more than zero but less than one. The portal does not guess "difficulty" or label students.</p>
 </section>
 
 <section class="hm-sec" id="teacher-students" data-audience="teacher">
@@ -214,7 +216,7 @@
     <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Give level access codes</h2><p>Students unlock the next level with a code from you.</p></div></div>
     <div class="hm-split">
         <ol class="hm-steps">
-            <li>Open <b>Levels</b> in the menu.</li>
+            <li>Open <b>Level Access</b> in the menu.</li>
             <li>Choose the <b>level to unlock</b> and the <b>section</b>, then select <b>Generate</b>.</li>
             <li>Share the <b>6-digit code</b> with the class. It works for <b>5 minutes</b>, only for that section, and only for students who finished the previous level.</li>
             <li>Use <b>Copy</b> to copy it, or <b>Revoke</b> to stop it early. When the 5 minutes end, the code is erased and can no longer be used. Generate a new one if students still need it.</li>
@@ -252,7 +254,7 @@
         <ol class="hm-steps">
             <li>Open <b>Archive</b> to see archived students and how many days are left for each.</li>
             <li>Tick students and select <b>Restore Selected</b> to bring them back to their section.</li>
-            <li>When you are done, select <b>LogOut</b>. Always sign out on shared computers.</li>
+            <li>When you are done, select <b>Log Out</b>. Always sign out on shared computers.</li>
             <li>Use the moon/sun button at the top of the menu to switch between light and dark mode.</li>
         </ol>
     </div>
@@ -261,7 +263,7 @@
 <section class="hm-sec" id="teacher-faq" data-audience="teacher">
     <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Questions and fixes</h2><p>Quick answers to common problems.</p></div></div>
     <div class="hm-faq">
-        <details><summary>I see no students or no sections.</summary><p>Your account has no section assigned yet. Ask the Super Admin to assign your section(s) in Approve Users, Step 2. They appear immediately; you do not need to sign out.</p></details>
+        <details><summary>I see no students or no sections.</summary><p>Your account has no section assigned yet. Ask the Super Admin to assign your section(s) in Teachers &amp; Sections, under Current teachers. They appear immediately; you do not need to sign out.</p></details>
         <details><summary>The PIN email did not arrive.</summary><p>Check Junk or Spam first. In the PIN box, <b>Resend PIN</b> unlocks after 60 seconds; a new PIN replaces the old one. Each PIN works for 15 minutes.</p></details>
         <details><summary>A student plays but nothing changes.</summary><p>The portal updates live. Make sure the student is in the right section and connected to the internet. Records appear after a task or level is saved by the game.</p></details>
         <details><summary>A student shows "Online" but is not playing.</summary><p>"Online" is the game's own flag. It can stay on if the app was closed suddenly. Check the Last activity date instead.</p></details>
@@ -277,24 +279,24 @@
     <ol class="hm-steps">
         <li>Open the Super Admin sign-in page.</li>
         <li>Enter your <b>authorized Super Admin email</b> and select <b>Verify Identity</b>.</li>
-        <li>Enter the <b>PIN</b> sent to that email and select <b>Finalize Access</b>. You land on <b>Approve Users</b>.</li>
+        <li>Enter the <b>PIN</b> sent to that email and select <b>Finalize Access</b>. You land on <b>Home</b>, with links to everything else.</li>
     </ol>
     <p class="hm-tip"><i class="bi bi-shield-exclamation"></i> Only emails listed as authorized admins receive a PIN. Keep the Super Admin email private.</p>
 </section>
 
 <section class="hm-sec" id="admin-create" data-audience="admin">
-    <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Step 1: Create a teacher account</h2><p>Only the Super Admin can create teacher accounts.</p></div></div>
+    <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Add a teacher</h2><p>Only the Super Admin can create teacher accounts. Details and sections go in one form.</p></div></div>
     <ol class="hm-steps">
-        <li>On <b>Approve Users</b>, fill in <b>Complete name</b>, <b>Official school email</b> (must end in <code>@caloocan.sti.edu.ph</code>) and a <b>Default password</b> of at least 8 characters.</li>
-        <li>Select <b>Create Teacher</b>, check the name and email in the confirmation, then select <b>Yes, Create Teacher</b>.</li>
-        <li>When "Teacher account created" appears, select <b>Go to Step 2</b> to assign sections.</li>
+        <li>On <b>Teachers &amp; Sections</b>, fill in <b>Complete name</b>, <b>Official school email</b> (must end in <code>@caloocan.sti.edu.ph</code>) and a <b>Default password</b> of at least 8 characters.</li>
+        <li>Under <b>Assign sections</b>, tick the teacher's sections. The ones you picked are listed below the choices.</li>
+        <li>Select <b>Review and Add Teacher</b>, check the details, then select <b>Yes, Add Teacher</b>.</li>
         <li>Give the email and default password to the teacher privately.</li>
     </ol>
     <p class="hm-tip"><i class="bi bi-person-check"></i> Creating a teacher never signs you out. On first sign-in, the teacher must accept the Terms and may change the default password.</p>
 </section>
 
 <section class="hm-sec" id="admin-assign" data-audience="admin">
-    <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Step 2: Assign sections</h2><p>Teachers only see the students of the sections you assign.</p></div></div>
+    <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Change a teacher's sections</h2><p>Teachers only see the students of the sections you assign.</p></div></div>
     <ol class="hm-steps">
         <li>In the <b>Assign sections</b> list, find the teacher (name and email are shown).</li>
         <li>Open the section box on that row and tick one or more sections.</li>
@@ -304,7 +306,7 @@
 </section>
 
 <section class="hm-sec" id="admin-sections" data-audience="admin">
-    <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Manage sections</h2><p>Use the <b>Manage Sections</b> menu at the top of Approve Users.</p></div></div>
+    <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Manage sections</h2><p>Use the <b>Manage Sections</b> menu at the top of Teachers &amp; Sections.</p></div></div>
     <div class="hm-cards">
         <div class="hm-mini"><i class="bi bi-folder-plus"></i><strong>Add Section</strong><span>Type a unique section name, for example ICT1201.</span></div>
         <div class="hm-mini"><i class="bi bi-pencil-square"></i><strong>Edit Section</strong><span>Rename a section. Teachers and student records follow the new name.</span></div>
@@ -314,7 +316,7 @@
 </section>
 
 <section class="hm-sec" id="admin-users" data-audience="admin">
-    <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Manage teacher accounts</h2><p>Use the <b>Manage Users</b> menu at the top of Approve Users.</p></div></div>
+    <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Manage teacher accounts</h2><p>Use the <b>Manage Users</b> menu at the top of Teachers &amp; Sections.</p></div></div>
     <div class="hm-cards">
         <div class="hm-mini"><i class="bi bi-envelope-paper"></i><strong>Reset Teacher Password</strong><span>Pick the teacher, then <b>Send Reset Email</b>. Firebase emails them a secure link to choose a new password.</span></div>
         <div class="hm-mini"><i class="bi bi-person-dash"></i><strong>Remove Users</strong><span>Tick teachers in the list, then remove them. They are archived for 7 days.</span></div>
@@ -324,20 +326,20 @@
 </section>
 
 <section class="hm-sec" id="admin-school-years" data-audience="admin">
-    <div class="hm-sec-head"><span class="hm-num"></span><div><h2>School years</h2><p>Use the <b>Manage School Years</b> menu at the top of Approve Users. The badge beside the page title shows the active school year.</p></div></div>
+    <div class="hm-sec-head"><span class="hm-num"></span><div><h2>School years</h2><p>Use the <b>School years</b> panel at the top of Teachers &amp; Sections. The badge beside the page title shows the active school year.</p></div></div>
     <div class="hm-cards">
-        <div class="hm-mini"><i class="bi bi-calendar-plus"></i><strong>Create School Year</strong><span>Enter the year it starts, for example 2026 for S.Y. 2026–2027. It starts as Not started.</span></div>
-        <div class="hm-mini"><i class="bi bi-calendar3"></i><strong>View School Years</strong><span>See every year and its status (Active, Completed, Archived). Start, end or archive a year, or open its data.</span></div>
-        <div class="hm-mini"><i class="bi bi-arrow-up-right-circle"></i><strong>Move Students to New Year</strong><span>Put returning students into their new section, or promote them from Grade 11 to Grade 12.</span></div>
+        <div class="hm-mini"><i class="bi bi-calendar-plus"></i><strong>Add School Year</strong><span>Select the yellow button and enter the name, for example 2026–2027. It starts as Not started.</span></div>
+        <div class="hm-mini"><i class="bi bi-calendar-check"></i><strong>Active school year</strong><span>Shown first, with its sections and teachers. Only one year can be active at a time.</span></div>
+        <div class="hm-mini"><i class="bi bi-archive"></i><strong>Archived school years</strong><span>Open this list to review finished years. An archived year cannot become active again.</span></div>
     </div>
     <ol class="hm-steps">
-        <li><b>End the year:</b> in View School Years, select <b>End school year</b> and read the confirmation. The year becomes Completed. Nothing is deleted: accounts, game progress, time spent and wrong attempts are all kept.</li>
-        <li><b>Create and start the next year:</b> select <b>Start</b>. You can create the same section names again (they start empty) and keep each teacher on the same names.</li>
-        <li><b>Assign teachers</b> in Step 2. Assignments are saved for each school year.</li>
-        <li><b>Move returning students</b> with Move Students to New Year: choose last year's section, this year's section and the grade level, tick the students, and confirm. Each student keeps the same account and password and starts the new year with a fresh record. Their old record stays with the old year.</li>
-        <li>Teachers add <b>new students</b> on their Students page as usual.</li>
+        <li><b>End the year:</b> on the active year's card, select <b>End school year</b> and read the confirmation. The year becomes Completed. Nothing is deleted: accounts, game progress, time spent and wrong attempts are all kept.</li>
+        <li><b>Archive it</b> when you no longer need it in the main list. Select <b>View data</b> on any finished year to see its records.</li>
+        <li><b>Add and start the next year:</b> select <b>Start</b>. You can create the same section names again (they start empty) and keep each teacher on the same names.</li>
+        <li><b>Assign teachers</b> under Current teachers. Assignments are saved for each school year.</li>
+        <li>Teachers add <b>their students</b> on the Students page as usual. Students are not carried over, because each class is a new Grade 12 group.</li>
     </ol>
-    <p class="hm-tip"><i class="bi bi-info-circle"></i> Teachers only see the active year's sections. Manage Sections and Step 2 also work on the active year only, and nothing can be added while no year is active. To review a past year, choose it under <b>School year</b> on the Students page.</p>
+    <p class="hm-tip"><i class="bi bi-info-circle"></i> Teachers only see the active year's sections. Manage Sections and teacher assignments also work on the active year only, and nothing can be added while no year is active. To review a past year, choose it under <b>School year</b> on the Students page.</p>
 </section>
 
 <section class="hm-sec" id="admin-students" data-audience="admin">
@@ -356,7 +358,7 @@
     <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Questions and fixes</h2><p>Quick answers for the Super Admin.</p></div></div>
     <div class="hm-faq">
         <details><summary>"This email already exists" when creating a teacher.</summary><p>The email is already a teacher, archived, or pending. Look for it in Assign sections or the user archive and restore it instead of creating a new account.</p></details>
-        <details><summary>A teacher says they cannot see their students.</summary><p>Check Step 2: the teacher needs at least one section ticked and saved. Also make sure the students were imported into that same section.</p></details>
+        <details><summary>A teacher says they cannot see their students.</summary><p>Check Current teachers: the teacher needs at least one section ticked and saved. Also make sure the students were imported into that same section.</p></details>
         <details><summary>A teacher forgot their password.</summary><p>Use Manage Users → Reset Teacher Password to email them a secure reset link.</p></details>
         <details><summary>The Super Admin PIN does not arrive.</summary><p>Check Spam, wait a minute and request a new PIN. Only authorized admin emails receive one.</p></details>
     </div>

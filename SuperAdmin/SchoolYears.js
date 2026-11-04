@@ -1,5 +1,5 @@
-// Manage School Years (Super Admin): create, start, end and archive school years, and move students
-// into the new year. Works alongside Manage Sections / Manage Users, which stay as they are.
+// Manage School Years (Super Admin): create, start, end and archive school years from the panel on
+// Teachers & Sections. Students are Grade 12, so nobody is carried into another school year.
 //
 // What each action writes (nothing is ever deleted):
 //   Create  -> schoolYears/{SY2026-2027} with status "upcoming".
@@ -10,14 +10,10 @@
 //              each teacher keeps the year's assignment (sectionsByYear.{year}); then status "completed".
 //              Student records, game progress, times and errors are not touched.
 //   Archive -> status "archived" (still viewable in Students > school year).
-//   Move    -> the student's account (name, email, birthday, password, Firebase uid) moves to a section of
-//              the active year with a fresh record for the new year. The old record stays where it is,
-//              with all its game data, as that year's history; it only loses the sign-in fields so the
-//              game finds the student's new record (one account, never two).
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import {
     getFirestore, collection, doc, getDoc, getDocs, onSnapshot, runTransaction, writeBatch,
-    serverTimestamp, deleteField
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import {
     STATUS_LABEL, yearIdFor, yearLabelFor, activeYear, sectionYearId, watchSchoolYears
@@ -34,10 +30,6 @@ const config = {
 const app = getApps().length ? getApp() : initializeApp(config);
 const db = getFirestore(app);
 
-// The account fields that follow a student into the new school year. Game data does not.
-const ACCOUNT_FIELDS = ["id", "name", "email", "birthday", "password", "uid", "role", "accountStatus",
-    "registeredAt", "authLinkedAt", "passwordChoiceDone", "passwordChangedAt", "gradeLevel"];
-
 let years = [];
 let sectionDocs = [];   // [{ id, ...data }] of every section, all years
 let teachers = [];      // [{ id, ...data }] of approvedUsers
@@ -50,11 +42,11 @@ const sectionsOf = yearId => sectionDocs.filter(s => sectionYearId(s, years) ===
 const sectionList = value => (Array.isArray(value) ? value : [value]).filter(s => typeof s === "string" && s.trim() && s !== "No Section");
 
 // ---------------------------------------------------------------- dialogs
-function dialog({ icon = "bi-calendar3", eyebrow = "MANAGE SCHOOL YEARS", title, intro, danger = false, wide = false }) {
+function dialog({ icon = "bi-calendar3", eyebrow = "MANAGE SCHOOL YEARS", title, intro, danger = false }) {
     const overlay = document.createElement("div");
     overlay.className = "modal sy-modal";
     const box = document.createElement("div");
-    box.className = "modal-box sa-section-dialog sy-dialog" + (wide ? " sy-wide" : "");
+    box.className = "modal-box sa-section-dialog sy-dialog";
     box.setAttribute("role", "dialog");
     box.setAttribute("aria-modal", "true");
     const head = document.createElement("div");
@@ -70,6 +62,7 @@ function dialog({ icon = "bi-calendar3", eyebrow = "MANAGE SCHOOL YEARS", title,
     document.body.append(overlay);
     const close = () => overlay.remove();
     overlay.addEventListener("click", e => { if (e.target === overlay) close(); });
+    overlay.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
     const button = (label, kind, onClick) => {
         const b = document.createElement("button");
         b.type = "button";
@@ -193,7 +186,7 @@ async function startYear(year, { reuseFrom, keepTeachers }) {
     return `School year ${year.label} is now active.` +
         (firstEver && writes.length ? ` ${writes.length} existing section(s) were placed under this year.` : "") +
         (created ? ` ${created} section(s) were created with last year's names (no students yet).` : "") +
-        " Assign teachers in Step 2 and move or add students when ready.";
+        " Assign teachers under Current teachers. Teachers add their students on the Students page.";
 }
 
 async function endYear(year) {
@@ -242,67 +235,56 @@ async function removeUnstartedYear(year) {
     });
 }
 
-// Moves one student into a section of the active year. Returns null when done, or the reason it was skipped.
-async function moveStudent(fromSection, studentDocId, toSection, gradeLevel, active) {
-    const fromRef = doc(db, "sections", fromSection.id, "classList", studentDocId);
-    const toRef = doc(db, "sections", toSection.id, "classList", studentDocId);
-    return runTransaction(db, async tx => {
-        const [from, to] = [await tx.get(fromRef), await tx.get(toRef)];
-        if (!from.exists()) return "record not found";
-        const data = from.data();
-        if (data.movedTo) return `already moved to ${data.movedTo.sectionName || "another section"}`;
-        if (to.exists()) return `already in ${toSection.name}`;
-        const account = {};
-        ACCOUNT_FIELDS.forEach(key => { if (data[key] !== undefined) account[key] = data[key]; });
-        if (gradeLevel) account.gradeLevel = gradeLevel;
-        tx.set(toRef, {
-            ...account,
-            id: data.id ?? studentDocId,
-            progress: 0, idleTime: "0m", difficulty: [0, 0, 0, 0, 0], attempts: [],
-            schoolYearId: active.id,
-            enrolledAt: serverTimestamp(),
-            previousRecord: { path: fromRef.path, sectionId: fromSection.id, sectionName: fromSection.name, schoolYearId: sectionYearId(fromSection, years) }
-        });
-        // The old record keeps every game field. Only the sign-in fields leave it, so the game cannot
-        // find two records for one student. The email stays readable as recordEmail.
-        const history = {
-            movedTo: { path: toRef.path, sectionId: toSection.id, sectionName: toSection.name, schoolYearId: active.id, movedAt: serverTimestamp() },
-            email: deleteField(), password: deleteField(), uid: deleteField()
-        };
-        if (data.email) history.recordEmail = data.email;
-        if (data.uid) history.formerUid = data.uid;
-        tx.update(fromRef, history);
-        return null;
-    });
+// ---------------------------------------------------------------- screens
+// "2026-2027", "2026–2027" or just "2026" -> 2026. Returns null if it is not a valid school year.
+function parseYearName(value) {
+    const match = String(value).trim().match(/^(\d{4})(?:\s*[-–—/]\s*(\d{4}))?$/);
+    if (!match) return null;
+    const start = Number(match[1]);
+    if (match[2] && Number(match[2]) !== start + 1) return null;
+    return start >= 2020 && start <= 2100 ? start : null;
 }
 
-// ---------------------------------------------------------------- screens
 function openCreate() {
-    const latest = years[0];
-    const suggested = latest ? (latest.startYear || new Date().getFullYear()) + 1 : new Date().getFullYear();
-    const d = dialog({ icon: "bi-calendar-plus", title: "Create School Year", intro: "Add the next academic year. It starts as Not started; start it when classes begin." });
-    const label = text("label", "SCHOOL YEAR STARTS IN", "sa-section-input-label");
+    const suggested = years[0]?.startYear ? years[0].startYear + 1 : new Date().getFullYear();
+    const d = dialog({ icon: "bi-calendar-plus", title: "Add School Year", intro: "It is saved as Not started. Start it when classes begin." });
+    const label = text("label", "SCHOOL YEAR NAME", "sa-section-input-label");
     const input = document.createElement("input");
-    input.type = "number"; input.min = "2020"; input.max = "2100"; input.value = String(suggested); input.className = "sy-input";
-    label.htmlFor = input.id = "syStartInput";
-    const preview = text("p", "", "sa-section-input-help");
-    const sync = () => {
-        const y = Number(input.value);
-        const valid = Number.isInteger(y) && y >= 2020 && y <= 2100;
-        preview.innerHTML = valid ? `<i class="bi bi-info-circle"></i> School Year <b>${yearLabelFor(y)}</b>` : `<i class="bi bi-exclamation-circle"></i> Enter a year between 2020 and 2100.`;
-        save.disabled = !valid || years.some(x => x.startYear === y);
-        if (valid && save.disabled) preview.innerHTML = `<i class="bi bi-exclamation-circle"></i> ${yearLabelFor(y)} already exists.`;
-    };
-    d.body.append(label, input, preview);
+    input.type = "text"; input.value = yearLabelFor(suggested); input.className = "sy-input"; input.autocomplete = "off"; input.placeholder = "e.g. 2026–2027";
+    label.htmlFor = input.id = "syNameInput";
+    const message = text("p", "", "sy-field-note");
+    message.id = "syNameNote";
+    input.setAttribute("aria-describedby", message.id);
+    const facts = document.createElement("dl");
+    facts.className = "sy-year-facts";
+    facts.innerHTML = '<div><dt>Start of school year</dt><dd id="syFactStart">--</dd></div><div><dt>End of school year</dt><dd id="syFactEnd">--</dd></div>';
+    d.body.append(label, input, message, facts);
     d.button("Cancel", "cancel", d.close);
-    const save = d.button('<i class="bi bi-plus-lg"></i> Create', "primary", async () => {
-        const y = Number(input.value);
+    const save = d.button('<i class="bi bi-check-lg"></i> Create School Year', "primary", async () => {
+        const start = parseYearName(input.value);
+        if (start === null || years.some(y => y.startYear === start)) return;
         d.close();
-        await run(() => createYear(y), "School year created", `School year ${yearLabelFor(y)} was created. Start it from View School Years when classes begin.`);
+        await run(() => createYear(start), "School year created", `School year ${yearLabelFor(start)} was added. Select Start on its card when classes begin.`);
     });
+    const sync = () => {
+        const start = parseYearName(input.value);
+        const taken = start !== null && years.some(y => y.startYear === start);
+        const problem = !input.value.trim() ? "Enter the school year, for example 2026–2027."
+            : start === null ? "Use two back-to-back years between 2020 and 2101, for example 2026–2027."
+            : taken ? `School year ${yearLabelFor(start)} already exists.` : "";
+        facts.querySelector("#syFactStart").textContent = start === null ? "--" : String(start);
+        facts.querySelector("#syFactEnd").textContent = start === null ? "--" : String(start + 1);
+        message.textContent = problem;
+        message.hidden = !problem;
+        input.classList.toggle("is-invalid", !!problem);
+        input.setAttribute("aria-invalid", problem ? "true" : "false");
+        save.disabled = !!problem;
+    };
     input.addEventListener("input", sync);
+    input.addEventListener("keydown", e => { if (e.key === "Enter" && !save.disabled) save.click(); });
     sync();
     input.focus();
+    input.select();
 }
 
 async function openStart(year) {
@@ -325,7 +307,7 @@ async function openStart(year) {
             l.append(c, text("span", labelText)); options.append(l); return c;
         };
         reuse = row(`Create the same section names as ${previous.label} (${sectionsOf(previous.id).map(s => s.name).join(", ")}). They start empty; last year's records stay in ${previous.label}.`, true);
-        keep = row("Keep each teacher on the same section names. You can change this in Step 2.", false);
+        keep = row("Keep each teacher on the same section names. You can change this under Current teachers.", false);
         reuse.addEventListener("change", () => { keep.disabled = !reuse.checked; if (!reuse.checked) keep.checked = false; });
     }
     d.body.append(options);
@@ -366,175 +348,69 @@ async function openEnd(year) {
 async function openArchive(year) {
     const ok = await confirmDialog({
         title: `Archive School Year ${year.label}?`,
-        intro: "Archived years are hidden from the main list but stay viewable. No records are moved or deleted.",
+        intro: "It moves to the Archived section below and stays viewable. It cannot become active again. No records are moved or deleted.",
         icon: "bi-archive", confirmLabel: '<i class="bi bi-archive"></i> Archive'
     });
-    if (ok) await run(() => archiveYear(year), "School year archived", `School year ${year.label} is archived. Its data is still available in Students.`);
+    if (ok) await run(() => archiveYear(year), "School year archived", `School year ${year.label} is archived. Its data is still available under View data.`);
 }
 
-function openList() {
-    const d = dialog({ icon: "bi-calendar3", title: "School Years", intro: "Current and previous academic years. Ending a year keeps all of its records.", wide: true });
-    const list = document.createElement("div");
-    list.className = "sy-list";
-    const showArchived = document.createElement("label");
-    showArchived.className = "sy-check sy-inline";
-    const toggle = document.createElement("input"); toggle.type = "checkbox";
-    showArchived.append(toggle, text("span", "Show archived years"));
-    const render = () => {
-        list.replaceChildren();
-        const shown = years.filter(y => toggle.checked || y.status !== "archived");
-        if (!shown.length) {
-            list.append(text("div", years.length ? "No school years to show." : "No school years yet. Use Create School Year to add the first one.", "sa-section-empty"));
-            return;
-        }
-        for (const y of shown) {
-            const row = document.createElement("article");
-            row.className = "sy-row";
-            const info = document.createElement("div");
-            const title = document.createElement("div");
-            title.className = "sy-row-title";
-            title.append(text("strong", `S.Y. ${y.label}`), text("span", STATUS_LABEL[y.status] || y.status, `sy-status sy-${y.status}`));
-            const sections = sectionsOf(y.id);
-            const facts = [
-                `${sections.length} section${sections.length === 1 ? "" : "s"}`,
-                y.summary?.students != null ? `${y.summary.students} student record(s)` : "",
-                y.activatedAt ? `started ${when(y.activatedAt)}` : y.createdAt ? `created ${when(y.createdAt)}` : "",
-                y.completedAt ? `ended ${when(y.completedAt)}` : "",
-                y.archivedAt ? `archived ${when(y.archivedAt)}` : ""
-            ].filter(Boolean).join(" · ");
-            info.append(title, text("small", facts));
-            if (sections.length) info.append(text("small", sections.map(s => s.name).join(", "), "sy-row-sections"));
-            const buttons = document.createElement("div");
-            buttons.className = "sy-row-actions";
-            const add = (label, kind, fn) => { const b = document.createElement("button"); b.type = "button"; b.className = kind; b.innerHTML = label; b.addEventListener("click", () => { d.close(); fn(); }); buttons.append(b); };
-            if (y.status === "upcoming") {
-                add('<i class="bi bi-play-fill"></i> Start', "sa-section-primary", () => openStart(y));
-                if (!sections.length) add("Remove", "sa-section-cancel", async () => {
-                    if (await confirmDialog({ title: `Remove ${y.label}?`, intro: "This school year has not started and has no sections or records.", confirmLabel: "Remove", danger: true }))
-                        await run(() => removeUnstartedYear(y), "School year removed", `${y.label} was removed.`);
-                });
-            }
-            if (y.status === "active") add('<i class="bi bi-flag"></i> End school year', "sa-section-danger", () => openEnd(y));
-            if (y.status === "completed") add('<i class="bi bi-archive"></i> Archive', "sa-section-cancel", () => openArchive(y));
-            if (y.status !== "upcoming") {
-                const a = document.createElement("a");
-                a.className = "sa-section-cancel sy-link";
-                a.href = `StudentsList.html?year=${encodeURIComponent(y.id)}`;
-                a.innerHTML = '<i class="bi bi-bar-chart"></i> View data';
-                buttons.append(a);
-            }
-            row.append(info, buttons);
-            list.append(row);
-        }
-    };
-    toggle.addEventListener("change", render);
-    d.body.append(showArchived, list);
-    d.button('<i class="bi bi-plus-lg"></i> Create School Year', "cancel", () => { d.close(); openCreate(); });
-    d.button("Close", "primary", d.close);
-    render();
-}
-
-async function openMove() {
-    const active = activeYear(years);
-    if (!active) return notify("No active school year", "Start the new school year first. Students can only be moved into the active year.", false);
-    const targets = sectionsOf(active.id);
-    const sources = sectionDocs.filter(s => sectionYearId(s, years) !== active.id)
-        .map(s => ({ ...s, yearId: sectionYearId(s, years) }))
-        .sort((a, b) => String(b.yearId).localeCompare(String(a.yearId)) || String(a.name).localeCompare(String(b.name)));
-    if (!targets.length) return notify("No sections in this year", `Add a section for ${active.label} first (Manage Sections > Add Section).`, false);
-    if (!sources.length) return notify("No previous sections", "There are no sections from earlier school years to move students from. New students are added by their teacher on the Students page.", false);
-
-    const d = dialog({ icon: "bi-arrow-up-right-circle", title: `Move Students into ${active.label}`, intro: "Assign returning students to their new section, or promote them (e.g. Grade 11 to Grade 12). Their old records stay with the old year.", wide: true });
-    const grid = document.createElement("div");
-    grid.className = "sy-move-grid";
-    const select = (labelText, options) => {
-        const wrap = document.createElement("label"); wrap.className = "sa-section-input-label";
-        wrap.append(labelText);
-        const s = document.createElement("select"); s.className = "sy-input";
-        options.forEach(([value, label]) => s.add(new Option(label, value)));
-        wrap.append(s); grid.append(wrap); return s;
-    };
-    const yearName = id => years.find(y => y.id === id)?.label || "earlier";
-    const from = select("FROM (PREVIOUS YEAR)", sources.map(s => [s.id, `${s.name} · S.Y. ${yearName(s.yearId)}`]));
-    const to = select(`TO (S.Y. ${active.label})`, targets.map(s => [s.id, s.name]));
-    const grade = select("GRADE LEVEL", [["", "Keep as is"], ["Grade 11", "Grade 11"], ["Grade 12", "Grade 12 (promote)"]]);
-    const bar = document.createElement("div");
-    bar.className = "sa-section-listbar";
-    const allBox = document.createElement("input"); allBox.type = "checkbox";
-    const allLabel = document.createElement("label"); allLabel.className = "sa-section-selectall"; allLabel.append(allBox, " Select all");
-    const counter = text("small", "0 selected");
-    bar.append(text("b", "Students"), counter, allLabel);
-    const list = document.createElement("div");
-    list.className = "sa-section-options sy-students";
-    d.body.append(grid, bar, list, text("p", "Each moved student keeps the same account and password and starts the new year with a fresh record. Their old game data stays in the previous year for data analysis.", "sa-section-input-help"));
-
-    let rows = [];
-    const sync = () => {
-        const checks = [...list.querySelectorAll("input:not(:disabled)")];
-        const n = checks.filter(c => c.checked).length;
-        counter.textContent = `${n} selected`;
-        allBox.checked = !!checks.length && n === checks.length;
-        allBox.indeterminate = n > 0 && n < checks.length;
-        moveBtn.disabled = !n;
-    };
-    const load = async () => {
-        list.replaceChildren(text("div", "Loading students…", "sa-section-loading"));
-        const snap = await getDocs(collection(db, "sections", from.value, "classList"));
-        const inTarget = new Set((await getDocs(collection(db, "sections", to.value, "classList"))).docs.map(x => x.id));
-        rows = snap.docs.map(x => ({ docId: x.id, ...x.data() })).sort((a, b) => String(a.name).localeCompare(String(b.name)));
-        list.replaceChildren();
-        if (!rows.length) list.append(text("div", "No students in this section.", "sa-section-empty"));
-        for (const r of rows) {
-            const l = document.createElement("label");
-            const c = document.createElement("input"); c.type = "checkbox"; c.value = r.docId;
-            const reason = r.movedTo ? `already moved to ${r.movedTo.sectionName || "a new section"}` : inTarget.has(r.docId) ? "already in that section" : "";
-            c.disabled = !!reason;
-            l.append(c, text("span", `${r.name || "Unnamed"} · ${r.id ?? r.docId}`));
-            if (reason) l.append(text("small", reason, "sy-muted"));
-            list.append(l);
-        }
-        sync();
-    };
-    allBox.addEventListener("change", () => { list.querySelectorAll("input:not(:disabled)").forEach(c => { c.checked = allBox.checked; }); sync(); });
-    list.addEventListener("change", sync);
-    from.addEventListener("change", load);
-    to.addEventListener("change", load);
-
-    d.button("Cancel", "cancel", d.close);
-    const moveBtn = d.button('<i class="bi bi-arrow-right"></i> Move Selected', "primary", async () => {
-        const ids = [...list.querySelectorAll("input:checked:not(:disabled)")].map(c => c.value);
-        const fromSection = sources.find(s => s.id === from.value);
-        const toSection = targets.find(s => s.id === to.value);
-        const ok = await confirmDialog({
-            title: `Move ${ids.length} student(s) to ${toSection.name}?`,
-            intro: `From ${fromSection.name} (S.Y. ${yearName(fromSection.yearId)}) to ${toSection.name} (S.Y. ${active.label})${grade.value ? `, as ${grade.value}` : ""}.`,
-            confirmLabel: "Yes, move them", icon: "bi-arrow-up-right-circle",
-            points: [
-                ["bi-person-check", "Same account: same email, password and sign-in. No second account is made."],
-                ["bi-clock-history", `Their ${yearName(fromSection.yearId)} game progress, time and errors stay in ${fromSection.name} as history.`],
-                ["bi-stars", `They start ${active.label} with a fresh record in ${toSection.name}.`]
-            ]
+// ---------------------------------------------------------------- the panel
+function yearCard(y) {
+    const row = document.createElement("article");
+    row.className = "sy-row" + (y.status === "active" ? " sy-row-active" : "");
+    const info = document.createElement("div");
+    const title = document.createElement("div");
+    title.className = "sy-row-title";
+    title.append(text("strong", `S.Y. ${y.label}`), text("span", STATUS_LABEL[y.status] || y.status, `sy-status sy-${y.status}`));
+    const sections = sectionsOf(y.id);
+    const names = new Set(sections.map(s => s.name));
+    const teacherCount = y.status === "active" ? teachers.filter(t => sectionList(t.section).some(n => names.has(n))).length : null;
+    const facts = [
+        `${sections.length} section${sections.length === 1 ? "" : "s"}`,
+        teacherCount != null ? `${teacherCount} teacher${teacherCount === 1 ? "" : "s"} assigned` : "",
+        y.summary?.students != null ? `${y.summary.students} student record(s)` : "",
+        y.activatedAt ? `started ${when(y.activatedAt)}` : y.createdAt ? `created ${when(y.createdAt)}` : "",
+        y.completedAt ? `ended ${when(y.completedAt)}` : "",
+        y.archivedAt ? `archived ${when(y.archivedAt)}` : ""
+    ].filter(Boolean).join(" · ");
+    info.append(title, text("small", facts));
+    if (sections.length) info.append(text("small", sections.map(s => s.name).join(", "), "sy-row-sections"));
+    const buttons = document.createElement("div");
+    buttons.className = "sy-row-actions";
+    const add = (label, kind, fn) => { const b = document.createElement("button"); b.type = "button"; b.className = kind; b.innerHTML = label; b.addEventListener("click", fn); buttons.append(b); };
+    // An archived or completed year only offers Archive / View data: it can never be started again.
+    if (y.status === "upcoming") {
+        add('<i class="bi bi-play-fill"></i> Start', "sa-section-primary", () => openStart(y));
+        if (!sections.length) add("Remove", "sa-section-cancel", async () => {
+            if (await confirmDialog({ title: `Remove ${y.label}?`, intro: "This school year has not started and has no sections or records.", confirmLabel: "Remove", danger: true }))
+                await run(() => removeUnstartedYear(y), "School year removed", `${y.label} was removed.`);
         });
-        if (!ok) return;
-        loading(true);
-        const skipped = [];
-        let moved = 0;
-        for (const id of ids) {
-            try {
-                const reason = await moveStudent(fromSection, id, toSection, grade.value, active);
-                if (reason) skipped.push(`${id}: ${reason}`); else moved++;
-            } catch (error) {
-                console.error("[School years] move failed", id, error);
-                skipped.push(`${id}: ${error?.code === "permission-denied" ? "permission denied" : error?.message || "failed"}`);
-            }
-        }
-        loading(false);
-        await load();
-        notify(skipped.length ? "Some students were not moved" : "Students moved",
-            `${moved} student(s) moved to ${toSection.name}.` + (skipped.length ? ` Not moved: ${skipped.join("; ")}.` : ""), !skipped.length || moved > 0);
-    });
-    moveBtn.disabled = true;
-    try { await load(); } catch (error) { console.error(error); list.replaceChildren(text("div", "Students could not be loaded. Check the connection.", "sa-section-empty")); }
+    }
+    if (y.status === "active") add('<i class="bi bi-flag"></i> End school year', "sa-section-danger", () => openEnd(y));
+    if (y.status === "completed") add('<i class="bi bi-archive"></i> Archive', "sa-section-cancel", () => openArchive(y));
+    if (y.status !== "upcoming") {
+        const a = document.createElement("a");
+        a.className = "sa-section-cancel sy-link";
+        a.href = `StudentsList.html?year=${encodeURIComponent(y.id)}`;
+        a.innerHTML = '<i class="bi bi-bar-chart"></i> View data';
+        buttons.append(a);
+    }
+    row.append(info, buttons);
+    return row;
+}
+
+function renderYears() {
+    const activeBox = $("syActiveCard");
+    if (!activeBox) return;
+    const active = activeYear(years);
+    activeBox.replaceChildren(active ? yearCard(active) : text("p",
+        years.length ? "No school year is active. Teachers see no sections until you start one." : "No school years yet. Select Add School Year to create the first one.", "sy-no-active"));
+    const others = years.filter(y => y.status !== "active" && y.status !== "archived");
+    $("syYearList").replaceChildren(...others.map(yearCard));
+    $("syOtherWrap").hidden = !others.length;
+    const archived = years.filter(y => y.status === "archived");
+    $("syArchiveList").replaceChildren(...(archived.length ? archived.map(yearCard) : [text("p", "No archived school years yet. Archive a year after it is completed.", "sy-no-active")]));
+    $("syArchiveCount").textContent = String(archived.length);
 }
 
 // ---------------------------------------------------------------- page wiring
@@ -546,16 +422,14 @@ function renderBadge() {
         badge.className = "sy-badge " + (active ? "sy-active" : "sy-none");
         badge.innerHTML = active ? `<i class="bi bi-calendar-check"></i> S.Y. ${active.label}` : '<i class="bi bi-calendar-x"></i> No active school year';
     }
-    const step2 = $("syStep2Year");
-    if (step2) step2.textContent = active ? `Assignments for School Year ${active.label}.` : years.length ? "No school year is active, so assignments are paused." : "";
+    const note = $("syAssignYear");
+    if (note) note.textContent = active ? `Assignments for School Year ${active.label}.` : years.length ? "No school year is active, so assignments are paused." : "";
 }
 
 $("syCreateBtn")?.addEventListener("click", openCreate);
-$("syViewBtn")?.addEventListener("click", openList);
-$("syMoveBtn")?.addEventListener("click", () => openMove());
 
-watchSchoolYears(db, list => { years = list; renderBadge(); });
-onSnapshot(collection(db, "sections"), snap => { sectionDocs = snap.docs.map(d => ({ id: d.id, ...d.data() })); },
+watchSchoolYears(db, list => { years = list; renderBadge(); renderYears(); });
+onSnapshot(collection(db, "sections"), snap => { sectionDocs = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderYears(); },
     error => console.error("[School years] sections", error));
-onSnapshot(collection(db, "approvedUsers"), snap => { teachers = snap.docs.map(d => ({ id: d.id, ...d.data() })); },
+onSnapshot(collection(db, "approvedUsers"), snap => { teachers = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderYears(); },
     error => console.error("[School years] teachers", error));

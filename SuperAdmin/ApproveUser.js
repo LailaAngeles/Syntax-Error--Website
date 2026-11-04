@@ -147,7 +147,7 @@ const confirmEditSections = editSectionModal.querySelector("#confirmEditSections
 const cancelEditSections = editSectionModal.querySelector("#cancelEditSections");
 
 let sections = [{ id: null, name: "No Section" }];
-// School years: Manage Sections and Step 2 work on the active year's sections only. Sections of
+// School years: Manage Sections and the teacher forms work on the active year's sections only. Sections of
 // ended years stay untouched as history. Without any school year, everything works as before.
 let schoolYears = [];
 let sectionSnapshot = null;
@@ -164,7 +164,7 @@ function newSectionFields(name) {
     if (!schoolYears.length) return { name };
     const year = currentYear();
     if (!year) {
-        showNotice("No school year is active. Start a school year first (Manage School Years > View School Years).", "No Active School Year");
+        showNotice("No school year is active. Start a school year first, in the School years panel on this page.", "No Active School Year");
         return null;
     }
     return { name, schoolYearId: year.id };
@@ -708,7 +708,7 @@ async function saveAdminPassword(admin) {
     } catch (error) {
         console.error("Password reset email error:", error);
         alert(error?.code === "auth/user-not-found"
-            ? "No sign-in account exists for this email. Create the teacher in Step 1 first."
+            ? "No sign-in account exists for this email. Add the teacher first."
             : "The reset email could not be sent. Check the connection and try again.");
     } finally {
         toggleLoading(false);
@@ -756,7 +756,7 @@ function renderApprovedUsers() {
     const openRow = approvedTable.querySelector(".multi-select-container.active")?.closest("tr")?.dataset.id;
     approvedTable.innerHTML = "";
     if (latestApproved.empty) {
-        approvedTable.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:gray;">No teacher accounts yet. Create one in Step 1.</td></tr>`;
+        approvedTable.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:gray;">No teacher accounts yet. Add one with the form above.</td></tr>`;
         return;
     }
     const liveIds = new Set();
@@ -815,7 +815,7 @@ approvedTable.addEventListener("click", async event => {
     } catch (error) {
         console.error("Section assignment failed:", error);
         alert(error?.message === "No active school year"
-            ? "No school year is active. Start the school year first (Manage School Years), then assign sections."
+            ? "No school year is active. Start the school year first, in the School years panel, then assign sections."
             : "The section assignment could not be saved. Please try again.");
     } finally {
         toggleLoading(false);

@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp, deleteApp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
-import { getFirestore, collection, getDocs, query, where, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
+import { getFirestore, collection, getDocs, query, where, doc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
 import { initializeAuth, inMemoryPersistence, createUserWithEmailAndPassword, deleteUser, signOut } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js';
+import { activeYear, isCurrentSection, watchSchoolYears } from '../MainMenu/school-years.js';
 const config={apiKey:'AIzaSyCEK9ungYl1PkiqgLkWJPCtNXAsQ3c6xxc',authDomain:'syntaxerror-data.firebaseapp.com',projectId:'syntaxerror-data',storageBucket:'syntaxerror-data.firebasestorage.app',messagingSenderId:'513961059475',appId:'1:513961059475:web:fbf6f471357465dbaad966'};
 const app=getApps().length?getApp():initializeApp(config);
 const db=getFirestore(app);
@@ -16,8 +17,66 @@ const confirmModal = document.getElementById('teacherConfirmModal');
 const confirmYes = document.getElementById('teacherConfirmYes');
 const confirmCancel = document.getElementById('teacherConfirmCancel');
 const successModal = document.getElementById('teacherSuccessModal');
+const sectionChoices = document.getElementById('teacherSectionChoices');
+const sectionSummary = document.getElementById('teacherSectionSummary');
 let pendingTeacher = null;
 let creating = false;
+// Sections on offer: this school year's, the same list as the Current teachers table.
+const chosenSections = new Set();
+let schoolYears = null;
+let sectionSnapshot = null;
+const sectionsText = names => names.length ? names.join(', ') : 'No Section';
+function renderSectionSummary() {
+  sectionSummary.replaceChildren();
+  if (!chosenSections.size) {
+    sectionSummary.textContent = 'None selected. The teacher starts with No Section and sees no students until one is assigned.';
+    return;
+  }
+  sectionSummary.append(`Selected (${chosenSections.size}): `);
+  [...chosenSections].sort((a, b) => a.localeCompare(b)).forEach(name => {
+    const chip = document.createElement('span');
+    chip.className = 'teacher-section-chip';
+    chip.textContent = name;
+    sectionSummary.append(chip);
+  });
+}
+function renderSectionChoices() {
+  if (!schoolYears || !sectionSnapshot) return;
+  const names = new Set();
+  sectionSnapshot.forEach(d => { const name = d.data().name; if (name && isCurrentSection(d.data(), schoolYears)) names.add(name); });
+  [...chosenSections].forEach(name => { if (!names.has(name)) chosenSections.delete(name); });
+  sectionChoices.replaceChildren();
+  if (!names.size) {
+    const note = document.createElement('p');
+    note.className = 'teacher-sections-note';
+    note.textContent = schoolYears.length && !activeYear(schoolYears)
+      ? 'No school year is active. You can still add the teacher and assign sections after starting a school year.'
+      : 'No sections yet. You can still add the teacher, or add a section first with Manage Sections.';
+    sectionChoices.append(note);
+  }
+  [...names].sort((a, b) => a.localeCompare(b)).forEach(name => {
+    const option = document.createElement('label');
+    option.className = 'teacher-section-pick';
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.value = name;
+    box.checked = chosenSections.has(name);
+    const span = document.createElement('span');
+    span.textContent = name;
+    option.append(box, span);
+    sectionChoices.append(option);
+  });
+  renderSectionSummary();
+}
+[nameInput,email,password].forEach(input => input?.addEventListener('input', () => showMessage('')));
+sectionChoices?.addEventListener('change', e => {
+  if (!e.target.matches('input[type="checkbox"]')) return;
+  e.target.checked ? chosenSections.add(e.target.value) : chosenSections.delete(e.target.value);
+  renderSectionSummary();
+});
+watchSchoolYears(db, years => { schoolYears = years; renderSectionChoices(); });
+onSnapshot(collection(db, 'sections'), snap => { sectionSnapshot = snap; renderSectionChoices(); },
+  error => console.error('Sections listener error:', error));
 function closeConfirm() {
   if (creating) return;
   confirmModal.hidden = true;
@@ -29,7 +88,7 @@ confirmModal?.addEventListener('click', e => { if(e.target===confirmModal)closeC
 document.addEventListener('keydown', e => {
   if(e.key==='Escape' && confirmModal && !confirmModal.hidden)closeConfirm();
 });
-// Step 2's list is live, so the new teacher is already there; just jump to it.
+// The Current teachers list is live, so the new teacher is already there; just jump to it.
 document.getElementById('teacherSuccessClose')?.addEventListener('click', () => {
   successModal.hidden = true;
   document.getElementById('teacher-section-assignment')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -44,7 +103,7 @@ async function emailInUse(teacherEmail) {
 // The teacher is created on a separate, in-memory Firebase app so the Super Admin's
 // page session is never replaced. The record is written while signed in as the new
 // teacher; if that write fails the new Auth user deletes itself, so nothing is left half-made.
-// Sections are assigned afterwards in Step 2, so new teachers start with "No Section".
+// The record starts with "No Section"; assignSections then applies the sections chosen in the form.
 async function provisionTeacher({teacherName,teacherEmail,pass}) {
   const provisioner = initializeApp(config, 'teacher-provisioning-' + Date.now());
   const provisionAuth = initializeAuth(provisioner, { persistence: inMemoryPersistence });
@@ -74,6 +133,13 @@ async function provisionTeacher({teacherName,teacherEmail,pass}) {
     await deleteApp(provisioner).catch(() => {});
   }
 }
+// The same write as Save in the Current teachers table, so assignments are recorded per school year too.
+async function assignSections(uid, names) {
+  const year = activeYear(schoolYears || []);
+  const update = { section: names };
+  if (year) update[`sectionsByYear.${year.id}`] = names;
+  await updateDoc(doc(db, 'approvedUsers', uid), update);
+}
 function describeError(error) {
   if (error?.rollbackFailed) return 'The teacher record could not be saved and the login account could not be removed. Delete it in Firebase Authentication before retrying.';
   switch (error?.code) {
@@ -99,16 +165,17 @@ form?.addEventListener('submit', async e => {
   showMessage('Checking existing records...',true);
   try {
     const found=await emailInUse(teacherEmail);
-    if(found) return showMessage(`This email already exists in ${found}.`);
+    if(found) return showMessage(found==='archivedUsers'?'This email belongs to an archived teacher. Restore them from Manage Users > View Archive.':'A teacher with this email already exists.');
   } catch(error) {
     return showMessage('Could not check existing records: ' + error.message);
   } finally {
     button.disabled=false;
   }
   showMessage('');
-  pendingTeacher={teacherName,teacherEmail,pass};
+  pendingTeacher={teacherName,teacherEmail,pass,sections:[...chosenSections].sort((a,b)=>a.localeCompare(b))};
   document.getElementById('teacherConfirmName').textContent=teacherName;
   document.getElementById('teacherConfirmEmail').textContent=teacherEmail;
+  document.getElementById('teacherConfirmSections').textContent=sectionsText(pendingTeacher.sections);
   confirmModal.hidden=false;
   confirmYes.focus();
 });
@@ -120,15 +187,30 @@ confirmYes?.addEventListener('click', async () => {
   confirmCancel.disabled=true;
   button.disabled=true;
   confirmYes.textContent='Creating account...';
-  showMessage('Creating Firebase Authentication account and teacher record...',true);
+  showMessage('Creating the login and teacher record...',true);
   try {
     const uid=await provisionTeacher(teacher);
+    // The account now exists. A failed assignment must not read as a failed account, or a retry would hit a duplicate.
+    let assigned=true;
+    if(teacher.sections.length) {
+      try { await assignSections(uid,teacher.sections); }
+      catch(error) { assigned=false; console.error('Section assignment failed:',{code:error?.code,message:error?.message}); }
+    }
     showMessage('');
     form.reset();
+    chosenSections.clear();
+    renderSectionChoices();
     confirmModal.hidden=true;
     pendingTeacher=null;
     document.getElementById('teacherSuccessName').textContent=teacher.teacherName;
     document.getElementById('teacherSuccessEmail').textContent=teacher.teacherEmail;
+    document.getElementById('teacherSuccessSections').textContent=sectionsText(assigned?teacher.sections:[]);
+    const note=document.getElementById('teacherSuccessNote');
+    note.classList.toggle('teacher-note-warning',!assigned);
+    note.textContent=!assigned
+      ? `The account was created, but the sections could not be saved. Assign ${teacher.sections.join(', ')} under Current teachers. Do not add this teacher again.`
+      : teacher.sections.length ? 'Give the email and default password to the teacher privately.'
+      : 'No section was assigned. Assign one under Current teachers so the teacher can see students.';
     console.info('Teacher created:', uid);
     successModal.hidden=false;
     document.getElementById('teacherSuccessClose').focus();
@@ -141,7 +223,7 @@ confirmYes?.addEventListener('click', async () => {
     creating=false;
     confirmYes.disabled=false;
     confirmCancel.disabled=false;
-    confirmYes.innerHTML='<i class="bi bi-check-circle"></i> Yes, Create Teacher';
+    confirmYes.innerHTML='<i class="bi bi-check-circle"></i> Yes, Add Teacher';
     button.disabled=false;
   }
 });

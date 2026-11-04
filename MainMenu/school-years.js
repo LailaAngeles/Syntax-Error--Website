@@ -29,7 +29,7 @@ export function sectionYearId(section, years) {
     return section?.schoolYearId || earliestYear(years)?.id || null;
 }
 
-// Sections open for day-to-day work (teacher pages, adding students, level codes, Step 2):
+// Sections open for day-to-day work (teacher pages, adding students, level codes, teacher assignments):
 // - no school years set up yet: every section, exactly as before;
 // - otherwise only the active year's sections. Between years (none active) nothing is open.
 export function isCurrentSection(section, years) {
