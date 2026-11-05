@@ -1,9 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { getFirestore, collection, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-import { renderClassOverview, downloadCsv, studentCsvRows, STUDENT_CSV_HEADER } from "./record-analysis.js";
+import { renderClassOverview, downloadCsv, csvFileName, studentCsvRows, topicCsvRows, STUDENT_CSV_HEADER, TOPIC_CSV_HEADER } from "./record-analysis.js";
+import { showLoading, showLoadError, toast, withBusy } from "./ui-feedback.js";
 import { expireStaleCodes } from "./level-codes.js";
-import { isCurrentSection, closedYearNotice, watchSchoolYears } from "./school-years.js";
+import { isCurrentSection, closedYearNotice, watchSchoolYears, sectionYearId, yearLabel } from "./school-years.js";
 
 // ----------------------------
 // CONFIG & INITIALIZATION
@@ -36,6 +37,11 @@ let unsubscribeSections = null;
 let unsubscribeYears = null;
 const teacherClassListeners = new Map();
 const teacherClassData = new Map();
+const sectionYears = new Map();
+// Loading state: nothing is drawn until every section has answered, so "0 students" is never shown by mistake.
+const LOAD_TIMEOUT_MS = 20000;
+let sectionsKnown = false;
+let loadTimer = null;
 
 function stopTeacherListeners() {
     if (unsubscribeTeacher) { unsubscribeTeacher(); unsubscribeTeacher = null; }
@@ -56,8 +62,22 @@ function studentsInView() {
 }
 
 function renderLiveTeacherData() {
+    const root = document.getElementById("class-overview");
+    if (!sectionsKnown || [...teacherClassListeners.keys()].some(id => !teacherClassData.has(id))) {
+        if (root && !root.dataset.ready && !root.querySelector(".da-loading-error")) showLoading(root, "Loading student records...");
+        return;
+    }
+    clearTimeout(loadTimer);
     allStudentsData = Array.from(teacherClassData.values()).flat();
-    renderClassOverview(document.getElementById("class-overview"), studentsInView());
+    renderClassOverview(root, studentsInView());
+}
+
+function failLoading(error) {
+    console.error("Class Overview could not be loaded:", error);
+    clearTimeout(loadTimer);
+    const root = document.getElementById("class-overview");
+    if (root?.dataset.ready) toast("Some records could not be updated. Check your connection.", "error");
+    else showLoadError(root, "Student records could not be loaded. Check your connection and refresh the page.");
 }
 
 // ----------------------------
@@ -99,7 +119,9 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadTeacherDashboard(user) {
     stopTeacherListeners();
     const loader = document.getElementById("loading-overlay");
-    if (loader) loader.style.display = "flex";
+    showLoading(document.getElementById("class-overview"), "Loading student records...");
+    clearTimeout(loadTimer);
+    loadTimer = setTimeout(() => failLoading("timed out"), LOAD_TIMEOUT_MS);
 
     let assignedSections = [];
     let sectionsSnapshot = null;
@@ -118,6 +140,7 @@ async function loadTeacherDashboard(user) {
             // Only this school year's sections; same-named sections of past years are history.
             if (!assignedSections.includes(name) || !isCurrentSection(sDoc.data(), schoolYears)) return;
             wanted.set(sDoc.id, name);
+            sectionYears.set(name, schoolYears.length ? yearLabel(schoolYears, sectionYearId(sDoc.data(), schoolYears)) : "");
             if (select) select.add(new Option(name, name));
         });
         if (select && [...select.options].some(option => option.value === previousSelection)) {
@@ -137,9 +160,15 @@ async function loadTeacherDashboard(user) {
                     ...student.data(), id: student.data().id ?? student.id, section: wanted.get(id) || name
                 })));
                 renderLiveTeacherData();
-            }, error => console.error("Teacher class listener error:", error));
+            }, error => {
+                teacherClassData.set(id, []);
+                toast(`Students of ${wanted.get(id) || name} could not be loaded.`, "error");
+                console.error("Teacher class listener error:", error);
+                renderLiveTeacherData();
+            });
             teacherClassListeners.set(id, stop);
         });
+        sectionsKnown = true;
         // A section name change should also update its displayed students.
         teacherClassData.forEach((students, id) => {
             const name = wanted.get(id);
@@ -165,13 +194,13 @@ async function loadTeacherDashboard(user) {
         const display = document.getElementById("user-section-display");
         if (display) display.textContent = mySections.length ? mySections.join(", ") : "no section assigned yet (ask the Super Admin)";
         syncTeacherSections();
-    }, error => { console.error("Teacher permission listener error:", error); if (loader) loader.style.display = "none"; });
+    }, error => { if (loader) loader.style.display = "none"; failLoading(error); });
 
     unsubscribeYears = watchSchoolYears(db, years => { schoolYears = years; syncTeacherSections(); });
     unsubscribeSections = onSnapshot(collection(db, "sections"), snap => {
         sectionsSnapshot = snap;
         syncTeacherSections();
-    }, error => { console.error("Teacher sections listener error:", error); if (loader) loader.style.display = "none"; });
+    }, error => { if (loader) loader.style.display = "none"; failLoading(error); });
 }
 
 // ----------------------------
@@ -179,12 +208,18 @@ async function loadTeacherDashboard(user) {
 // ----------------------------
 document.getElementById("section-select")?.addEventListener("change", renderLiveTeacherData);
 
-document.getElementById("export-csv")?.addEventListener("click", () => {
-    const section = selectedSection();
-    const students = [...studentsInView()].sort((a, b) => String(a.section).localeCompare(String(b.section)) || String(a.name ?? "").localeCompare(String(b.name ?? "")));
-    const stamp = new Date().toISOString().slice(0, 10);
-    downloadCsv(`syntaxerror-${section || "all-sections"}-${stamp}.csv`, STUDENT_CSV_HEADER, studentCsvRows(students));
-});
+function wireExport(buttonId, label, header, rowsOf) {
+    const button = document.getElementById(buttonId);
+    button?.addEventListener("click", () => withBusy(button, "Preparing...", async () => {
+        const students = [...studentsInView()].sort((a, b) => String(a.section).localeCompare(String(b.section)) || String(a.name ?? "").localeCompare(String(b.name ?? "")));
+        const rows = rowsOf(students, student => sectionYears.get(student.section) ?? "");
+        if (!rows.length) return toast(`There is nothing to export for ${label}.`, "error");
+        downloadCsv(csvFileName(selectedSection() || "all-sections", label), header, rows);
+        toast(`${rows.length} row(s) exported.`);
+    }));
+}
+wireExport("export-csv", "students", STUDENT_CSV_HEADER, studentCsvRows);
+wireExport("export-topics-csv", "topics", TOPIC_CSV_HEADER, topicCsvRows);
 
 window.logoutUser = async () => {
     stopTeacherListeners();

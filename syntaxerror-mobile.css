@@ -7,9 +7,9 @@ html,body{max-width:100%;overflow-x:clip}
 #qr-section .qr-card h3{font-size:clamp(1rem,4.5vw,1.25rem)}
 #qr-section .qr-placeholder.android-theme{width:min(190px,60vw)!important;height:min(190px,60vw)!important;min-width:0!important;min-height:0!important;max-width:100%!important;max-height:none!important;flex-shrink:1!important}
 #qr-section .qr-placeholder.android-theme img.qr-code-image{width:100%!important;height:100%!important;object-fit:contain!important}
-#qr-section .qr-placeholder.ios-theme{width:min(190px,60vw);height:min(190px,60vw);max-width:100%}
-#qr-section .toggle-container{width:min(100%,350px);justify-content:center}
-#qr-section .toggle-btn{flex:1;min-height:44px;padding:10px 12px}
+
+
+
 .manual-section{width:100%;max-width:1510px}.manual-shell{width:100%;max-width:100%}
 .manual-track,.manual-panels,.manual-slide{width:100%;max-width:100%}
 .manual-preview{overflow:hidden}.manual-copy{overflow-wrap:anywhere}
@@ -78,7 +78,7 @@ html,body{max-width:100%;overflow-x:clip}
 @media(max-width:360px){
  #qr-section .flip-card{height:350px}
  #qr-section .qr-placeholder.android-theme{width:min(170px,55vw)!important;height:min(170px,55vw)!important}
- #qr-section .qr-placeholder.ios-theme{width:min(170px,55vw);height:min(170px,55vw)}
+
  .manual-shell{padding:8px!important}
  .manual-tab i{margin-right:3px}
  .manual-bottom{gap:6px}

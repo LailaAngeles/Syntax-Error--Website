@@ -248,3 +248,14 @@
 /* Link from the walkthrough to the full manual page */
 .manual-full-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(90, 160, 235, .35); background: rgba(57, 140, 255, .1); color: #cfe6ff; font-weight: 700; font-size: .9rem; text-decoration: none; }
 .manual-full-link:hover { background: rgba(57, 140, 255, .2); color: #fff; }
+
+/* A phone cannot scan its own screen, so phones also get a direct download. */
+.qr-direct { display: none; }
+@media (max-width: 900px) { .qr-direct { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: min(100%, 350px); min-height: 48px; margin-top: 16px; box-sizing: border-box; } }
+
+/* Footer */
+.site-foot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px 24px; max-width: 1480px; margin: 0 auto; padding: 26px 5.6% 34px; box-sizing: border-box; border-top: 1px solid rgba(120, 160, 210, .18); font-size: .85rem; color: #9fb2c8; }
+.site-foot nav { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.site-foot a { color: #cfe3ff; text-decoration: none; min-height: 24px; }
+.site-foot a:hover, .site-foot a:focus-visible { color: #fff; text-decoration: underline; }
+@media (max-width: 600px) { .site-foot { flex-direction: column; align-items: flex-start; padding: 22px 16px 80px; } }

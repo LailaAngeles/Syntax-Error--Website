@@ -3,8 +3,9 @@ import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/fi
 import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 import {
     renderClassOverview, renderStudentSummary, renderStudentDetail, classSummary, studentSummary, topBy,
-    downloadCsv, studentCsvRows, STUDENT_CSV_HEADER, fmtDate, safeText, TOTAL_LEVELS, fmtWhole, aboutCount
+    downloadCsv, csvFileName, studentCsvRows, topicCsvRows, STUDENT_CSV_HEADER, TOPIC_CSV_HEADER, fmtDate, safeText, TOTAL_LEVELS, fmtWhole, aboutCount
 } from "../MainMenu/record-analysis.js";
+import { toast, withBusy } from "../MainMenu/ui-feedback.js";
 import { STATUS_LABEL, activeYear, sectionYearId, watchSchoolYears } from "../MainMenu/school-years.js";
 
 // ----------------------------
@@ -293,7 +294,7 @@ window.viewAnalysis = function(firebaseId, parentDocId = null, options = {}) {
     document.getElementById('student-details-content').innerHTML = fields
         .map(([label, value]) => `<div class="summary-profile-field"><span>${label}</span><strong>${safeText(value ?? '--')}</strong></div>`).join('');
     renderStudentSummary(document.getElementById('sa-student-summary'), student);
-    renderStudentDetail(document.getElementById('sa-student-detail'), student);
+    renderStudentDetail(document.getElementById('sa-student-detail'), student, { yearOf: () => selectedYear()?.label ?? '' });
     if (!options.keepScroll) panel.querySelector('.summary-dialog-panel')?.scrollTo?.(0, 0);
     if (!options.keepScroll) panel.focus({ preventScroll: true });
 };
@@ -367,9 +368,16 @@ document.getElementById('students-table')?.addEventListener('click', (event) => 
     const button = event.target.closest('.open-student-summary');
     if (button) window.viewAnalysis(button.dataset.studentId, button.dataset.sectionId);
 });
-document.getElementById("export-csv")?.addEventListener("click", () => {
-    const section = selectedSection();
-    const students = [...studentsInSection(section)].sort((a, b) => String(a.sectionName).localeCompare(String(b.sectionName)) || String(a.name ?? "").localeCompare(String(b.name ?? "")));
-    const year = selectedYear() ? `${selectedYear().id}-` : "";
-    downloadCsv(`syntaxerror-${year}${section || "all-sections"}-${new Date().toISOString().slice(0, 10)}.csv`, STUDENT_CSV_HEADER, studentCsvRows(students));
-});
+function wireExport(buttonId, label, header, rowsOf) {
+    const button = document.getElementById(buttonId);
+    button?.addEventListener("click", () => withBusy(button, "Preparing...", async () => {
+        const section = selectedSection();
+        const students = [...studentsInSection(section)].map(s => ({ ...s, section: s.sectionName })).sort((a, b) => String(a.section).localeCompare(String(b.section)) || String(a.name ?? "").localeCompare(String(b.name ?? "")));
+        const rows = rowsOf(students, () => selectedYear()?.label ?? "");
+        if (!rows.length) return toast(`There is nothing to export for ${label}.`, "error");
+        downloadCsv(csvFileName(selectedYear()?.id, section || "all-sections", label), header, rows);
+        toast(`${rows.length} row(s) exported.`);
+    }));
+}
+wireExport("export-csv", "students", STUDENT_CSV_HEADER, studentCsvRows);
+wireExport("export-topics-csv", "topics", TOPIC_CSV_HEADER, topicCsvRows);

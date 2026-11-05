@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+    <script src="../no-inspect.js?v=20261105"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Archive | SyntaxError</title>
@@ -10,16 +11,19 @@
     <link rel="stylesheet" href="dashboard.css">
     <link rel="stylesheet" href="modern-enhancements.css">
     <link rel="stylesheet" href="archive-modern.css">
+    <link rel="stylesheet" href="data-analysis.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script type="module" src="Archive.js"></script><link rel="stylesheet" href="terms-gate.css"><script type="module" src="terms-gate.js"></script>
+    <link rel="icon" type="image/png" href="../logo-48.png">
+    <link rel="stylesheet" href="../brand-logo.css?v=20261105">
 </head>
 <body>
 
 <div class="sidebar">
     <div class="sidebar-header">
-        <h2 class="logo"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></h2>
+        <h2 class="logo has-logo"><img class="brand-logo" src="../logo-192.png" alt="" width="38" height="38"><span class="brand-text"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></span></h2>
         <button id="theme-toggle" class="theme-btn" title="Switch light or dark mode" aria-label="Switch light or dark mode">
             <i class="bi bi-moon-stars-fill"></i>
         </button>
@@ -61,7 +65,7 @@
         <div class="archive-table-wrap">
           <table class="archive-table">
             <thead><tr><th class="archive-check"><input id="archive-select-all" type="checkbox" aria-label="Select all visible records"></th><th>Student</th><th>Section</th><th>Date Archived</th><th>Expires In</th></tr></thead>
-            <tbody id="archived-students-table"></tbody>
+            <tbody id="archived-students-table"><tr><td colspan="5" class="archive-empty"><span class="da-loading" role="status"><span class="da-spinner" aria-hidden="true"></span> Loading archived students...</span></td></tr></tbody>
           </table>
         </div>
         <div class="archive-footnote">Select one or more students using the checkboxes, then use Restore Selected or Delete Selected above. Restoring returns records to their original section.</div>

@@ -146,3 +146,18 @@ mark { background: rgba(255, 193, 7, .45); color: inherit; border-radius: 3px; p
   .hm-sec { box-shadow: none; break-inside: avoid; border-color: #ccc; }
   .hm-faq details > p { display: block; }
 }
+
+/* The animated sample views stay inside their frames on the smallest phones. */
+.hm-split > * { min-width: 0; }
+.hm-scene, .hm-scene .manual-shot { max-width: 100%; overflow: hidden; }
+/* Text wraps to the screen instead of widening the page on phones. */
+.hm-main, .hm-sec, .hm-tip, .hm-steps, .hm-mini, .hm-read { min-width: 0; max-width: 100%; box-sizing: border-box; }
+.hm-main { overflow-wrap: anywhere; }
+.hm-tip > .bi { flex: none; }
+.hm-steps li { min-width: 0; }
+.hm-read-row { flex-wrap: wrap; }
+@media (max-width: 960px) {
+  .hm-layout { grid-template-columns: minmax(0, 1fr); }
+  .hm-split { grid-template-columns: minmax(0, 1fr); }
+  .hm-cards { grid-template-columns: minmax(0, 1fr); }
+}

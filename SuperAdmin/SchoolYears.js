@@ -328,21 +328,53 @@ async function openStart(year) {
     });
 }
 
+// Second step: the school year's name must be typed, so a stray click can never end it.
+const sameYearName = (a, b) => String(a).trim().replace(/[-–—]/g, "-") === String(b).trim().replace(/[-–—]/g, "-");
+function confirmTypedYear(year) {
+    return new Promise(resolve => {
+        const d = dialog({ icon: "bi-exclamation-octagon", title: `Final step: end ${year.label}`, intro: "Type the school year name to confirm.", danger: true });
+        const label = text("label", `TYPE ${year.label} BELOW`, "sa-section-input-label");
+        const input = document.createElement("input");
+        input.type = "text"; input.className = "sy-input"; input.autocomplete = "off"; input.placeholder = year.label;
+        label.htmlFor = input.id = "syEndConfirmInput";
+        d.body.append(label, input);
+        const done = value => { d.close(); resolve(value); };
+        d.button("Cancel", "cancel", () => done(false));
+        const end = d.button('<i class="bi bi-flag-fill"></i> End School Year', "danger", () => done(true));
+        const sync = () => { end.disabled = !sameYearName(input.value, year.label); };
+        input.addEventListener("input", sync);
+        input.addEventListener("keydown", e => { if (e.key === "Enter" && !end.disabled) end.click(); });
+        d.overlay.addEventListener("keydown", e => { if (e.key === "Escape") resolve(false); });
+        sync();
+        input.focus();
+    });
+}
+
+let endingYear = false;
 async function openEnd(year) {
+    if (endingYear) return;
     const count = sectionsOf(year.id).length;
-    const ok = await confirmDialog({
+    const proceed = await confirmDialog({
         title: `End School Year ${year.label}?`,
         intro: "Read what happens before you continue.",
-        icon: "bi-flag", danger: true, confirmLabel: '<i class="bi bi-flag-fill"></i> End School Year',
+        icon: "bi-flag", danger: true, confirmLabel: 'Continue <i class="bi bi-arrow-right"></i>',
         points: [
             ["bi-check2-circle", `The year is marked Completed. Its ${count} section(s) become history.`],
             ["bi-lock", "No new students, level codes or section changes can be made under this year."],
-            ["bi-shield-check", "Nothing is deleted: student and teacher accounts, game progress, time spent, wrong attempts and data analysis are all kept."],
+            ["bi-shield-check", "Nothing is deleted: student and teacher accounts, game progress, time spent, incorrect submissions and data analysis are all kept."],
             ["bi-people", "Each section keeps a record of its teachers and students for this year."],
             ["bi-arrow-right-circle", "Teachers see no sections until you start the next school year and assign them."]
         ]
     });
-    if (ok) await run(() => endYear(year), "School year completed");
+    if (!proceed || !(await confirmTypedYear(year))) return;
+    endingYear = true;
+    renderYears();
+    try {
+        await run(() => endYear(year), "School year completed");
+    } finally {
+        endingYear = false;
+        renderYears();
+    }
 }
 
 async function openArchive(year) {
@@ -386,7 +418,10 @@ function yearCard(y) {
                 await run(() => removeUnstartedYear(y), "School year removed", `${y.label} was removed.`);
         });
     }
-    if (y.status === "active") add('<i class="bi bi-flag"></i> End school year', "sa-section-danger", () => openEnd(y));
+    if (y.status === "active") {
+        add(endingYear ? "Ending..." : '<i class="bi bi-exclamation-triangle-fill"></i> End School Year', "sy-end-btn", () => openEnd(y));
+        if (endingYear) buttons.lastElementChild.disabled = true;
+    }
     if (y.status === "completed") add('<i class="bi bi-archive"></i> Archive', "sa-section-cancel", () => openArchive(y));
     if (y.status !== "upcoming") {
         const a = document.createElement("a");

@@ -1,5 +1,6 @@
 console.log("Login.js loaded");
 
+import { claimSession } from "../MainMenu/session-guard.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { 
     getAuth, 
@@ -40,6 +41,13 @@ const togglePassword = document.getElementById("togglePassword");
 const loginForm = document.getElementById("loginForm");
 const rememberMe = document.getElementById("rememberMe");
 const VERIFIED_KEY = "syntaxerror_verified_uid";
+// Sent here by session-guard.js when a newer sign-in on another device replaced this one.
+const loginNotice = new URLSearchParams(location.search);
+if (loginNotice.get("notice") === "other-device") {
+    const device = ["phone", "tablet", "computer"].includes(loginNotice.get("device")) ? ` (${loginNotice.get("device")})` : "";
+    addEventListener("DOMContentLoaded", () => showPopup(`This account is now being used on another device${device}, so you were signed out here.`));
+    history.replaceState(null, "", location.pathname);
+}
 const HOME_URL = "../MainMenu/welcome.html";
 let otpExpiresAt = 0;
 let loginInProgress = false;
@@ -439,6 +447,7 @@ document.getElementById("verifyOtpBtn")?.addEventListener("click", async () => {
         localStorage.removeItem(VERIFIED_KEY);
         sessionStorage.removeItem(VERIFIED_KEY);
         storage.setItem(VERIFIED_KEY, auth.currentUser.uid);
+        await claimSession(db, auth.currentUser, storage);
         generatedOtp = "";
         window.location.replace(HOME_URL);
     } catch (error) {

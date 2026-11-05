@@ -80,6 +80,20 @@ export function checkBirthday(value) {
     return '';
 }
 
+// The one set of checks behind Add Student and Update Student. "others" are the teacher's other
+// students, without the one being edited. Returns the problem for each field ("" when fine).
+const hasEmail = value => !!String(value ?? '').trim() && String(value).trim().toLowerCase() !== 'no email';
+export function checkStudentDetails({ id, email, birthday }, others = []) {
+    const number = String(id ?? '').trim();
+    const address = String(email ?? '').trim().toLowerCase();
+    const emailProblem = checkEmail(email);
+    return {
+        id: checkStudentNumber(number) || (others.some(s => String(s.id) === number) ? `Student number ${number} is already used in one of your sections.` : ''),
+        email: emailProblem || (address && others.some(s => hasEmail(s.email) && String(s.email).trim().toLowerCase() === address) ? 'This email is already used by another student in your sections.' : ''),
+        birthday: checkBirthday(birthday)
+    };
+}
+
 // min/max for <input type="date">, so the picker itself blocks dates outside the range.
 export function birthdayBounds(today = new Date()) {
     const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;

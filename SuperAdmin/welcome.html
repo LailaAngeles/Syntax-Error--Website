@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+    <script src="../no-inspect.js?v=20261105"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home | Super Admin</title>
@@ -14,11 +15,13 @@
     <link rel="stylesheet" href="../MainMenu/data-analysis.css">
     <link rel="stylesheet" href="../MainMenu/welcome-home.css">
     <script type="module" src="welcome.js"></script>
+    <link rel="icon" type="image/png" href="../logo-48.png">
+    <link rel="stylesheet" href="../brand-logo.css?v=20261105">
 </head>
 <body>
     <nav class="sidebar">
         <div class="sidebar-header">
-            <h2 class="logo"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></h2>
+            <h2 class="logo has-logo"><img class="brand-logo" src="../logo-192.png" alt="" width="38" height="38"><span class="brand-text"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></span></h2>
             <button id="themeToggle" class="theme-btn" title="Switch light or dark mode" aria-label="Switch light or dark mode"><i class="bi bi-moon" id="themeIcon"></i></button>
         </div>
         <ul>
@@ -32,6 +35,7 @@
     </nav>
 
     <main class="content">
+        <div class="wh-top">
         <section class="wh-hero" aria-labelledby="wh-greeting">
             <div class="wh-hero-text">
                 <p class="wh-date"><i class="bi bi-calendar3" aria-hidden="true"></i> <span id="wh-date"></span></p>
@@ -40,6 +44,12 @@
             </div>
             <a class="wh-cta" href="ApproveUsers.html">Manage Teachers <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
         </section>
+        <section class="wh-activity" aria-labelledby="wh-activity-title">
+            <div class="wh-activity-head"><h2 id="wh-activity-title"><i class="bi bi-activity" aria-hidden="true"></i> Teacher activity</h2><small id="wh-activity-count"></small></div>
+            <ul class="wh-activity-list" id="wh-activity-list"><li class="wh-activity-note"><span class="da-spinner da-spinner-sm" aria-hidden="true"></span> Loading recent changes...</li></ul>
+            <button type="button" class="da-show-more" id="wh-activity-more" hidden></button>
+        </section>
+        </div>
 
         <p class="wh-notice" id="wh-notice" role="status" hidden><i class="bi bi-info-circle-fill" aria-hidden="true"></i> <span id="wh-notice-text"></span></p>
 

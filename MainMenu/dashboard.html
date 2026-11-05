@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+    <script src="../no-inspect.js?v=20261105"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Class Overview | SyntaxError</title>
@@ -15,12 +16,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script type="module" src="dashboard.js"></script>
     <script type="module" src="terms-gate.js"></script>
+    <link rel="icon" type="image/png" href="../logo-48.png">
+    <link rel="stylesheet" href="../brand-logo.css?v=20261105">
 </head>
 <body>
 
 <div class="sidebar">
     <div class="sidebar-header">
-        <h2 class="logo"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></h2>
+        <h2 class="logo has-logo"><img class="brand-logo" src="../logo-192.png" alt="" width="38" height="38"><span class="brand-text"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></span></h2>
         <button id="theme-toggle" class="theme-btn" title="Switch light or dark mode" aria-label="Switch light or dark mode">
             <i class="bi bi-moon-stars-fill"></i>
         </button>
@@ -47,14 +50,15 @@
             <label class="da-filter" for="section-select">Section
                 <select id="section-select"><option value="">All my sections</option></select>
             </label>
-            <button type="button" class="da-btn" id="export-csv"><i class="bi bi-download"></i> Export student summary (CSV)</button>
+            <button type="button" class="da-btn" id="export-csv" title="One row per student"><i class="bi bi-download"></i> Export students (CSV)</button>
+            <button type="button" class="da-btn" id="export-topics-csv" title="One row per student per topic"><i class="bi bi-download"></i> Export topics (CSV)</button>
         </div>
     </header>
 
     <p class="da-hint">Not sure what a number means? Select the <i class="bi bi-info-circle" aria-hidden="true"></i> beside it.</p>
 
     <div id="class-overview" data-da-class aria-live="polite">
-        <p class="da-empty">Loading game records...</p>
+        <div class="da-loading" role="status"><span class="da-spinner" aria-hidden="true"></span> Loading student records...</div>
     </div>
 </div>
 

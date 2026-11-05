@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="./no-inspect.js?v=20261105"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Manual | SyntaxError Faculty Portal</title>
@@ -10,12 +11,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="./welcome.css?v=20261102-b">
-    <link rel="stylesheet" href="./help.css?v=20261102-c">
+    <link rel="stylesheet" href="./help.css?v=20261105">
+    <link rel="icon" type="image/png" href="logo-48.png">
+    <link rel="stylesheet" href="brand-logo.css?v=20261105">
 </head>
 <body>
 
 <header class="hm-top">
-    <a class="hm-brand" href="index.html"><span class="hm-sti">STI</span> SyntaxError <span class="hm-brand-sub">User Manual</span></a>
+    <a class="hm-brand" href="index.html"><img class="brand-logo" src="logo-192.png" alt="" width="36" height="36"><span class="hm-sti">STI</span> SyntaxError <span class="hm-brand-sub">User Manual</span></a>
     <nav class="hm-top-links">
         <a href="index.html"><i class="bi bi-house"></i><span> Home</span></a>
         <a href="Components/LogIn.html"><i class="bi bi-box-arrow-in-right"></i><span> Sign in</span></a>
@@ -26,7 +29,7 @@
 <section class="hm-hero">
     <p class="hm-kicker">FACULTY PORTAL · STEP-BY-STEP GUIDE</p>
     <h1>How to use the SyntaxError portal</h1>
-    <p class="hm-lead">Everything a teacher or the Super Admin needs: signing in, reading the class data, opening a student's record, giving level codes and managing accounts.</p>
+    <p class="hm-lead">Everything a teacher or the Super Admin needs: signing in, reading the class data, opening a student's record, giving level codes, managing students, accounts and school years.</p>
     <div class="hm-switch" role="tablist" aria-label="Choose a guide">
         <button type="button" role="tab" id="aud-teacher" data-audience="teacher" aria-selected="true" class="active"><i class="bi bi-person-video3"></i> For teachers</button>
         <button type="button" role="tab" id="aud-admin" data-audience="admin" aria-selected="false"><i class="bi bi-shield-lock"></i> For the Super Admin</button>
@@ -76,13 +79,14 @@
 </div></div><figcaption><span>Sample view · signing in with password and PIN</span><button type="button" class="hm-replay"><i class="bi bi-arrow-counterclockwise"></i> Replay</button></figcaption></figure>
     </div>
     <p class="hm-tip"><i class="bi bi-lightbulb"></i> Select Login only once; the button shows a spinner while it works. No PIN email? Check Junk or Spam, then use <b>Resend PIN</b> in the PIN box. It unlocks after 60 seconds, and only one PIN is sent per minute.</p>
+    <p class="hm-tip"><i class="bi bi-phone"></i> <b>One device at a time.</b> If you sign in on another device, that device stays signed in and the first one is signed out with a message saying the account is in use elsewhere.</p>
 </section>
 
 <section class="hm-sec" id="teacher-first" data-audience="teacher">
-    <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Your first sign-in</h2><p>Two one-time screens appear before the dashboard.</p></div></div>
+    <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Your first sign-in</h2><p>Two one-time screens appear before your Home page.</p></div></div>
     <ol class="hm-steps">
         <li><b>Terms and Privacy Notice.</b> Scroll to the end of the notice; the checkbox unlocks there. Tick it and select <b>I Agree and Continue</b>. Choosing <b>Decline</b> signs you out.</li>
-        <li><b>Change your password?</b> Select <b>Yes</b> to set a new password (enter the default one first, then the new one twice, at least 8 characters), or <b>No</b> to keep the default for now.</li>
+        <li><b>Change your password?</b> Select <b>Yes</b> to set a new password (enter the default one first, then the new one twice, at least 8 characters), or <b>No</b> to keep the default for now. A field turns red if the default password is wrong, the new password is too short, or the two new passwords do not match.</li>
     </ol>
     <p class="hm-tip"><i class="bi bi-shield-check"></i> Changing the default password is recommended, because the Super Admin knows it.</p>
 </section>
@@ -94,12 +98,15 @@
             <ol class="hm-steps">
                 <li>After signing in you start on <b>Home</b>, which greets you and shows your class counts and quick links. Select <b>Open Class Overview</b>, or <b>Class Overview</b> in the menu.</li>
                 <li>Use the <b>Section</b> menu at the top right to see all your sections or just one.</li>
-                <li>Read the four numbers: <b>Students</b> (and how many started playing), <b>Levels completed</b> per student, <b>Time recorded</b> and <b>Wrong submissions</b>.</li>
+                <li>Read the four numbers: <b>Students</b> (and how many started playing), <b>Levels completed</b> per student, <b>Time recorded</b> and <b>Incorrect submissions</b>.</li>
                 <li><b>Level completion</b>: each bar is a game level; its height is how many students finished it.</li>
-                <li>Select <b>Export student summary (CSV)</b> for a spreadsheet of every student in the selected section.</li>
+                <li><b>Who can play each level</b> separates students who are locked, waiting for your code, unlocked, in progress and finished. Locked levels never count against a student.</li>
+                <li>Use <b>Latest attempt / All attempts</b> above the topic charts. Latest is each student's newest try with a saved result; All adds up every try, so it grows with each replay.</li>
+                <li>Select <b>Export students (CSV)</b> for one row per student, or <b>Export topics (CSV)</b> for one row per student per topic. Both separate the latest attempt from the totals.</li>
             </ol>
             <p class="hm-tip"><i class="bi bi-broadcast"></i> The green <b>LIVE</b> badge means you never need to refresh. New attempts appear by themselves.</p>
-            <p class="hm-tip"><i class="bi bi-info-circle"></i> Select the <b>info icon</b> or <b>How is this computed?</b> beside any number. It explains what the number means, the data and formula behind it, a simple example, your current figures where available, and how to read the result.</p>
+            <p class="hm-tip"><i class="bi bi-info-circle"></i> Select the <b>info icon</b> or <b>How is this computed?</b> beside any number. It shows what the number means, how it is computed, a simple example, your current figures where available, and what to look for.</p>
+            <p class="hm-tip"><i class="bi bi-hourglass-split"></i> A spinner shows while records load. If they cannot load, a message says so instead of showing zeros. Check your connection and refresh.</p>
         </div>
         <figure class="hm-scene" aria-label="Sample view · Class Overview"><div class="manual-shot manual-scene"><div class="scene scene-overview" aria-hidden="true"><span class="sc-tag">Sample view</span>
   <div class="sc-app">
@@ -108,7 +115,7 @@
       <div><small>Students</small><b class="sc-count" style="--to:36"></b></div>
       <div><small>Started</small><b class="sc-count" style="--to:28"></b></div>
       <div><small>Levels done</small><b class="sc-count" style="--to:74"></b></div>
-      <div><small>Wrong subs</small><b class="sc-count" style="--to:93"></b></div>
+      <div><small>Incorrect</small><b class="sc-count" style="--to:93"></b></div>
     </div>
     <div class="sc-panel"><small>Level completion</small>
       <div class="sc-levels"><i style="--h:92%;--d:0.90s"></i><i style="--h:86%;--d:0.97s"></i><i style="--h:78%;--d:1.04s"></i><i style="--h:70%;--d:1.11s"></i><i style="--h:61%;--d:1.18s"></i><i style="--h:52%;--d:1.25s"></i><i style="--h:44%;--d:1.32s"></i><i style="--h:36%;--d:1.39s"></i><i style="--h:29%;--d:1.46s"></i><i style="--h:22%;--d:1.53s"></i><i style="--h:16%;--d:1.60s"></i><i style="--h:12%;--d:1.67s"></i><i style="--h:9%;--d:1.74s"></i><i style="--h:6%;--d:1.81s"></i><i style="--h:4%;--d:1.88s"></i><i style="--h:3%;--d:1.95s"></i><i style="--h:2%;--d:2.02s"></i><i style="--h:1%;--d:2.09s"></i><i style="--h:1%;--d:2.16s"></i></div>
@@ -128,7 +135,7 @@
       <div class="sc-panel"><small><i class="bi bi-hourglass-split"></i> Minutes per student</small>
         <div class="sc-bar sc-time"><span>Data types</span><i style="--w:92%;--d:0.50s"></i><b style="--d:1.40s">5 min</b></div><div class="sc-bar sc-time"><span>Comments</span><i style="--w:74%;--d:0.75s"></i><b style="--d:1.65s">4 min</b></div><div class="sc-bar sc-time"><span>Printing</span><i style="--w:52%;--d:1.00s"></i><b style="--d:1.90s">3 min</b></div><div class="sc-bar sc-time"><span>Arithmetic</span><i style="--w:30%;--d:1.25s"></i><b style="--d:2.15s">1 min</b></div><div class="sc-bar sc-time"><span>User input</span><i style="--w:18%;--d:1.50s"></i><b style="--d:2.40s">35 s</b></div>
       </div>
-      <div class="sc-panel"><small><i class="bi bi-bug"></i> Wrong submissions per student</small>
+      <div class="sc-panel"><small><i class="bi bi-bug"></i> Incorrect submissions per student</small>
         <div class="sc-bar sc-err"><span>Data types</span><i style="--w:90%;--d:1.20s"></i><b style="--d:2.10s">5</b></div><div class="sc-bar sc-err"><span>Arithmetic</span><i style="--w:60%;--d:1.45s"></i><b style="--d:2.35s">3</b></div><div class="sc-bar sc-err"><span>User input</span><i style="--w:40%;--d:1.70s"></i><b style="--d:2.60s">2</b></div><div class="sc-bar sc-err"><span>Comments</span><i style="--w:40%;--d:1.95s"></i><b style="--d:2.85s">2</b></div><div class="sc-bar sc-err"><span>Printing</span><i style="--w:6%;--d:2.20s"></i><b style="--d:3.10s">0</b></div>
         <div class="sc-tip">Data types · about 5 per student</div>
       </div>
@@ -137,10 +144,10 @@
   <i class="sc-cursor"></i>
 </div></div><figcaption><span>Sample view · time and errors per topic</span><button type="button" class="hm-replay"><i class="bi bi-arrow-counterclockwise"></i> Replay</button></figcaption></figure>
         <ul class="hm-legend">
-            <li><span class="hm-swatch hm-blue"></span><div><b>Blue bars: time</b>Average minutes per student on each topic, all attempts added up. The number at the end of each bar is the rounded value; select a bar to see the total behind it.</div></li>
-            <li><span class="hm-swatch hm-orange"></span><div><b>Orange bars: wrong submissions</b>Average wrong answers per student on each topic.</div></li>
+            <li><span class="hm-swatch hm-blue"></span><div><b>Blue bars: time</b>Average time per student on each topic, for the latest attempt or all attempts. The number at the end of each bar is the rounded value; select a bar to see the total behind it.</div></li>
+            <li><span class="hm-swatch hm-orange"></span><div><b>Orange bars: incorrect submissions</b>Average incorrect submissions per student on each topic, for the latest attempt or all attempts.</div></li>
             <li><span class="hm-swatch hm-purple"></span><div><b>Most students with errors</b>The topic where the most students made at least one mistake.</div></li>
-            <li><span class="hm-swatch hm-gray"></span><div><b>Further down the page</b>The coding tasks with the most wrong submissions, the most common error messages, recent activity, and students who have not started yet.</div></li>
+            <li><span class="hm-swatch hm-gray"></span><div><b>Further down the page</b>The coding tasks with the most incorrect submissions, the most common error messages, recent activity, and students who have not started yet.</div></li>
         </ul>
     </div>
     <p class="hm-tip"><i class="bi bi-info-circle"></i> Every number is counted directly from the game's records. Averages are rounded to whole numbers; "&lt;1" means more than zero but less than one. The portal does not guess "difficulty" or label students.</p>
@@ -152,11 +159,11 @@
         <li>Choose a section from the menu below the page title.</li>
         <li>The four boxes show the section's <b>Students</b>, how many are <b>Online</b> (as reported by the game), <b>Started playing</b> and <b>Not started</b>.</li>
         <li>Type in <b>Search</b> to find a name or student number. Use <b>Show</b> to list only students who started, have not started, or are online.</li>
-        <li>Use <b>Sort by</b> to order students by levels completed, wrong submissions, time recorded or most recent activity.</li>
-        <li>Select <b>Export CSV</b> to download exactly the students currently listed.</li>
-    </ol>
+        <li>Use <b>Sort by</b> to order students by name, levels completed, incorrect submissions, time recorded or most recent activity.</li>
+        <li>Select <b>Export students (CSV)</b> or <b>Export topics (CSV)</b> to download the students currently listed.</li>
+            </ol>
     <div class="hm-columns">
-        <span><b>Levels completed</b> bar out of 19</span><span><b>Time recorded</b> all attempts</span><span><b>Wrong submissions</b> all attempts</span><span><b>Last activity</b> date and time</span>
+        <span><b>Student</b> name, number, section, Online badge</span><span><b>Levels completed</b> bar out of 19</span><span><b>Total time</b> all attempts</span><span><b>Total incorrect</b> all attempts</span>
     </div>
 </section>
 
@@ -172,7 +179,7 @@
     <div class="sc-drawer">
       <b>Student A</b>
       <div class="sc-chips"><i class="on" style="--d:3.00s">1</i><i class="on" style="--d:3.12s">2</i><i class="on" style="--d:3.24s">3</i><i class="on" style="--d:3.36s">4</i><i class="on" style="--d:3.48s">5</i><i class="" style="--d:3.60s">6</i><i class="" style="--d:3.72s">7</i><i class="" style="--d:3.84s">8</i><i class="" style="--d:3.96s">9</i><i class="" style="--d:4.08s">10</i></div>
-      <div class="sc-attempt"><span>Attempt 1</span><span>3 min 21 s</span><span>2 wrong</span></div>
+      <div class="sc-attempt"><span>Attempt 1</span><span>3 min 21 s</span><span>2 incorrect</span></div>
       <div class="sc-error"><code>2:34</code> Missing quotation marks!</div>
       <div class="sc-error sc-error-2"><code>1:34</code> Float must end with f!</div>
     </div>
@@ -180,10 +187,12 @@
   <i class="sc-cursor"></i>
 </div></div><figcaption><span>Sample view · opening a student record</span><button type="button" class="hm-replay"><i class="bi bi-arrow-counterclockwise"></i> Replay</button></figcaption></figure>
         <ol class="hm-steps">
-            <li><b>Left side</b>: name, section, and the 19 level boxes. A yellow box is a completed level.</li>
-            <li><b>Time spent and errors per topic</b>: this student's totals per topic.</li>
-            <li><b>Attempt progress</b>: one line per level the student retried. <b>A line going down means less time or fewer wrong submissions</b> on later tries.</li>
+            <li><b>Left side</b>: name, section, totals, <b>Last activity</b> and the 19 level boxes. A yellow box is a completed level.</li>
+            <li><b>Time spent and errors per topic</b>: this student's time and incorrect submissions on each topic.</li>
+            <li><b>Latest attempt / All attempts</b>: "Latest" is the newest try with a saved result. Switch the topic charts between the most recent try and everything recorded. The table beneath shows latest, earlier and total side by side. Older attempts are always kept.</li>
+            <li><b>Attempt progress</b>: one line per level the student retried. <b>A line going down means less time or fewer incorrect submissions</b> on later tries. Attempts that were only opened are skipped.</li>
             <li><b>Attempt history</b>: each attempt is one row. Tap it to see every task and the exact error messages, with when they happened.</li>
+            <li><b>Export this student's attempts (CSV)</b> downloads one row per attempt for this student only.</li>
         </ol>
     </div>
     <div class="hm-read">
@@ -193,9 +202,10 @@
         </div>
         <ul class="hm-read-key">
             <li><span class="hm-key-bar"></span> Bar length = time on that try (longest try = longest bar)</li>
-            <li><span class="hm-key-dot"></span> One dot = one wrong submission</li>
+            <li><span class="hm-key-dot"></span> One dot = one incorrect submission</li>
             <li><i class="bi bi-check-circle-fill hm-ok"></i> The level was completed on that try</li>
-            <li><span class="hm-chip-good">↘ 1m 44s faster</span> <span class="hm-chip-bad">↗ 0 → 2 wrong</span> change from the first to the latest try</li>
+            <li><b>Latest</b> marks the newest try with a saved result. <b>In progress</b> means it was opened and nothing is saved yet.</li>
+            <li><span class="hm-chip-good">↘ 1m 44s faster</span> <span class="hm-chip-bad">↗ 0 → 2 incorrect</span> change from the first to the latest try</li>
         </ul>
     </div>
 </section>
@@ -203,10 +213,11 @@
 <section class="hm-sec" id="teacher-manage" data-audience="teacher">
     <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Managing students</h2><p>Add students to your sections and keep their details correct.</p></div></div>
     <div class="hm-cards">
-        <div class="hm-mini"><i class="bi bi-file-earmark-arrow-down"></i><strong>Import a class list</strong><span>Select <b>Download Excel Template</b>, fill it in, then <b>Choose File</b>, pick the section and select <b>Import Class List</b>.</span></div>
+        <div class="hm-mini"><i class="bi bi-file-earmark-arrow-down"></i><strong>Import a class list</strong><span>Select <b>Download Excel Template</b>, fill it in, then <b>Choose File</b>, pick the section and select <b>Import Class List</b>. Every column is required; rows with a problem are skipped and listed.</span></div>
         <div class="hm-mini"><i class="bi bi-person-plus"></i><strong>Add one student</strong><span>Select <b>Add Student</b> and fill in the student number, name, student email and birthday. The student is added to the section selected on the page.</span></div>
-        <div class="hm-mini"><i class="bi bi-pencil"></i><strong>Edit</strong><span>Select the pencil on a row to fix a name, student number or birthday.</span></div>
-        <div class="hm-mini"><i class="bi bi-shield-lock"></i><strong>Reset a game password</strong><span>Select <b>Reset Password</b>, choose the section and student, then type the new password (at least 4 characters).</span></div>
+        <div class="hm-mini"><i class="bi bi-pencil"></i><strong>Edit</strong><span>Select the pencil on a row to fix a name, student number, email or birthday. Email is required. A student with their own sign-in account keeps their email, so it is locked here.</span></div>
+        <div class="hm-mini"><i class="bi bi-arrow-left-right"></i><strong>Move to another section</strong><span>Select the pencil, choose the new <b>Section</b>, then <b>Save Changes</b>. Only your own sections are listed. Their account, levels and attempts move with them. If the game shows them online, ask them to close it first.</span></div>
+        <div class="hm-mini"><i class="bi bi-shield-lock"></i><strong>Reset a game password</strong><span>Select <b>Reset Password</b>, choose the section and student, then type the new password (at least 4 characters). The popup warns you if the student has their own sign-in account, because this reset may not change the password they use in the game.</span></div>
         <div class="hm-mini"><i class="bi bi-archive"></i><strong>Archive</strong><span>Select the box icon to move a student to the Archive. You can restore them for 7 days.</span></div>
     </div>
     <p class="hm-tip"><i class="bi bi-lightbulb"></i> A student's default game password is their birthday in <code>YYYYMMDD</code> format, for example <code>20080115</code>.</p>
@@ -217,7 +228,7 @@
     <div class="hm-split">
         <ol class="hm-steps">
             <li>Open <b>Level Access</b> in the menu.</li>
-            <li>Choose the <b>level to unlock</b> and the <b>section</b>, then select <b>Generate</b>.</li>
+            <li>Choose the <b>level to unlock</b> and the <b>section</b>, then select <b>Generate 5-minute code</b>.</li>
             <li>Share the <b>6-digit code</b> with the class. It works for <b>5 minutes</b>, only for that section, and only for students who finished the previous level.</li>
             <li>Use <b>Copy</b> to copy it, or <b>Revoke</b> to stop it early. When the 5 minutes end, the code is erased and can no longer be used. Generate a new one if students still need it.</li>
         </ol>
@@ -233,7 +244,7 @@
   <i class="sc-cursor"></i>
 </div></div><figcaption><span>Sample view · generating a level code</span><button type="button" class="hm-replay"><i class="bi bi-arrow-counterclockwise"></i> Replay</button></figcaption></figure>
     </div>
-    <p class="hm-tip"><i class="bi bi-pie-chart"></i> The <b>Level completion</b> circles on the same page show how many students in the section finished each level, so you know when to open the next one.</p>
+    <p class="hm-tip"><i class="bi bi-pie-chart"></i> The <b>Level completion</b> circles on the same page show how many students finished each level. <b>Waiting for code</b> counts students who finished the previous level, so you know when to open the next one.</p>
 </section>
 
 <section class="hm-sec" id="teacher-archive" data-audience="teacher">
@@ -266,8 +277,9 @@
         <details><summary>I see no students or no sections.</summary><p>Your account has no section assigned yet. Ask the Super Admin to assign your section(s) in Teachers &amp; Sections, under Current teachers. They appear immediately; you do not need to sign out.</p></details>
         <details><summary>The PIN email did not arrive.</summary><p>Check Junk or Spam first. In the PIN box, <b>Resend PIN</b> unlocks after 60 seconds; a new PIN replaces the old one. Each PIN works for 15 minutes.</p></details>
         <details><summary>A student plays but nothing changes.</summary><p>The portal updates live. Make sure the student is in the right section and connected to the internet. Records appear after a task or level is saved by the game.</p></details>
-        <details><summary>A student shows "Online" but is not playing.</summary><p>"Online" is the game's own flag. It can stay on if the app was closed suddenly. Check the Last activity date instead.</p></details>
-        <details><summary>Student numbers lose their leading zero in Excel.</summary><p>The exported CSV keeps them. If you copy numbers by hand into Excel, format the column as Text first.</p></details>
+        <details><summary>I was signed out and told the account is on another device.</summary><p>An account can only be open on one device at a time. The newest sign-in stays signed in, and the older device is signed out. If it was not you, change your password.</p></details>
+        <details><summary>A student shows "Online" but is not playing.</summary><p>"Online" is the game's own flag. It can stay on if the app was closed suddenly. Open <b>Details</b> and check the Last activity date instead.</p></details>
+        <details><summary>Student numbers lose their leading zero in Excel.</summary><p>The exported CSV files keep them. If you copy numbers by hand into Excel, format the column as Text first.</p></details>
         <details><summary>I forgot my password.</summary><p>Select <b>Forgot Password?</b> on the sign-in page, or ask the Super Admin to send you a password reset email.</p></details>
     </div>
 </section>
@@ -281,6 +293,7 @@
         <li>Enter your <b>authorized Super Admin email</b> and select <b>Verify Identity</b>.</li>
         <li>Enter the <b>PIN</b> sent to that email and select <b>Finalize Access</b>. You land on <b>Home</b>, with links to everything else.</li>
     </ol>
+    <p class="hm-tip"><i class="bi bi-activity"></i> <b>Home</b> shows <b>Teacher activity</b> at the upper right: students added, updated, moved, archived or restored, class lists imported, passwords reset and level codes created. If it says it is not available, add the rule in <code>firestore-teacher-activity.rules</code> to your Firestore rules.</p>
     <p class="hm-tip"><i class="bi bi-shield-exclamation"></i> Only emails listed as authorized admins receive a PIN. Keep the Super Admin email private.</p>
 </section>
 
@@ -298,7 +311,7 @@
 <section class="hm-sec" id="admin-assign" data-audience="admin">
     <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Change a teacher's sections</h2><p>Teachers only see the students of the sections you assign.</p></div></div>
     <ol class="hm-steps">
-        <li>In the <b>Assign sections</b> list, find the teacher (name and email are shown).</li>
+        <li>In the <b>Current teachers</b> list, find the teacher (name and email are shown).</li>
         <li>Open the section box on that row and tick one or more sections.</li>
         <li>Select <b>Save</b> on the same row. The teacher sees the change right away.</li>
     </ol>
@@ -333,23 +346,23 @@
         <div class="hm-mini"><i class="bi bi-archive"></i><strong>Archived school years</strong><span>Open this list to review finished years. An archived year cannot become active again.</span></div>
     </div>
     <ol class="hm-steps">
-        <li><b>End the year:</b> on the active year's card, select <b>End school year</b> and read the confirmation. The year becomes Completed. Nothing is deleted: accounts, game progress, time spent and wrong attempts are all kept.</li>
+        <li><b>End the year:</b> on the active year's card, select <b>End School Year</b>, read the explanation, then type the school year's name to confirm. The year becomes Completed. Nothing is deleted: accounts, game progress, time spent and incorrect submissions are all kept.</li>
         <li><b>Archive it</b> when you no longer need it in the main list. Select <b>View data</b> on any finished year to see its records.</li>
         <li><b>Add and start the next year:</b> select <b>Start</b>. You can create the same section names again (they start empty) and keep each teacher on the same names.</li>
         <li><b>Assign teachers</b> under Current teachers. Assignments are saved for each school year.</li>
         <li>Teachers add <b>their students</b> on the Students page as usual. Students are not carried over, because each class is a new Grade 12 group.</li>
     </ol>
-    <p class="hm-tip"><i class="bi bi-info-circle"></i> Teachers only see the active year's sections. Manage Sections and teacher assignments also work on the active year only, and nothing can be added while no year is active. To review a past year, choose it under <b>School year</b> on the Students page.</p>
+    <p class="hm-tip"><i class="bi bi-info-circle"></i> Teachers only see the active year's sections. Manage Sections and teacher assignments also work on the active year only, and nothing can be added while no year is active. To review a past year, select <b>View data</b> on its card, or choose it under <b>School year</b> on Student Records.</p>
 </section>
 
 <section class="hm-sec" id="admin-students" data-audience="admin">
     <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Student Records page</h2><p>Every section's game records and who teaches each section, in three tabs.</p></div></div>
     <ol class="hm-steps">
         <li>Choose a <b>Section</b> at the top, or keep <b>All sections</b>. The <b>Assigned teacher</b> box shows who teaches it. The choice applies to all three tabs.</li>
-        <li><b>Overview</b>: the four numbers, level completion, and time and errors per topic. Open <b>Show the per-topic table</b> or <b>More details</b> for tasks, error messages, recent activity and students not started.</li>
-        <li><b>Sections &amp; teachers</b>: one row per section with its teacher(s), students started, average levels completed and the topic with the most wrong submissions. Select a section name to open its Overview.</li>
+        <li><b>Overview</b>: the four numbers, level completion, who can play each level, and time and errors per topic. Open <b>Show the per-topic table</b> for the numbers, or <b>More details</b> for short summaries of tasks, error messages, recent activity and students not started. Select <b>Show all</b> on any of them for the full list.</li>
+        <li><b>Sections &amp; teachers</b>: one row per section with its teacher(s), students started, average levels completed and the topic with the most incorrect submissions. Select a section name to open its Overview.</li>
         <li><b>Students</b>: search any student and select <b>Details</b> for their full record, including attempt progress and history.</li>
-        <li>Select <b>Export student summary (CSV)</b> to download the selected section.</li>
+        <li>Select <b>Export students (CSV)</b> or <b>Export topics (CSV)</b> to download the selected section and school year.</li>
     </ol>
     <p class="hm-tip"><i class="bi bi-broadcast"></i> Like the teacher pages, this page is live. The page remembers the last tab you used.</p>
 </section>
@@ -357,7 +370,7 @@
 <section class="hm-sec" id="admin-faq" data-audience="admin">
     <div class="hm-sec-head"><span class="hm-num"></span><div><h2>Questions and fixes</h2><p>Quick answers for the Super Admin.</p></div></div>
     <div class="hm-faq">
-        <details><summary>"This email already exists" when creating a teacher.</summary><p>The email is already a teacher, archived, or pending. Look for it in Assign sections or the user archive and restore it instead of creating a new account.</p></details>
+        <details><summary>"This email already exists" when creating a teacher.</summary><p>The email is already a teacher, archived, or pending. Look for it under Current teachers or in the user archive and restore it instead of creating a new account.</p></details>
         <details><summary>A teacher says they cannot see their students.</summary><p>Check Current teachers: the teacher needs at least one section ticked and saved. Also make sure the students were imported into that same section.</p></details>
         <details><summary>A teacher forgot their password.</summary><p>Use Manage Users → Reset Teacher Password to email them a secure reset link.</p></details>
         <details><summary>The Super Admin PIN does not arrive.</summary><p>Check Spam, wait a minute and request a new PIN. Only authorized admin emails receive one.</p></details>

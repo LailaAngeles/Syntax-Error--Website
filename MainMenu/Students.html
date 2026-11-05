@@ -3,6 +3,7 @@
     <html lang="en" data-theme="light">
 
     <head>
+        <script src="../no-inspect.js?v=20261105"></script>
 
         <meta charset="UTF-8">
 
@@ -25,7 +26,9 @@
 
         <script type="module" src="Students.js"></script><link rel="stylesheet" href="data-analysis.css"><link rel="stylesheet" href="terms-gate.css"><script type="module" src="terms-gate.js"></script>
 
-    </head>
+        <link rel="icon" type="image/png" href="../logo-48.png">
+    <link rel="stylesheet" href="../brand-logo.css?v=20261105">
+</head>
 
     <body>
 
@@ -35,7 +38,7 @@
 
         <div class="sidebar-header">
 
-            <h2 class="logo"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></h2>
+            <h2 class="logo has-logo"><img class="brand-logo" src="../logo-192.png" alt="" width="38" height="38"><span class="brand-text"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></span></h2>
 
             <button id="theme-toggle" class="theme-btn" title="Switch light or dark mode" aria-label="Switch light or dark mode">
 
@@ -170,12 +173,13 @@
                     <option value="name">Name (A–Z)</option>
                     <option value="levels-desc">Most levels completed</option>
                     <option value="levels-asc">Fewest levels completed</option>
-                    <option value="wrong-desc">Most wrong submissions</option>
+                    <option value="wrong-desc">Most incorrect submissions</option>
                     <option value="time-desc">Most time recorded</option>
                     <option value="recent">Most recent activity</option>
                 </select>
             </label>
-            <button type="button" class="da-btn" id="export-students-csv"><i class="bi bi-download"></i> Export CSV</button>
+            <button type="button" class="da-btn" id="export-students-csv" title="One row per student"><i class="bi bi-download"></i> Export students (CSV)</button>
+            <button type="button" class="da-btn" id="export-topics-csv" title="One row per student per topic"><i class="bi bi-download"></i> Export topics (CSV)</button>
         </div>
         <p class="student-table-count" id="table-results"></p>
         <div class="table-responsive">
@@ -184,9 +188,8 @@
                     <tr>
                         <th>Student</th>
                         <th>Levels completed <button type="button" class="da-info" data-da-info="col-levels" title="How is this computed?" aria-label="How is this computed? Levels completed"><i class="bi bi-info-circle" aria-hidden="true"></i></button></th>
-                        <th>Time recorded <button type="button" class="da-info" data-da-info="col-time" title="How is this computed?" aria-label="How is this computed? Time recorded"><i class="bi bi-info-circle" aria-hidden="true"></i></button></th>
-                        <th>Wrong submissions <button type="button" class="da-info" data-da-info="col-wrong" title="How is this computed?" aria-label="How is this computed? Wrong submissions"><i class="bi bi-info-circle" aria-hidden="true"></i></button></th>
-                        <th>Last activity <button type="button" class="da-info" data-da-info="col-last" title="How is this computed?" aria-label="How is this computed? Last activity"><i class="bi bi-info-circle" aria-hidden="true"></i></button></th>
+                        <th>Total time <button type="button" class="da-info" data-da-info="col-time" title="How is this computed?" aria-label="How is this computed? Time recorded"><i class="bi bi-info-circle" aria-hidden="true"></i></button></th>
+                        <th>Total incorrect <button type="button" class="da-info" data-da-info="col-wrong" title="How is this computed?" aria-label="How is this computed? Incorrect submissions"><i class="bi bi-info-circle" aria-hidden="true"></i></button></th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -194,9 +197,9 @@
 
                     <tr>
 
-                        <td colspan="6" style="text-align:center;">
+                        <td colspan="5" style="text-align:center;">
 
-                            Select a section to load students
+                            Loading student records...
 
                         </td>
 
@@ -267,6 +270,28 @@
                 <label style="display:block; font-size:0.8rem; font-weight:bold; color:#64748b; margin-bottom:5px;">FULL NAME</label>
 
                 <input type="text" id="edit-name-input" maxlength="120" placeholder="Surname, First name M." style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:6px; box-sizing: border-box;">
+
+            </div>
+
+
+
+            <div style="margin-bottom: 15px;">
+
+                <label for="edit-email-input" style="display:block; font-size:0.8rem; font-weight:bold; color:#64748b; margin-bottom:5px;">STUDENT EMAIL</label>
+
+                <input type="email" id="edit-email-input" maxlength="100" placeholder="student@example.com" autocomplete="off" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:6px; box-sizing: border-box;">
+                <small class="edit-note" id="edit-email-note" hidden></small>
+
+            </div>
+
+
+
+            <div style="margin-bottom: 15px;">
+
+                <label for="edit-section-select" style="display:block; font-size:0.8rem; font-weight:bold; color:#64748b; margin-bottom:5px;">SECTION</label>
+
+                <select id="edit-section-select" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:6px; box-sizing: border-box;"></select>
+                <small class="edit-note" id="edit-section-note" hidden></small>
 
             </div>
 
@@ -544,7 +569,7 @@
                         <p id="modal-student-birthday">Birthday: --</p>
                     </div>
                     <div id="student-summary"></div>
-                    <p class="student-summary-note">Yellow levels are finished. Time and wrong submissions add up all of this student's attempts.</p>
+                    <p class="student-summary-note">Yellow levels are finished. Time and incorrect submissions here add up all of this student's attempts; the panel on the right separates the latest one.</p>
                 </div>
                 <!-- RIGHT: charts, attempt history and error messages -->
                 <div class="modal-right-col">

@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+    <script src="../no-inspect.js?v=20261105"></script>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Level Access | SyntaxError</title>
 <link rel="stylesheet" href="dashboard.css"><link rel="stylesheet" href="modern-enhancements.css"><link rel="stylesheet" href="levels.css"><link rel="stylesheet" href="data-analysis.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <script type="module" src="levels.js"></script><link rel="stylesheet" href="terms-gate.css"><script type="module" src="terms-gate.js"></script><script src="modern-effects.js" defer></script>
+    <link rel="icon" type="image/png" href="../logo-48.png">
+    <link rel="stylesheet" href="../brand-logo.css?v=20261105">
 </head>
 <body>
-<div class="sidebar"><div class="sidebar-header"><h2 class="logo"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></h2><button class="theme-btn" id="theme-toggle" title="Switch light or dark mode" aria-label="Switch light or dark mode"><i class="bi bi-moon-stars-fill"></i></button></div>
+<div class="sidebar"><div class="sidebar-header"><h2 class="logo has-logo"><img class="brand-logo" src="../logo-192.png" alt="" width="38" height="38"><span class="brand-text"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></span></h2><button class="theme-btn" id="theme-toggle" title="Switch light or dark mode" aria-label="Switch light or dark mode"><i class="bi bi-moon-stars-fill"></i></button></div>
 <ul>
         <li><a href="welcome.html"><i class="bi bi-house-door"></i> <span>Home</span></a></li>
         <li><a href="dashboard.html"><i class="bi bi-speedometer2"></i> <span>Class Overview</span></a></li>
@@ -31,9 +34,14 @@
 <button class="access-primary" id="generate" disabled><i class="bi bi-key-fill"></i> Generate 5-minute code</button></section>
 <section class="card access-card"><div class="access-title"><i class="bi bi-shield-check"></i><h2>Current generated code</h2></div><div class="access-code"><div id="current-description">Generate a code to begin</div><strong id="current-code">— — — — — —</strong><div class="access-code-help">Displayed only to the teacher who generated it</div></div><div class="timer-row"><span>Remaining time</span><strong id="remaining">--:--</strong></div><div class="timer-track"><div id="timebar"></div></div><div class="access-actions"><button id="copy" disabled><i class="bi bi-clipboard"></i> Copy</button><button id="revoke" disabled class="revoke"><i class="bi bi-x-circle"></i> Revoke</button></div></section>
 
-</div><div class="access-stack">
-<section class="card access-card mastery-section" aria-label="Level completion readiness"><div class="access-title"><i class="bi bi-pie-chart-fill"></i><h2> Level completion</h2><button type="button" class="da-info" data-da-info="levels-page" title="How is this computed?" aria-label="How is this computed? Level completion percentage"><i class="bi bi-info-circle" aria-hidden="true"></i></button></div><p>Completed students for the selected section. Use this to decide when to generate the next-level PIN.</p><div id="mastery-subtitle" class="mastery-subtitle">Choose a section to load student completion</div><div id="mastery-list" class="mastery-list"></div><small class="mastery-note">Counts students the game marked as finished. It measures finished levels, not C# skill. Updates live.</small></section>
+
 <section class="card access-card"><div class="access-title"><i class="bi bi-list-check"></i><h2>Access code activity</h2></div><p>Active and recently issued codes appear here. For security, a code cannot be shown again after the page reloads.</p><div id="code-list" class="access-list"><p>Loading…</p></div><button id="refresh" class="access-outline"><i class="bi bi-arrow-clockwise"></i> Refresh activity</button></section>
-<section class="card access-card"><div class="access-title"><i class="bi bi-phone"></i><h2>Mobile game access preview</h2></div><div class="mobile-preview"><div class="mobile-preview-top">SYNTAX<span>ERROR</span></div><div class="mobile-icon"><i class="bi bi-lock-fill"></i></div><strong>Level Locked</strong><p>Enter the access code provided by your teacher</p><div class="mobile-code">••••••</div><div class="mobile-unlock">UNLOCK LEVEL</div><small>Illustration only — redemption occurs in Unity</small></div></section><section class="card access-card"><div class="access-title"><i class="bi bi-check2-circle"></i><h2>How students unlock</h2></div><div class="instruction"><span>1</span><p>Complete Level 1 (or the preceding level) in the Unity game.</p></div><div class="instruction"><span>2</span><p>Teacher generates a code for the next level and assigned section.</p></div><div class="instruction"><span>3</span><p>Student enters the six-digit code before five minutes expire.</p></div><div class="instruction"><span>4</span><p>The system checks the code and permanently saves the unlock.</p></div></section>
+</div><div class="access-stack">
+<section class="card access-card access-how" aria-labelledby="how-unlock-title"><div class="access-title"><i class="bi bi-check2-circle"></i><h2 id="how-unlock-title">How students unlock levels</h2></div><ol class="how-steps"><li>The student <b>completes the previous level</b> in the game.</li><li>You <b>generate a code</b> for the next level and section.</li><li>The student <b>enters the code</b> within five minutes.</li><li>The level <b>stays unlocked</b> for that student.</li></ol></section>
+<section class="card access-card mastery-section" aria-label="Level completion readiness"><div class="access-title"><i class="bi bi-pie-chart-fill"></i><h2> Level completion</h2><button type="button" class="da-info" data-da-info="levels-page" title="How is this computed?" aria-label="How is this computed? Level completion percentage"><i class="bi bi-info-circle" aria-hidden="true"></i></button></div><p>Students who completed each level. "Waiting for code" means they finished the previous level and can receive this level's code.</p><div id="mastery-subtitle" class="mastery-subtitle">Choose a section to load student completion</div><div id="mastery-list" class="mastery-list"></div><small class="mastery-note">Counts students the game marked as finished. It measures finished levels, not C# skill. Updates live.</small></section>
+
+
+
+
 </div></div><div id="notice" role="status" aria-live="polite"></div>
 </main></body></html>

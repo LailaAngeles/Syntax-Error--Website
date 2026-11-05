@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+    <script src="../no-inspect.js?v=20261105"></script>
     <meta charset="UTF-8">
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,11 +16,13 @@
     <link rel="stylesheet" href="student-insights.css">
     <link rel="stylesheet" href="../MainMenu/data-analysis.css">
     <link rel="stylesheet" href="school-years.css">
+    <link rel="icon" type="image/png" href="../logo-48.png">
+    <link rel="stylesheet" href="../brand-logo.css?v=20261105">
 </head>
 <body>
     <nav class="sidebar">
         <div class="sidebar-header">
-            <h2 class="logo"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></h2>
+            <h2 class="logo has-logo"><img class="brand-logo" src="../logo-192.png" alt="" width="38" height="38"><span class="brand-text"><span class="sti-text">STI</span><span class="game-title"> Caloocan</span></span></h2>
             <button id="themeToggle" class="theme-btn" title="Switch light or dark mode" aria-label="Switch light or dark mode"> <i class="bi bi-moon" id="themeIcon"></i></button>
         </div>
         <ul>
@@ -50,7 +53,8 @@
                     <span>Assigned teacher</span>
                     <strong id="insight-teacher">--</strong>
                 </div>
-                <button type="button" class="da-btn" id="export-csv"><i class="bi bi-download"></i> Export student summary (CSV)</button>
+                <button type="button" class="da-btn" id="export-csv" title="One row per student"><i class="bi bi-download"></i> Export students (CSV)</button>
+                <button type="button" class="da-btn" id="export-topics-csv" title="One row per student per topic"><i class="bi bi-download"></i> Export topics (CSV)</button>
             </div>
 
             <div class="sa-tabs" role="tablist" aria-label="Student records views">
@@ -69,7 +73,7 @@
                 <p class="insight-sub">One row per section, from the same game records.</p>
                 <div class="table-scroll-wrapper">
                     <table class="insight-table">
-                        <thead><tr><th>Section</th><th>Assigned teacher(s)</th><th>Students</th><th>Started playing</th><th>Avg. levels completed</th><th>Most wrong submissions</th></tr></thead>
+                        <thead><tr><th>Section</th><th>Assigned teacher(s)</th><th>Students</th><th>Started playing</th><th>Avg. levels completed</th><th>Most incorrect submissions</th></tr></thead>
                         <tbody id="section-overview"></tbody>
                     </table>
                 </div>

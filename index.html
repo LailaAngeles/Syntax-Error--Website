@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="./no-inspect.js?v=20261105"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syntax Error | STI Caloocan Thesis Project</title>
+    <title>SyntaxError | STI Caloocan Thesis Project</title>
+    <meta name="description" content="SyntaxError is a C# learning game for Android with a faculty portal that shows teachers each section's progress, time and errors. An STI College Caloocan thesis project.">
     
-    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="icon" type="image/png" href="logo-48.png">
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Orbitron:wght@500;900&display=swap" rel="stylesheet">
     <!-- Bootstrap Icons CDN for system badges & arrows -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="./style.css?v=20261023-qrfix2">
+    <link rel="stylesheet" href="./style.css?v=20261105">
     <style>
 /* Step 02: side-by-side Terms & Conditions screenshots only */
 .manual-slide[data-index="1"] .manual-shot.terms-screenshots {
@@ -153,8 +155,9 @@
   opacity: 1 !important; visibility: visible !important;
 }
 </style>
-    <link rel="stylesheet" href="./syntaxerror-mobile.css?v=20261102-mobile">
-    <link rel="stylesheet" href="./welcome.css?v=20261102-b">
+    <link rel="stylesheet" href="./syntaxerror-mobile.css?v=20261105">
+    <link rel="stylesheet" href="./welcome.css?v=20261105">
+    <link rel="stylesheet" href="./brand-logo.css?v=20261105">
 </head>
 <body>
     <div class="page-ambient" aria-hidden="true"></div>
@@ -162,8 +165,8 @@
 
     <!-- Header / Navigation Bar -->
     <header class="navbar">
-        <div class="logo">
-            <span class="sti-text">STI</span> <span class="game-title">[SYNTAXERROR]</span>
+        <div class="logo has-logo">
+            <img class="brand-logo" src="logo-192.png" alt="" width="42" height="42"><span class="brand-text"><span class="sti-text">STI</span> <span class="game-title">[SYNTAXERROR]</span></span>
         </div>
         <div class="auth-buttons">
             <a class="nav-manual" href="#user-manual"><i class="bi bi-journal-code"></i> User manual</a>
@@ -181,12 +184,12 @@
             <div class="info-split">
                 <div class="info-block">
                     <h2 class="block-title">&gt; FOR STUDENTS</h2>
-                    <p>Scan the QR code to install SyntaxError on your phone. Play 19 C# levels of short coding tasks, from data types to more advanced topics, and get instant feedback on every answer.</p>
+                    <p>Scan the QR code to install SyntaxError on your Android phone. Play 19 C# levels of short coding tasks, from data types to more advanced topics, and get instant feedback on every answer.</p>
                 </div>
                 
                 <div class="info-block">
                     <h2 class="block-title">&gt; FOR TEACHERS</h2>
-                    <p>Sign in with the account from the Super Admin to open the <strong>Data Analysis Portal</strong>. See your sections' game records live: levels completed, time and errors per topic, and each student's attempt history.</p>
+                    <p>Sign in with the account from the Super Admin to open the <strong>Data Analysis Portal</strong>. See your sections' game records live: levels completed, who can play each level, time and errors per topic, and each student's attempt history.</p>
                 </div>
             </div>
 
@@ -196,44 +199,24 @@
             </div>
         </section>
 
-        <!-- 3D Interactive Card Section -->
+        <!-- Game download -->  
         <section id="qr-section" class="qr-container reveal">
-            <div class="toggle-container">
-                <button id="btn-android" class="toggle-btn active">Android</button>
-                <button id="btn-ios" class="toggle-btn">iOS</button>
-            </div>
-
             <div class="flip-card">
-                <div class="flip-card-inner" id="qr-card-inner">
+                <div class="flip-card-inner">
                     
-                    <!-- Android Front Card -->
+                    <!-- Android download -->
                     <div class="qr-card card-front">
                         <h3>SCAN TO PLAY</h3>
-                        <p class="qr-sub">Mobile Android Build</p>
+                        <p class="qr-sub">For Android phones</p>
                         <div class="qr-placeholder android-theme">
                             <img src="./mobilegame.png" alt="Scan to download SyntaxError for Android" class="qr-code-image" />
                         </div>
                         <span class="status-badge">SCAN TO DOWNLOAD</span>
                     </div>
 
-                                        <!-- iOS Back Card -->
-                    <div class="qr-card card-back">
-                        <h3>SCAN TO PLAY</h3>
-                        <p class="qr-sub">Mobile iOS Build</p>
-                        
-                        <div class="qr-placeholder ios-theme">
-                            <div class="qr-corner top-left"></div>
-                            <div class="qr-corner top-right"></div>
-                            <div class="qr-corner bottom-left"></div>
-                            <div class="qr-center-icon">
-                                <span class="code-symbol">iOS</span>
-                            </div>
-                        </div>
-                        <span class="status-badge status-ios">TESTFLIGHT PENDING</span>
-                    </div>
-
                 </div>
             </div>
+            <a class="btn btn-primary qr-direct" href="https://q.me-qr.com/3hpanxua" target="_blank" rel="noopener"><i class="bi bi-download"></i> Download for Android</a>
         </section>
     </main>
 
@@ -248,21 +231,21 @@
                 <span class="flow-num">01</span>
                 <div class="flow-icon"><i class="bi bi-phone"></i></div>
                 <h3>Students play</h3>
-                <p>Students solve short C# coding tasks level by level on their phone. A wrong answer gets an instant message, like <code>Missing quotation marks!</code></p>
+                <p>Students solve short C# coding tasks level by level on their phone. An incorrect submission gets an instant message, like <code>Missing quotation marks!</code></p>
             </li>
             <li class="flow-link" aria-hidden="true"><span></span><span></span><span></span></li>
             <li class="flow-step">
                 <span class="flow-num">02</span>
                 <div class="flow-icon"><i class="bi bi-cloud-arrow-up"></i></div>
                 <h3>Every attempt is saved</h3>
-                <p>Each attempt is stored in Firebase as it happens: time spent on every task, wrong submissions, error messages and finished levels.</p>
+                <p>Each attempt is stored in Firebase as it happens: time spent on every task, incorrect submissions, error messages and finished levels.</p>
             </li>
             <li class="flow-link" aria-hidden="true"><span></span><span></span><span></span></li>
             <li class="flow-step">
                 <span class="flow-num">03</span>
                 <div class="flow-icon"><i class="bi bi-bar-chart-line"></i></div>
                 <h3>Teachers review live</h3>
-                <p>The portal turns those records into clear charts and tables for each section, and updates by itself while students play.</p>
+                <p>The portal turns those records into clear charts and tables for each section, and updates by itself while students play. Every number explains how it was computed.</p>
             </li>
         </ol>
     </section>
@@ -278,18 +261,18 @@
                 <header><i class="bi bi-controller"></i><div><span>FOR STUDENTS</span><h3>SyntaxError mobile game</h3></div></header>
                 <ul>
                     <li><i class="bi bi-signpost-split"></i><div><strong>19 levels, step by step</strong><span>Starts with data types, printing text, user input, comments and arithmetic, then moves to more advanced C#.</span></div></li>
-                    <li><i class="bi bi-lightning-charge"></i><div><strong>Instant feedback</strong><span>Every wrong submission shows a message that explains what to fix.</span></div></li>
+                    <li><i class="bi bi-lightning-charge"></i><div><strong>Instant feedback</strong><span>Every incorrect submission shows a message that explains what to fix.</span></div></li>
                     <li><i class="bi bi-key"></i><div><strong>Teacher-unlocked levels</strong><span>After finishing a level, a 6-digit code from the teacher opens the next one.</span></div></li>
-                    <li><i class="bi bi-phone-vibrate"></i><div><strong>Practice anywhere</strong><span>Runs on Android phones, so practice is not limited to lab hours. iOS is coming through TestFlight.</span></div></li>
+                    <li><i class="bi bi-phone-vibrate"></i><div><strong>Practice anywhere</strong><span>Runs on Android phones, so practice is not limited to lab hours.</span></div></li>
                 </ul>
             </article>
             <article class="inside-card inside-portal">
                 <header><i class="bi bi-window-desktop"></i><div><span>FOR TEACHERS</span><h3>Data Analysis Portal</h3></div></header>
                 <ul>
-                    <li><i class="bi bi-broadcast"></i><div><strong>Live class overview</strong><span>Level completion, time recorded and wrong submissions for each section, updated as students play.</span></div></li>
-                    <li><i class="bi bi-grid-3x3-gap"></i><div><strong>Time and errors per topic</strong><span>See which topics take longest, which tasks get the most wrong submissions, and the most common error messages.</span></div></li>
-                    <li><i class="bi bi-person-lines-fill"></i><div><strong>Student records</strong><span>Every attempt, task and error message for each student, plus CSV export for reports.</span></div></li>
-                    <li><i class="bi bi-shield-check"></i><div><strong>Secure, section-based access</strong><span>Accounts are created by the Super Admin, sign-in uses an email PIN, and teachers only see their own sections.</span></div></li>
+                    <li><i class="bi bi-broadcast"></i><div><strong>Live class overview</strong><span>Level completion, time recorded and incorrect submissions for each section, updated as students play.</span></div></li>
+                    <li><i class="bi bi-grid-3x3-gap"></i><div><strong>Time and errors per topic</strong><span>See which topics take longest, which tasks get the most incorrect submissions, and the most common error messages.</span></div></li>
+                    <li><i class="bi bi-person-lines-fill"></i><div><strong>Student records</strong><span>Each student's latest attempt beside their full history, with tasks and error messages, plus CSV reports.</span></div></li>
+                    <li><i class="bi bi-shield-check"></i><div><strong>Secure, section-based access</strong><span>Accounts are created by the Super Admin, sign-in uses an email PIN, an account stays on one device at a time, and teachers only see their own sections.</span></div></li>
                 </ul>
             </article>
         </div>
@@ -342,7 +325,7 @@
         <div class="manual-hint">
             <i class="bi bi-info-circle"></i>
             Use your school account and your birthdate as your default
-            password to log in and start playing.
+            password. Your account stays signed in on one device at a time.
         </div>
     </div>
 </article>
@@ -597,7 +580,7 @@
   </div>
   <i class="sc-cursor"></i>
 </div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 01 <span>—</span> 06</div><h3>Sign in to the faculty portal</h3><p>Select Sign In and use the school email and default password given by the Super Admin, then enter the 6-digit PIN sent to your email. On your first sign-in you accept the Terms and Privacy Notice and can change your default password.</p><div class="manual-hint"><i class="bi bi-shield-lock"></i> There is no public sign-up. Teacher accounts are created by the Super Admin.</div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 01 <span>—</span> 06</div><h3>Sign in to the faculty portal</h3><p>Select Sign In and use the school email and default password given by the Super Admin, then enter the 6-digit PIN sent to your email. On your first sign-in you accept the Terms and Privacy Notice and can change your default password. You then arrive on your Home page.</p><div class="manual-hint"><i class="bi bi-shield-lock"></i> There is no public sign-up. An account stays on one device: signing in on another signs this one out.</div></div>
     </article>
 <article class="manual-slide" data-index="1" aria-hidden="true">
     <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
@@ -608,14 +591,14 @@
       <div><small>Students</small><b class="sc-count" style="--to:36"></b></div>
       <div><small>Started</small><b class="sc-count" style="--to:28"></b></div>
       <div><small>Levels done</small><b class="sc-count" style="--to:74"></b></div>
-      <div><small>Wrong subs</small><b class="sc-count" style="--to:93"></b></div>
+      <div><small>Incorrect</small><b class="sc-count" style="--to:93"></b></div>
     </div>
     <div class="sc-panel"><small>Level completion</small>
       <div class="sc-levels"><i style="--h:92%;--d:0.90s"></i><i style="--h:86%;--d:0.97s"></i><i style="--h:78%;--d:1.04s"></i><i style="--h:70%;--d:1.11s"></i><i style="--h:61%;--d:1.18s"></i><i style="--h:52%;--d:1.25s"></i><i style="--h:44%;--d:1.32s"></i><i style="--h:36%;--d:1.39s"></i><i style="--h:29%;--d:1.46s"></i><i style="--h:22%;--d:1.53s"></i><i style="--h:16%;--d:1.60s"></i><i style="--h:12%;--d:1.67s"></i><i style="--h:9%;--d:1.74s"></i><i style="--h:6%;--d:1.81s"></i><i style="--h:4%;--d:1.88s"></i><i style="--h:3%;--d:1.95s"></i><i style="--h:2%;--d:2.02s"></i><i style="--h:1%;--d:2.09s"></i><i style="--h:1%;--d:2.16s"></i></div>
     </div>
   </div>
 </div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 02 <span>—</span> 06</div><h3>Read the Class Overview</h3><p>The Class Overview summarises the game records of your sections: how many students started playing, levels completed, total time recorded and wrong submissions. Use the Section menu to look at one class.</p><div class="manual-hint"><i class="bi bi-check2-circle"></i> Every number is counted directly from the records the game saves.</div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 02 <span>—</span> 06</div><h3>Read the Class Overview</h3><p>The Class Overview summarises the game records of your sections: how many students started playing, levels completed, total time recorded and incorrect submissions. Who can play each level shows which students are locked, waiting for your code, playing or finished.</p><div class="manual-hint"><i class="bi bi-check2-circle"></i> Select the info icon beside any number to see how it is computed.</div></div>
     </article>
 <article class="manual-slide" data-index="2" aria-hidden="true">
     <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
@@ -626,7 +609,7 @@
       <div class="sc-panel"><small><i class="bi bi-hourglass-split"></i> Minutes per student</small>
         <div class="sc-bar sc-time"><span>Data types</span><i style="--w:92%;--d:0.50s"></i><b style="--d:1.40s">5 min</b></div><div class="sc-bar sc-time"><span>Comments</span><i style="--w:74%;--d:0.75s"></i><b style="--d:1.65s">4 min</b></div><div class="sc-bar sc-time"><span>Printing</span><i style="--w:52%;--d:1.00s"></i><b style="--d:1.90s">3 min</b></div><div class="sc-bar sc-time"><span>Arithmetic</span><i style="--w:30%;--d:1.25s"></i><b style="--d:2.15s">1 min</b></div><div class="sc-bar sc-time"><span>User input</span><i style="--w:18%;--d:1.50s"></i><b style="--d:2.40s">35 s</b></div>
       </div>
-      <div class="sc-panel"><small><i class="bi bi-bug"></i> Wrong submissions per student</small>
+      <div class="sc-panel"><small><i class="bi bi-bug"></i> Incorrect submissions per student</small>
         <div class="sc-bar sc-err"><span>Data types</span><i style="--w:90%;--d:1.20s"></i><b style="--d:2.10s">4.7</b></div><div class="sc-bar sc-err"><span>Arithmetic</span><i style="--w:60%;--d:1.45s"></i><b style="--d:2.35s">3</b></div><div class="sc-bar sc-err"><span>User input</span><i style="--w:40%;--d:1.70s"></i><b style="--d:2.60s">2</b></div><div class="sc-bar sc-err"><span>Comments</span><i style="--w:40%;--d:1.95s"></i><b style="--d:2.85s">2</b></div><div class="sc-bar sc-err"><span>Printing</span><i style="--w:6%;--d:2.20s"></i><b style="--d:3.10s">0</b></div>
         <div class="sc-tip">Data types · about 4.7 per student</div>
       </div>
@@ -634,7 +617,7 @@
   </div>
   <i class="sc-cursor"></i>
 </div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 03 <span>—</span> 06</div><h3>Compare levels and topics</h3><p>See how many students completed each level, the time and wrong submissions per topic, the coding tasks with the most wrong submissions, and the error messages students saw most often.</p><div class="manual-hint"><i class="bi bi-download"></i> Use Export to download a CSV summary of every student for your reports.</div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 03 <span>—</span> 06</div><h3>Compare levels and topics</h3><p>See how many students completed each level, the time and incorrect submissions per topic, the coding tasks with the most incorrect submissions, and the error messages students saw most often. Switch between Latest attempt and All attempts.</p><div class="manual-hint"><i class="bi bi-download"></i> Export students or topics as CSV for your reports.</div></div>
     </article>
 <article class="manual-slide" data-index="3" aria-hidden="true">
     <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
@@ -647,14 +630,14 @@
     <div class="sc-drawer">
       <b>Student A</b>
       <div class="sc-chips"><i class="on" style="--d:3.00s">1</i><i class="on" style="--d:3.12s">2</i><i class="on" style="--d:3.24s">3</i><i class="on" style="--d:3.36s">4</i><i class="on" style="--d:3.48s">5</i><i class="" style="--d:3.60s">6</i><i class="" style="--d:3.72s">7</i><i class="" style="--d:3.84s">8</i><i class="" style="--d:3.96s">9</i><i class="" style="--d:4.08s">10</i></div>
-      <div class="sc-attempt"><span>Attempt 1</span><span>3 min 21 s</span><span>2 wrong</span></div>
+      <div class="sc-attempt"><span>Attempt 1</span><span>3 min 21 s</span><span>2 incorrect</span></div>
       <div class="sc-error"><code>2:34</code> Missing quotation marks!</div>
       <div class="sc-error sc-error-2"><code>1:34</code> Float must end with f!</div>
     </div>
   </div>
   <i class="sc-cursor"></i>
 </div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 04 <span>—</span> 06</div><h3>Open a student record</h3><p>On the Students page, search, filter and sort your class. Select Details to see a student's levels, time and wrong submissions, and every attempt with each task and the exact error messages.</p><div class="manual-hint"><i class="bi bi-people"></i> You can also import a class list from the Excel template, add, edit or archive students here.</div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 04 <span>—</span> 06</div><h3>Open a student record</h3><p>On the Students page, search, filter and sort your class. Select Details to see a student's levels, time and incorrect submissions, and every attempt with each task and the exact error messages.</p><div class="manual-hint"><i class="bi bi-people"></i> You can also import a class list, add, edit or archive students, and move a student between your sections.</div></div>
     </article>
 <article class="manual-slide" data-index="4" aria-hidden="true">
     <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
@@ -669,7 +652,7 @@
   </div>
   <i class="sc-cursor"></i>
 </div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 05 <span>—</span> 06</div><h3>Give level access codes</h3><p>On the Levels page, generate a five-minute code that lets students in your section unlock the next level in the game after finishing the previous one.</p><div class="manual-hint"><i class="bi bi-key"></i> Codes only work for the sections assigned to you.</div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 05 <span>—</span> 06</div><h3>Give level access codes</h3><p>On the Level Access page, generate a five-minute code that lets students in your section unlock the next level in the game after finishing the previous one.</p><div class="manual-hint"><i class="bi bi-key"></i> "Waiting for code" shows who has finished the previous level.</div></div>
     </article>
 <article class="manual-slide" data-index="5" aria-hidden="true">
     <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
@@ -700,15 +683,14 @@
     <section class="developers-section reveal">
         <div class="section-title-wrap">
             <h2>&gt; DEVELOPMENT TEAM</h2>
-            <p>The minds behind the Syntax Error thesis project.</p>
+            <p>The team behind the SyntaxError thesis project.</p>
         </div>
 
         <div class="developers-grid">
             <!-- Developer 1 -->
             <div class="developer-card">
                 <div class="dev-img-wrapper">
-                    <!-- Replace 'src' with image path when available -->
-                    <img src="" alt="Laila O. Angeles" class="dev-img" />
+                                        <img src="./angeles.png" alt="Laila O. Angeles" class="dev-img" loading="lazy" />
                     <div class="dev-img-placeholder">
                         <i class="bi bi-person-fill"></i>
                     </div>
@@ -744,7 +726,7 @@
             <!-- Developer 4 -->
             <div class="developer-card">
                 <div class="dev-img-wrapper">
-                    <img src="" alt="Cristian Condez" class="dev-img" />
+                    <img src="./condez.png" alt="Cristian Condez" class="dev-img" loading="lazy" />
                     <div class="dev-img-placeholder">
                         <i class="bi bi-person-fill"></i>
                     </div>
@@ -755,9 +737,14 @@
         </div>
     </section>
 
-    <button id="scrollTopBtn" class="scroll-top-btn" aria-label="Scroll to top">
+    <footer class="site-foot">
+    <span>SyntaxError · STI College Caloocan · BSCS Thesis</span>
+    <nav aria-label="Footer"><a href="#qr-section">Get the game</a><a href="help.html">Full manual</a><a href="Components/LogIn.html">Faculty sign in</a></nav>
+</footer>
+
+<button id="scrollTopBtn" class="scroll-top-btn" aria-label="Scroll to top">
         <i class="bi bi-chevron-up"></i>
     </button>
-    <script src="script.js?v=20261102-a"></script>
+    <script src="script.js?v=20261105"></script>
 </body>
 </html>

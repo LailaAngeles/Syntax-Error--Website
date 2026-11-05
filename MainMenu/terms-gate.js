@@ -3,6 +3,7 @@
 import { getApps, getApp, initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs, query, where, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import { guardSession } from "./session-guard.js";
 
 // Raise this whenever the notice text changes; every teacher must accept the new version.
 const TERMS_VERSION = "2026-11-02";
@@ -402,6 +403,7 @@ async function checkTerms(user) {
             return;
         }
         const data = record.data();
+        guardSession(db, auth, record);
         // Accounts created by the Super Admin start with isFirstLogin: true.
         const afterTerms = () => data.isFirstLogin === true ? showPasswordPrompt(record.ref) : clearGate();
         if (data.hasAcceptedTerms === true && data.termsVersion === TERMS_VERSION) afterTerms();

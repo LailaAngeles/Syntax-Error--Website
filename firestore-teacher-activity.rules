@@ -1,0 +1,24 @@
+// Teacher Activity: Firestore rules to add (Firebase console > Firestore > Rules), inside
+// `match /databases/{database}/documents { ... }`. Not deployed by the website.
+//
+// Until this is added, teachers' work still saves normally; only the log entries are refused, and the
+// Super Admin's Home page says the activity log is not available.
+//
+// Who may read: the Super Admin signs in with the email PIN, not Firebase Authentication, so the rules
+// cannot tell the Super Admin apart from a visitor. `allow read: if true` means anyone holding the
+// project's public web settings can read this log, which contains teacher emails and student names.
+// That is the same exposure the Super Admin pages have today. Tighten it when those pages get a real
+// sign-in check.
+
+    match /teacherActivity/{entryId} {
+      allow read: if true;
+      // A teacher can only add an entry in their own name, with the expected fields.
+      allow create: if request.auth != null
+        && exists(/databases/$(database)/documents/approvedUsers/$(request.auth.uid))
+        && request.resource.data.teacherUid == request.auth.uid
+        && request.resource.data.at == request.time
+        && request.resource.data.keys().hasOnly(['action', 'summary', 'section', 'studentId', 'teacherUid', 'teacherEmail', 'at'])
+        && request.resource.data.summary is string && request.resource.data.summary.size() <= 300;
+      // The log cannot be edited or erased from the browser.
+      allow update, delete: if false;
+    }

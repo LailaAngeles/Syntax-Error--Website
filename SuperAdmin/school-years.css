@@ -104,3 +104,14 @@ html[data-theme="dark"] .sy-dialog input.sy-input.is-invalid,html[data-theme="da
 html[data-theme="light"] .sy-status.sy-upcoming{color:#00529b}
 html[data-theme="light"] .sy-status.sy-completed{color:#14632f}
 html[data-theme="light"] .sy-status.sy-archived{color:#44556b}
+
+/* End School Year: set apart from the ordinary actions, and plainly not a normal button */
+.sy-row-actions button.sy-end-btn{margin-left:16px;background:transparent!important;color:#b4233c!important;border:2px solid #b4233c!important;box-shadow:none}
+.sy-row-actions button.sy-end-btn i{color:inherit!important}
+.sy-row-actions button.sy-end-btn:hover:not(:disabled){background:#b4233c!important;color:#fff!important}
+.sy-row-actions button.sy-end-btn:disabled{opacity:.6;cursor:progress}
+html[data-theme="dark"] .sy-row-actions button.sy-end-btn{color:#ff9aa9!important;border-color:#ff9aa9!important}
+html[data-theme="dark"] .sy-row-actions button.sy-end-btn:hover:not(:disabled){background:#ff9aa9!important;color:#3b0d16!important}
+.sy-row-active .sy-row-actions{flex-direction:row-reverse}
+.sy-dialog button.sa-section-danger:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:700px){.sy-row-actions button.sy-end-btn{margin:10px 0 0;flex-basis:100%}}

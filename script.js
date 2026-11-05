@@ -1,20 +1,4 @@
 "use strict";
-// Android / iOS: original QR flip interaction.
-const btnAndroid = document.getElementById('btn-android');
-const btnIos = document.getElementById('btn-ios');
-const qrCardInner = document.getElementById('qr-card-inner');
-function setPlatform(ios) {
-  if (!btnAndroid || !btnIos || !qrCardInner) return;
-  btnAndroid.classList.toggle('active', !ios);
-  btnIos.classList.toggle('active', ios);
-  qrCardInner.classList.toggle('flipped', ios);
-  btnAndroid.setAttribute('aria-pressed', String(!ios));
-  btnIos.setAttribute('aria-pressed', String(ios));
-}
-btnIos?.addEventListener('click', () => setPlatform(true));
-btnAndroid?.addEventListener('click', () => setPlatform(false));
-setPlatform(false);
-
 // Scroll header/progress and scroll-to-top.
 const scrollTopBtn = document.getElementById('scrollTopBtn');
 const header = document.querySelector('.navbar');

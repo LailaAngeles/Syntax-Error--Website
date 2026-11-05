@@ -1,3 +1,4 @@
+import { logTeacherActivity } from './activity-log.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
 import { getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, writeBatch, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js';
@@ -107,6 +108,7 @@ async function deleteArchived(ids) {
     distinct.slice(i,i+450).forEach(id => batch.delete(doc(db,'archivedStudents',id)));
     await batch.commit();
   }
+  logTeacherActivity(db,auth,{action:'students_deleted',summary:`Permanently deleted ${distinct.length} archived student(s)`});
 }
 async function handleDelete() {
   if (busy || !deleteTargets.length) return;
@@ -135,6 +137,7 @@ async function restoreOne(id) {
   batch.set(doc(db,'sections',row.parentDocId,'classList',String(row.id)),payload);
   batch.delete(doc(db,'archivedStudents',id));
   await batch.commit();
+  logTeacherActivity(db,auth,{action:'student_restored',summary:`Restored ${row.name||row.id}`,section:row.section||'',studentId:row.id});
 }
 async function restoreIds(ids) {
   if(busy || !ids.length) return;

@@ -36,3 +36,21 @@
   .wh-cta, .wh-card, .wh-arrow { transition: none; }
   .wh-cta:hover, .wh-card:hover, .wh-card:hover .wh-arrow { transform: none; }
 }
+
+/* Super Admin Home: greeting on the left, Teacher Activity at the upper right */
+.wh-top{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:16px;align-items:stretch;margin-bottom:20px}
+.wh-top .wh-hero{margin-bottom:0}
+.wh-activity{display:flex;flex-direction:column;min-width:0;padding:14px 16px;border:1px solid var(--da-line);border-top:4px solid #ffc107;border-radius:16px;background:var(--da-surface);box-shadow:var(--card-shadow,0 4px 14px rgba(15,35,70,.05))}
+.wh-activity-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
+.wh-activity-head h2{display:flex;align-items:center;gap:7px;margin:0;font-size:.98rem;color:var(--da-ink)}
+.wh-activity-head h2 i{color:#00529b}
+html[data-theme="dark"] .wh-activity-head h2 i{color:#7dbdff}
+.wh-activity-head small{font-size:.74rem;color:var(--da-muted)}
+.wh-activity-list{flex:1;margin:0;padding:0;list-style:none;display:grid;align-content:start;gap:6px;max-height:320px;overflow-y:auto}
+.wh-activity-list li{padding:7px 0;border-top:1px solid var(--da-line);min-width:0}
+.wh-activity-list li:first-child{border-top:0;padding-top:0}
+.wh-activity-list strong{display:block;font-size:.84rem;font-weight:650;line-height:1.35;color:var(--da-ink);overflow-wrap:anywhere}
+.wh-activity-list small{display:block;margin-top:1px;font-size:.73rem;line-height:1.35;color:var(--da-muted);overflow-wrap:anywhere}
+.wh-activity-list .wh-activity-note{display:flex;align-items:center;gap:8px;font-size:.84rem;line-height:1.45;color:var(--da-muted)}
+.wh-activity .da-show-more{align-self:flex-start}
+@media(max-width:1000px){.wh-top{grid-template-columns:minmax(0,1fr)}}

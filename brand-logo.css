@@ -1,0 +1,45 @@
+/* SyntaxError logo beside the site name. */
+.brand-logo {
+    display: block;
+    flex: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.logo.has-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.brand-text { min-width: 0; }
+
+.sidebar.is-compact .brand-logo { width: 28px; height: 28px; }
+
+/* Landing page */
+.navbar .brand-logo { width: 42px; height: 42px; }
+
+/* User manual */
+.hm-brand { align-items: center; }
+.hm-brand .brand-logo { width: 36px; height: 36px; }
+
+@media (max-width: 600px) {
+    .navbar .logo.has-logo { justify-content: center; }
+    .navbar .brand-logo { width: 34px; height: 34px; }
+    .hm-brand .brand-logo { width: 32px; height: 32px; }
+}
+
+@media print {
+    .hm-brand .brand-logo { display: none; }
+}
+
+/* Smallest phones: keep the logo and name, and leave room for the header buttons. */
+@media (max-width: 374px) {
+    .hm-brand { font-size: .88rem; gap: 6px; }
+    .hm-brand .hm-sti { display: none; }
+    .hm-brand .brand-logo { width: 28px; height: 28px; }
+}

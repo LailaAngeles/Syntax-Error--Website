@@ -2,27 +2,70 @@
 // traceable numbers. Nothing here estimates "difficulty" or labels students; every figure
 // is a count, a duration or a date that can be found in the student's Firestore record.
 //
-// Record shape written by the game (sections/{id}/classList/{student}):
-//   Subject Content > main topic > topic > attempt ("FirstAttemp", "SecondAttemp", ...)
-//     attempt: { completionTime (s), completedAt, level{N}Completed: true, <task>: {...} }
-//     task:    { timeSeconds, wrongAttempts, completed, completedAt, lastAttempt,
-//                errors: [{ message, atSeconds }] }
+// Record shape written by the game (sections/{id}/classList/{student}), see LevelCatalog.cs and
+// LevelProgress.cs in the game project:
+//   Subject Content > <level's path> > attempt ("FirstAttemp" ... "TwentiethAttemp", "Attempt21", ...)
+//     attempt: { completionTime (s), wrongAttempts (all tasks), startedAt, completedAt, score,
+//                <completed field>: true, <task>: {...} }
+//     task:    { completed, wrongAttempts, timeSeconds or elapsedLevel<N>Seconds (time since the
+//                level began), completedAt, lastAttempt, errors: [{ message, atSeconds }] }
+//   GameProgress > completedLevels > LevelN: true       older completion marker
+//   levelAccess > level<N> > { unlocked: true, unlockedAt }   written when a teacher PIN is accepted
 // Read-only: this module never writes to Firestore.
 
 import { infoButton as info, helpLink as help, setLiveNumbers } from './metric-help.js';
+import { toast } from './ui-feedback.js';
 
 export const TOTAL_LEVELS = 19;
 
+// The game's own level list (LevelCatalog.cs): where each level saves, and its completed field.
+// Levels do not share one depth: Level 8 saves directly under "Method Basics and Parameters".
+const PAGE_TITLES = ['Basic Concepts', 'Methods, Arrays & Classes', 'Advanced Object-Oriented C#'];
+export const LEVEL_CATALOG = [
+    [1, 'Data Types', 'basic concept/Data types', 'level1Completed', 0],
+    [2, 'Printing Text', 'basic concept/Printing Text', 'level2Completed', 0],
+    [3, 'User Input', 'basic concept/User Input', 'level3Completed', 0],
+    [4, 'Comments, Variables & Constants', 'basic concept/Comment Debugging', 'level4Completed', 0],
+    [5, 'Arithmetic & Assignment', 'basic concept/Arithmetic', 'level5Completed', 0],
+    [6, 'Control Flow & Logic', 'Conditionals and Loops', 'level6Completed', 0],
+    [7, 'Looping Mechanisms', 'Conditionals and Loops/Loops and Logical Operator', 'level7Completed', 0],
+    [8, 'Method Basics', 'Method Basics and Parameters', 'level8Completed', 1],
+    [9, 'Advanced Methods', 'Advanced Method Concepts', 'level9Completed', 1],
+    [10, 'Arrays & Strings', 'Arrays and String Handling', 'level10Completed', 1],
+    [11, 'Multidimensional Arrays', 'Multidimensional & Jagged Arrays', 'level11Completed', 1],
+    [12, 'Classes & Objects', 'Classes and Objects', 'level12Completed', 1],
+    [13, 'Object Lifecycle', 'basic concept/Object Lifecycle', 'levelCompletion', 1],
+    [14, 'Static Members & this', 'Static Members and this Context', 'level14Completed', 1],
+    [15, 'Advanced Class Features', 'basic concept/Advanced Class Features', 'levelCompletion', 2],
+    [16, 'Inheritance', 'Inheritance Mechanics', 'level16Completed', 2],
+    [17, 'Polymorphism & Interfaces', 'Polymorphism and Interfaces', 'level17Completed', 2],
+    [18, 'Structs, Enums & Namespaces', 'Structs Enums and Namespaces', 'level18Completed', 2],
+    [19, 'Generics & Exceptions', 'Generics Collections and Exception Handling', 'level19Completed', 2]
+].map(([id, title, path, field, page]) => ({ id, title, path, field, page }));
+// Levels 6 and 7 can also be proven by these consoles (SyntaxErrorLevelCompletion.cs).
+const CONSOLE_RULES = {
+    6: ['RelationalOperatorConsole', 'NestedIfElseConsole', 'SwitchStatementConsole'],
+    7: ['WhileLoop', 'ForLoop', 'DoWhileLoop', 'BreakContinue']
+};
+
 // ---------- small helpers ----------
-const ATTEMPTS = { firstattempt: 1, firstattemp: 1, secondattempt: 2, secondattemp: 2, thirdattempt: 3, thirdattemp: 3,
-    fourthattempt: 4, fourthattemp: 4, fifthattempt: 5, fifthattemp: 5, sixthattempt: 6, sixthattemp: 6, seventhattempt: 7, seventhattemp: 7,
-    eighthattempt: 8, eighthattemp: 8, ninthattempt: 9, ninthattemp: 9, tenthattempt: 10, tenthattemp: 10 };
+const ORDINALS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth',
+    'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth'];
 const norm = value => String(value ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
-export const attemptNumber = key => ATTEMPTS[norm(key)] || 0;
+// FirstAttemp, SecondAttempt, ... TwentiethAttemp, Attempt21: the names the game uses.
+export function attemptNumber(key) {
+    const k = norm(key);
+    const numbered = k.match(/^attempt(\d{1,3})$/);
+    if (numbered) return +numbered[1];
+    const word = k.match(/^([a-z]+?)attempt?$/);
+    return word ? ORDINALS.indexOf(word[1]) + 1 : 0;
+}
 const num = value => value === '' || value == null || !Number.isFinite(Number(value)) ? null : Number(value);
 // Times and counts cannot be negative; a negative saved value is treated as missing.
 const amount = value => { const n = num(value); return n === null || n < 0 ? null : n; };
 const isTimestamp = value => !!value && typeof value === 'object' && (typeof value.toDate === 'function' || ('seconds' in value && 'nanoseconds' in value));
+const isMap = value => !!value && typeof value === 'object' && !Array.isArray(value) && !isTimestamp(value);
+const yes = value => value === true || value === 1 || value === 'true';
 export function toMillis(value) {
     if (!value) return 0;
     if (typeof value.toMillis === 'function') return value.toMillis();
@@ -34,6 +77,8 @@ const prettyName = value => String(value).replace(/_/g, ' ').replace(/\s+/g, ' '
 const titleCase = value => prettyName(value).replace(/\b\w/g, c => c.toUpperCase());
 export const safeText = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const plural = (n, word, many = word + 's') => `${n} ${n === 1 ? word : many}`;
+const pathKey = parts => parts.map(norm).join('/');
+const CATALOG_BY_PATH = new Map(LEVEL_CATALOG.map(level => [pathKey(level.path.split('/')), level]));
 
 export function fmtTime(seconds) {
     if (!Number.isFinite(seconds)) return '--';
@@ -55,25 +100,66 @@ export function fmtDate(ms, withTime = true) {
 const clock = seconds => { if (!Number.isFinite(seconds)) return ''; const s = Math.round(seconds); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 
 // ---------- reading one student ----------
-// Levels completed: explicit "level{N}Completed: true" markers anywhere in the record
-// (the same rule the rest of the site uses for game progress).
+const subjectOf = student => student?.['Subject Content'] || student?.subjectContent;
+
+// Every place in Subject Content that holds attempts, at whatever depth the level saves them.
+function attemptNodes(node, path = [], found = [], depth = 0) {
+    if (!isMap(node) || depth > 8) return found;
+    const keys = Object.keys(node);
+    if (keys.some(k => attemptNumber(k) && isMap(node[k]))) found.push({ path, node });
+    keys.forEach(k => { if (!attemptNumber(k)) attemptNodes(node[k], [...path, k], found, depth + 1); });
+    return found;
+}
+
+// The game's rule: the level's completed field, a level<N>Completed flag, or the listed consoles.
+// Tasks finished so far do not complete a level, and neither does opening it.
+function attemptCompleted(attempt, level, def) {
+    if (def?.field && yes(attempt[def.field])) return true;
+    for (const [key, value] of Object.entries(attempt)) {
+        const flag = norm(key).match(/^level(\d{1,2})completed$/);
+        if (flag && yes(value) && (!level || +flag[1] === level)) return true;
+    }
+    return !!CONSOLE_RULES[level]?.every(name => isMap(attempt[name]) && yes(attempt[name].completed));
+}
+
+// Levels completed, with the same evidence the game's level menu trusts (LevelProgressReader).
 export function levelsCompleted(student) {
     const levels = new Set();
+    const content = subjectOf(student);
+    for (const { path, node } of attemptNodes(content)) {
+        const def = CATALOG_BY_PATH.get(pathKey(path));
+        if (!def) continue;
+        for (const [key, attempt] of Object.entries(node)) {
+            if (attemptNumber(key) && isMap(attempt) && attemptCompleted(attempt, def.id, def)) levels.add(def.id);
+        }
+    }
+    const older = student?.GameProgress?.completedLevels;
+    if (isMap(older)) for (const [key, value] of Object.entries(older)) {
+        const m = norm(key).match(/^level(\d{1,2})$/);
+        if (m && yes(value) && +m[1] >= 1 && +m[1] <= TOTAL_LEVELS) levels.add(+m[1]);
+    }
     const seen = new WeakSet();
-    (function walk(node, context, depth) {
-        if (!node || typeof node !== 'object' || depth > 25 || seen.has(node) || isTimestamp(node)) return;
+    (function walk(node, depth) {
+        if (!isMap(node) || depth > 12 || seen.has(node)) return;
         seen.add(node);
         for (const [key, value] of Object.entries(node)) {
             const k = norm(key);
             const m = k.match(/^level(\d{1,2})(?:is)?(?:completed|complete|finished)$/) || k.match(/^(?:completed|complete|finished)level(\d{1,2})$/);
-            const yes = value === true || value === 1 || value === 'true';
-            if (m && yes && +m[1] >= 1 && +m[1] <= TOTAL_LEVELS) levels.add(+m[1]);
-            const levelKey = k.match(/^level(\d{1,2})$/);
-            const next = levelKey ? +levelKey[1] : context;
-            if (next && /^(completed|iscompleted|finished)$/.test(k) && yes) levels.add(next);
-            if (value && typeof value === 'object') walk(value, next, depth + 1);
+            if (m && yes(value) && +m[1] >= 1 && +m[1] <= TOTAL_LEVELS) levels.add(+m[1]);
+            walk(value, depth + 1);
         }
-    })(student, null, 0);
+    })(content, 0);
+    return levels;
+}
+
+// Levels whose teacher PIN was accepted: levelAccess.level<N>.unlocked.
+export function levelsUnlocked(student) {
+    const levels = new Set();
+    const access = student?.levelAccess;
+    if (isMap(access)) for (const [key, value] of Object.entries(access)) {
+        const m = norm(key).match(/^level(\d{1,2})$/);
+        if (m && isMap(value) && yes(value.unlocked)) levels.add(+m[1]);
+    }
     return levels;
 }
 
@@ -81,83 +167,123 @@ function readTask(name, task) {
     const errors = Array.isArray(task.errors)
         ? task.errors.filter(e => e && e.message).map(e => ({ message: String(e.message), at: num(e.atSeconds) }))
         : [];
+    const elapsedKey = Object.keys(task).find(k => /^elapsedLevel\d+Seconds$/.test(k));
     return {
         name: prettyName(name),
         time: amount(task.timeSeconds),
+        // Curriculum levels store when the task was finished, counted from the start of the level.
+        doneAt: elapsedKey ? amount(task[elapsedKey]) : null,
         wrong: amount(task.wrongAttempts),
-        completed: task.completed === true || task.completed === 'true',
+        completed: yes(task.completed),
         when: toMillis(task.completedAt) || toMillis(task.lastAttempt),
         errors
     };
 }
 
-// Full record of one student: topics > attempts > tasks, plus totals.
+function readAttempt(n, attempt, level, def) {
+    const tasks = [];
+    for (const [key, value] of Object.entries(attempt)) if (isMap(value)) tasks.push(readTask(key, value));
+    const taskTime = tasks.reduce((sum, t) => sum + (t.time ?? 0), 0);
+    const taskWrong = tasks.reduce((sum, t) => sum + (t.wrong ?? 0), 0);
+    const total = amount(attempt.completionTime), wrong = amount(attempt.wrongAttempts);
+    const started = toMillis(attempt.startedAt), finished = toMillis(attempt.completedAt);
+    const completed = attemptCompleted(attempt, level, def);
+    // The game creates empty attempt slots, and those are not attempts.
+    // A completed marker with nothing else still counts for the level, just not as a timed attempt.
+    const hasData = total > 0 || wrong > 0 || started || finished ||
+        tasks.some(t => t.time > 0 || t.wrong > 0 || t.doneAt > 0 || t.completed || t.errors.length);
+    if (!hasData) return null;
+    return {
+        n,
+        // A saved total of 0 is not a real time when the tasks recorded some.
+        time: total || taskTime,
+        // The attempt's total covers all its tasks, so the two are never added together.
+        wrong: Math.max(wrong ?? 0, taskWrong),
+        completed,
+        tasksDone: tasks.filter(t => t.completed).length,
+        when: finished || Math.max(0, ...tasks.map(t => t.when)) || started,
+        tasks
+    };
+}
+
+// An attempt the student only opened has no result to compare.
+const hasResult = a => a.time > 0 || a.wrong > 0 || a.completed;
+
+// Full record of one student: topics > attempts > tasks, plus totals. A topic separates its latest
+// attempt, its earlier attempts and the running total, so repeat plays can be told apart.
 export function studentRecord(student) {
-    const content = student?.['Subject Content'] || student?.subjectContent;
     // Keyed by topic so one topic saved under two spellings still counts as one topic for the student.
     const merged = new Map();
-    if (content && typeof content === 'object') {
-        for (const [main, topicMap] of Object.entries(content)) {
-            if (!topicMap || typeof topicMap !== 'object' || isTimestamp(topicMap)) continue;
-            for (const [topicName, node] of Object.entries(topicMap)) {
-                if (!node || typeof node !== 'object' || isTimestamp(node)) continue;
-                const attempts = [];
-                let level = null;
-                for (const [attemptKey, attempt] of Object.entries(node)) {
-                    const n = attemptNumber(attemptKey);
-                    if (!n || !attempt || typeof attempt !== 'object') continue;
-                    const tasks = [];
-                    let levelDone = false;
-                    for (const [key, value] of Object.entries(attempt)) {
-                        const marker = norm(key).match(/^level(\d{1,2})completed$/);
-                        if (marker) { level = +marker[1]; if (value === true || value === 'true') levelDone = true; continue; }
-                        if (value && typeof value === 'object' && !Array.isArray(value) && !isTimestamp(value)) tasks.push(readTask(key, value));
-                    }
-                    const taskTime = tasks.reduce((sum, t) => sum + (t.time ?? 0), 0);
-                    const total = amount(attempt.completionTime);
-                    const hasData = total !== null || tasks.some(t => t.time !== null || t.wrong !== null);
-                    if (!hasData) continue;
-                    attempts.push({
-                        n,
-                        // A saved total of 0 is not a real time when the tasks recorded some.
-                        time: total || taskTime,
-                        wrong: tasks.reduce((sum, t) => sum + (t.wrong ?? 0), 0),
-                        completed: levelDone || (tasks.length > 0 && tasks.every(t => t.completed)),
-                        when: toMillis(attempt.completedAt) || Math.max(0, ...tasks.map(t => t.when)),
-                        tasks
-                    });
-                }
-                if (!attempts.length) continue;
-                const key = `${norm(main)}|${norm(topicName)}`;
-                const existing = merged.get(key);
-                if (existing) { existing.attempts.push(...attempts); existing.level ??= level; continue; }
-                merged.set(key, { key, main: titleCase(main), topic: prettyName(topicName), level, attempts });
-            }
+    for (const { path, node } of attemptNodes(subjectOf(student))) {
+        const def = CATALOG_BY_PATH.get(pathKey(path));
+        const marker = !def && Object.values(node).flatMap(a => isMap(a) ? Object.keys(a) : [])
+            .map(k => norm(k).match(/^level(\d{1,2})completed$/)).find(Boolean);
+        const level = def?.id ?? (marker ? +marker[1] : null);
+        const attempts = [];
+        for (const [key, attempt] of Object.entries(node)) {
+            const n = attemptNumber(key);
+            if (!n || !isMap(attempt)) continue;
+            const read = readAttempt(n, attempt, level, def);
+            if (read) attempts.push(read);
         }
+        if (!attempts.length) continue;
+        const key = def ? `level${def.id}` : pathKey(path);
+        const existing = merged.get(key);
+        if (existing) { existing.attempts.push(...attempts); existing.level ??= level; continue; }
+        merged.set(key, {
+            key, level, attempts,
+            main: def ? PAGE_TITLES[def.page] : titleCase(path[0] ?? ''),
+            topic: def ? def.title : prettyName(path[path.length - 1] ?? '')
+        });
     }
     const topics = [...merged.values()].map(t => {
-        t.attempts.sort((a, b) => a.n - b.n);
+        // The same attempt saved under both spellings (FirstAttemp, FirstAttempt) counts once.
+        const seen = new Set();
+        const attempts = t.attempts.sort((a, b) => a.n - b.n || a.when - b.when).filter(a => {
+            const id = `${a.n}|${a.time}|${a.wrong}|${a.when}`;
+            if (seen.has(id)) return false;
+            seen.add(id);
+            return true;
+        });
+        // "Latest" is the newest attempt with a saved result. One the student only opened stays in the
+        // history but would otherwise read as 0 seconds and pull the averages down.
+        const latest = [...attempts].reverse().find(hasResult) || attempts[attempts.length - 1];
+        const time = attempts.reduce((s, a) => s + a.time, 0);
+        const wrong = attempts.reduce((s, a) => s + a.wrong, 0);
         return {
-            ...t,
-            time: t.attempts.reduce((s, a) => s + a.time, 0),
-            wrong: t.attempts.reduce((s, a) => s + a.wrong, 0),
-            completed: t.attempts.some(a => a.completed),
-            when: Math.max(0, ...t.attempts.map(a => a.when))
+            ...t, attempts, latest, time, wrong,
+            previous: { count: attempts.length - 1, time: time - latest.time, wrong: wrong - latest.wrong },
+            completed: attempts.some(a => a.completed),
+            when: Math.max(0, ...attempts.map(a => a.when))
         };
     });
     topics.sort((a, b) => (a.level ?? 99) - (b.level ?? 99) || a.topic.localeCompare(b.topic));
     const levels = levelsCompleted(student);
+    const unlocked = levelsUnlocked(student);
+    const played = new Set(topics.map(t => t.level).filter(Boolean));
     return {
         topics,
         levels,
+        unlocked,
+        played,
         // A level marker without timing data is still a game record, so the student has started.
         hasRecords: topics.length > 0 || levels.size > 0,
         time: topics.reduce((s, t) => s + t.time, 0),
         wrong: topics.reduce((s, t) => s + t.wrong, 0),
         attempts: topics.reduce((s, t) => s + t.attempts.length, 0),
         lastActivity: Math.max(0, toMillis(student?.lastSeen), ...topics.map(t => t.when)),
-        online: student?.isOnline === true || student?.isOnline === 'true'
+        online: yes(student?.isOnline)
     };
+}
+
+// Where one student stands on one level, following the game's rule: the previous level must be
+// completed, then the teacher's PIN opens the level. Level 1 is always open. A saved attempt or a
+// completed level proves access even on older records with no levelAccess entry.
+export function levelStatus(record, level) {
+    if (record.levels.has(level)) return 'completed';
+    if (record.played.has(level)) return 'in-progress';
+    if (level === 1 || record.unlocked.has(level)) return 'unlocked';
+    return record.levels.has(level - 1) ? 'eligible' : 'locked';
 }
 
 // Compact per-student numbers for tables and CSV export.
@@ -190,18 +316,22 @@ export function classSummary(allStudents) {
     const topics = new Map();
     const tasks = new Map();
     const levelCounts = Array(TOTAL_LEVELS + 1).fill(0);
+    const access = Array.from({ length: TOTAL_LEVELS + 1 }, () => ({ locked: 0, eligible: 0, unlocked: 0, 'in-progress': 0, completed: 0 }));
     const recent = [];
     const notStarted = [];
     let started = 0, totalTime = 0, totalWrong = 0, totalLevels = 0;
     for (const student of students) {
         const r = studentRecord(student);
         r.levels.forEach(level => { levelCounts[level]++; });
+        for (let level = 1; level <= TOTAL_LEVELS; level++) access[level][levelStatus(r, level)]++;
         totalLevels += r.levels.size;
         if (!r.hasRecords) { notStarted.push(student); continue; }
         started++; totalTime += r.time; totalWrong += r.wrong;
         for (const t of r.topics) {
-            const entry = topics.get(t.key) || { main: t.main, topic: t.topic, level: t.level, students: 0, withErrors: 0, time: 0, wrong: 0, attempts: 0, messages: new Map() };
+            const entry = topics.get(t.key) || { main: t.main, topic: t.topic, level: t.level, students: 0, withErrors: 0, latestWithErrors: 0, time: 0, wrong: 0, latestTime: 0, latestWrong: 0, attempts: 0, messages: new Map() };
             entry.students++; entry.time += t.time; entry.wrong += t.wrong; entry.attempts += t.attempts.length;
+            entry.latestTime += t.latest.time; entry.latestWrong += t.latest.wrong;
+            if (t.latest.wrong > 0) entry.latestWithErrors++;
             if (entry.level == null) entry.level = t.level;
             if (t.wrong > 0) entry.withErrors++;
             for (const a of t.attempts) {
@@ -215,12 +345,15 @@ export function classSummary(allStudents) {
                     task.errors.forEach(e => te.messages.set(e.message, (te.messages.get(e.message) || 0) + 1));
                     tasks.set(taskKey, te);
                 }
-                if (a.when) recent.push({ student, topic: t.topic, level: t.level, attempt: a.n, time: a.time, wrong: a.wrong, completed: a.completed, when: a.when });
+                if (a.when) recent.push({ student, topic: t.topic, level: t.level, attempt: a.n, time: a.time, wrong: a.wrong, completed: a.completed, when: a.when, hasResult: hasResult(a) });
             }
             topics.set(t.key, entry);
         }
     }
-    const topicList = [...topics.values()].map(t => ({ ...t, avgTime: t.time / t.students, avgWrong: t.wrong / t.students }));
+    const topicList = [...topics.values()].map(t => ({
+        ...t, avgTime: t.time / t.students, avgWrong: t.wrong / t.students,
+        avgLatestTime: t.latestTime / t.students, avgLatestWrong: t.latestWrong / t.students
+    }));
     const taskList = [...tasks.values()].map(t => ({
         ...t, students: t.students.size, avgTime: t.timed ? t.time / t.timed : null,
         topMessage: [...t.messages.entries()].sort((a, b) => b[1] - a[1])[0] || null
@@ -228,7 +361,7 @@ export function classSummary(allStudents) {
     recent.sort((a, b) => b.when - a.when);
     return {
         total: students.length, duplicates: allStudents.length - students.length, started, notStarted, totalTime, totalWrong, totalLevels,
-        levelCounts, topics: topicList, tasks: taskList, recent
+        levelCounts, access, topics: topicList, tasks: taskList, recent
     };
 }
 
@@ -263,15 +396,56 @@ function localStamp(ms) {
     return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-export function studentCsvRows(students) {
+// h:mm:ss, which Excel and Google Sheets read as a duration they can add up.
+function csvDuration(seconds) {
+    const s = Math.round(seconds);
+    return `${Math.floor(s / 3600)}:${String(Math.floor(s % 3600 / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+// ="..." keeps leading zeros of student numbers when the file is opened in Excel or Sheets.
+const csvId = s => s.id != null ? `="${s.id}"` : '';
+const csvIdentity = (s, yearOf) => [csvId(s), s.name ?? '', s.section ?? s.sectionName ?? '', yearOf?.(s) ?? ''];
+const csvDate = ms => ms ? localStamp(ms) : '';
+const csvResult = attempt => attempt.completed ? 'Completed' : 'Not completed';
+const STATUS_TEXT = { locked: 'Locked', eligible: 'Waiting for teacher code', unlocked: 'Unlocked, not played', 'in-progress': 'Started, not completed', completed: 'Completed' };
+const levelName = level => level ? `Level ${level}` : '';
+
+// Report 1: one row per student.
+export const STUDENT_CSV_HEADER = ['Student number', 'Name', 'Section', 'School year', `Levels completed (of ${TOTAL_LEVELS})`, 'Which levels',
+    'Total attempts', 'Latest attempt: level', 'Latest attempt: topic', 'Latest attempt: date', 'Latest attempt: time (h:mm:ss)', 'Latest attempt: incorrect submissions', 'Latest attempt: result',
+    'All attempts: time (h:mm:ss)', 'All attempts: incorrect submissions', 'Last activity'];
+export function studentCsvRows(students, yearOf) {
     return uniqueStudents(students).map(s => {
-        const r = studentSummary(s);
-        // ="..." keeps leading zeros of student numbers when the file is opened in Excel or Sheets.
-        return [s.id != null ? `="${s.id}"` : '', s.name ?? '', s.section ?? s.sectionName ?? '', r.levels, Math.round(r.time), r.wrong, r.attempts,
-            r.lastActivity ? localStamp(r.lastActivity) : ''];
+        const r = studentRecord(s);
+        const newest = [...r.topics].sort((a, b) => b.latest.when - a.latest.when)[0];
+        return [...csvIdentity(s, yearOf), r.levels.size, [...r.levels].sort((a, b) => a - b).join('; '), r.attempts,
+            levelName(newest?.level), newest?.topic ?? '', csvDate(newest?.latest.when), newest ? csvDuration(newest.latest.time) : '', newest?.latest.wrong ?? '', newest ? csvResult(newest.latest) : '',
+            r.attempts ? csvDuration(r.time) : '', r.attempts ? r.wrong : '', csvDate(r.lastActivity)];
     });
 }
-export const STUDENT_CSV_HEADER = ['Student number', 'Name', 'Section', `Levels completed (of ${TOTAL_LEVELS})`, 'Time recorded (seconds)', 'Wrong submissions', 'Attempts', 'Last activity'];
+
+// Report 2: one row per student per topic played.
+export const TOPIC_CSV_HEADER = ['Student number', 'Name', 'Section', 'School year', 'Level', 'Topic', 'Level status', 'Total attempts',
+    'Latest attempt: date', 'Latest attempt: time (h:mm:ss)', 'Latest attempt: incorrect submissions', 'Latest attempt: result',
+    'Earlier attempts: time (h:mm:ss)', 'Earlier attempts: incorrect submissions', 'All attempts: time (h:mm:ss)', 'All attempts: incorrect submissions'];
+export function topicCsvRows(students, yearOf) {
+    return uniqueStudents(students).flatMap(s => {
+        const r = studentRecord(s);
+        return r.topics.map(t => [...csvIdentity(s, yearOf), levelName(t.level), t.topic, t.level ? STATUS_TEXT[levelStatus(r, t.level)] : '', t.attempts.length,
+            csvDate(t.latest.when), csvDuration(t.latest.time), t.latest.wrong, csvResult(t.latest),
+            csvDuration(t.previous.time), t.previous.wrong, csvDuration(t.time), t.wrong]);
+    });
+}
+
+// Report 3: one student, one row per attempt, oldest first within each level.
+export const ATTEMPT_CSV_HEADER = ['Student number', 'Name', 'Section', 'School year', 'Level', 'Topic', 'Attempt number', 'Latest attempt?', 'Date',
+    'Time (h:mm:ss)', 'Incorrect submissions', 'Tasks completed', 'Result'];
+export function attemptCsvRows(student, yearOf) {
+    return studentRecord(student).topics.flatMap(t => t.attempts.map(a => [...csvIdentity(student, yearOf), levelName(t.level), t.topic, a.n, a === t.latest ? 'Yes' : 'No',
+        csvDate(a.when), csvDuration(a.time), a.wrong, a.tasks.length ? `${a.tasksDone} of ${a.tasks.length}` : '', csvResult(a)]));
+}
+
+// Names and sections become part of a download's file name.
+export const csvFileName = (...parts) => `syntaxerror-${parts.filter(Boolean).join('-').replace(/[^\w-]+/g, '_')}-${new Date().toISOString().slice(0, 10)}.csv`;
 
 // ---------- charts ----------
 const charts = new WeakMap();
@@ -375,47 +549,63 @@ function labelCells(root) {
 }
 const set = (root, sel, text) => { const el = q(root, sel); if (el) el.textContent = text; };
 
+// The same switch on the class and student views: the latest try, or everything recorded.
+const viewSwitch = `<div class="da-view" role="group" aria-label="Which attempts to show">
+    <button type="button" data-view="latest" aria-pressed="true">Latest attempt</button>
+    <button type="button" data-view="all" aria-pressed="false">All attempts</button></div>`;
+function syncViewSwitch(root) {
+    root.querySelectorAll('[data-view]').forEach(b => {
+        const on = b.dataset.view === root._view;
+        b.setAttribute('aria-pressed', String(on));
+        b.classList.toggle('is-on', on);
+    });
+}
 const CLASS_TEMPLATE = `
 <section class="da-glance" aria-label="Summary of the numbers below"><h3><i class="bi bi-lightbulb" aria-hidden="true"></i> At a glance</h3><ul data-k="glance"></ul></section>
 <div class="da-kpis">
   <div class="da-kpi"><span><i class="bi bi-people"></i> Students ${info('students')}</span><strong data-k="students">--</strong><small data-k="students-note"></small></div>
   <div class="da-kpi da-kpi-level"><span><i class="bi bi-flag"></i> Levels completed ${info('levels-avg')}</span><strong data-k="levels">--</strong><small data-k="levels-note"></small></div>
   <div class="da-kpi da-kpi-time"><span><i class="bi bi-hourglass-split"></i> Time recorded ${info('time-total')}</span><strong data-k="time">--</strong><small data-k="time-note"></small></div>
-  <div class="da-kpi da-kpi-error"><span><i class="bi bi-bug"></i> Wrong submissions ${info('wrong-total')}</span><strong data-k="wrong">--</strong><small data-k="wrong-note"></small></div>
+  <div class="da-kpi da-kpi-error"><span><i class="bi bi-bug"></i> Incorrect submissions ${info('wrong-total')}</span><strong data-k="wrong">--</strong><small data-k="wrong-note"></small></div>
 </div>
 
 <section class="card da-card">
   <div class="da-card-head"><div><h3><i class="bi bi-flag"></i> Level completion</h3><p>How many students have completed each of the ${TOTAL_LEVELS} game levels.</p></div>${help('level-chart')}</div>
   <div class="da-canvas da-canvas-level"><canvas data-c="levels" role="img" aria-label="Bar chart of students who completed each level"></canvas></div>
   <p class="da-summary da-summary-level" data-k="level-summary"></p>
+  <div class="da-table-title"><strong>Who can play each level</strong>${info('level-access')}</div>
+  <div class="da-table-wrap"><table class="da-table da-table-access"><thead><tr><th>Level</th><th>Locked</th><th>Waiting for code</th><th>Unlocked, not played</th><th>Started, not completed</th><th>Completed</th><th>Completed, of those with access</th></tr></thead><tbody data-k="access-rows"></tbody></table></div>
+  <p class="da-table-note" data-k="access-note"></p>
 </section>
 
 <section class="card da-card">
-  <div class="da-card-head"><div><h3><i class="bi bi-grid-3x3-gap"></i> Time spent and errors per topic</h3><p>Averages per student who played the topic, adding up every attempt.</p></div></div>
+  <div class="da-card-head"><div><h3><i class="bi bi-grid-3x3-gap"></i> Time spent and errors per topic</h3><p data-k="topic-note"></p></div>${viewSwitch}</div>
   <div class="da-highlights">
     <div class="da-highlight da-hl-time"><span>Most time spent ${info('hl-time')}</span><strong data-k="hl-time">--</strong><small data-k="hl-time-note"></small></div>
-    <div class="da-highlight da-hl-error"><span>Most wrong submissions ${info('hl-error')}</span><strong data-k="hl-error">--</strong><small data-k="hl-error-note"></small></div>
+    <div class="da-highlight da-hl-error"><span>Most incorrect submissions ${info('hl-error')}</span><strong data-k="hl-error">--</strong><small data-k="hl-error-note"></small></div>
     <div class="da-highlight da-hl-people"><span>Most students with errors ${info('hl-people')}</span><strong data-k="hl-people">--</strong><small data-k="hl-people-note"></small></div>
   </div>
   <div class="da-charts">
-    <figure class="da-chart da-chart-time"><figcaption><strong><i class="bi bi-hourglass-split"></i> Time spent per topic ${info('topic-time')}</strong><span>Average per student, all attempts. Longer bar = more time.</span></figcaption>
+    <figure class="da-chart da-chart-time"><figcaption><strong><i class="bi bi-hourglass-split"></i> Time spent per topic ${info('topic-time')}</strong><span data-k="time-caption"></span></figcaption>
       <div class="da-canvas"><canvas data-c="time" role="img" aria-label="Bar chart of average time per student for each topic"></canvas></div></figure>
-    <figure class="da-chart da-chart-error"><figcaption><strong><i class="bi bi-bug"></i> Errors per topic ${info('topic-wrong')}</strong><span>Average wrong submissions per student, all attempts. Longer bar = more errors.</span></figcaption>
-      <div class="da-canvas"><canvas data-c="errors" role="img" aria-label="Bar chart of average wrong submissions per student for each topic"></canvas></div></figure>
+    <figure class="da-chart da-chart-error"><figcaption><strong><i class="bi bi-bug"></i> Errors per topic ${info('topic-wrong')}</strong><span data-k="error-caption"></span></figcaption>
+      <div class="da-canvas"><canvas data-c="errors" role="img" aria-label="Bar chart of average incorrect submissions per student for each topic"></canvas></div></figure>
   </div>
   <p class="da-empty" data-k="topic-empty" hidden><i class="bi bi-inbox"></i> No game records for this selection yet. Charts fill in after students finish levels in the mobile game.</p>
   <div class="da-table-title"><strong>Numbers per topic</strong>${info('topic-table')}</div>
-  <div class="da-table-wrap"><table class="da-table"><thead><tr><th>Level · Topic</th><th>Students who played</th><th>Avg. time per student</th><th>Avg. wrong per student</th><th>Students with errors</th><th>Attempts</th></tr></thead><tbody data-k="topic-rows"></tbody></table></div>
+  <div class="da-table-wrap"><table class="da-table"><thead><tr><th>Level · Topic</th><th>Students who played</th><th>Latest attempt, average</th><th>All attempts, average</th><th>Students with errors</th><th>Total attempts</th></tr></thead><tbody data-k="topic-rows"></tbody></table></div>
 </section>
 
 <div class="da-grid-2">
   <section class="card da-card">
-    <div class="da-card-head"><div><h3><i class="bi bi-list-check"></i> Tasks with the most wrong submissions</h3><p>Individual coding tasks inside each level, with the error message students saw most.</p></div>${help('tasks')}</div>
-    <div class="da-table-wrap"><table class="da-table"><thead><tr><th>Task</th><th>Students</th><th>Total wrong</th><th>Most common message</th></tr></thead><tbody data-k="task-rows"></tbody></table></div>
+    <div class="da-card-head"><div><h3><i class="bi bi-list-check"></i> Tasks with the most incorrect submissions</h3><p>Individual coding tasks inside each level, with the error message students saw most.</p></div>${help('tasks')}</div>
+    <div class="da-table-wrap"><table class="da-table"><thead><tr><th>Task</th><th>Students</th><th>Total incorrect</th><th>Most common message</th></tr></thead><tbody data-k="task-rows"></tbody></table></div>
+    <div data-more="tasks"></div>
   </section>
   <section class="card da-card">
     <div class="da-card-head"><div><h3><i class="bi bi-chat-square-text"></i> Most common error messages</h3><p>Messages the game showed when an answer was wrong.</p></div>${help('messages')}</div>
     <ol class="da-messages" data-k="messages"></ol>
+    <div data-more="messages"></div>
   </section>
 </div>
 
@@ -423,10 +613,13 @@ const CLASS_TEMPLATE = `
   <section class="card da-card">
     <div class="da-card-head"><div><h3><i class="bi bi-clock-history"></i> Recent activity</h3><p>The latest recorded attempts, newest first.</p></div>${help('recent')}</div>
     <div class="da-table-wrap"><table class="da-table"><thead><tr><th>Student</th><th>Level · Topic</th><th>Attempt</th><th>Result</th><th>When</th></tr></thead><tbody data-k="recent-rows"></tbody></table></div>
+    <div data-more="recent"></div>
   </section>
   <section class="card da-card">
     <div class="da-card-head"><div><h3><i class="bi bi-hourglass"></i> Not started yet</h3><p>Students with no game records so far.</p></div>${help('not-started')}</div>
+    <p class="da-count-line" data-k="not-started-count" hidden></p>
     <ul class="da-names" data-k="not-started"></ul>
+    <div data-more="not-started"></div>
   </section>
 </div>`;
 
@@ -435,6 +628,19 @@ const CLASS_TEMPLATE = `
 export function renderClassOverview(root, students, options = {}) {
     if (!root) return;
     if (!root.dataset.ready) {
+        root._view = 'latest';
+        root._compact = !!options.compact;
+        root._expanded = new Set();
+        root.addEventListener('click', event => {
+            const view = event.target.closest('[data-view]');
+            const expand = event.target.closest('[data-expand]');
+            if (view) root._view = view.dataset.view;
+            else if (expand) {
+                const key = expand.dataset.expand;
+                root._expanded.has(key) ? root._expanded.delete(key) : root._expanded.add(key);
+            } else return;
+            renderClassOverview(root, root._students);
+        });
         root.innerHTML = CLASS_TEMPLATE;
         root.dataset.ready = '1';
         if (options.compact) {
@@ -443,7 +649,7 @@ export function renderClassOverview(root, students, options = {}) {
             tableToggle.innerHTML = '<summary><i class="bi bi-table"></i> Show the per-topic table</summary>';
             table.before(tableToggle); tableToggle.append(table);
             const more = Object.assign(document.createElement('details'), { className: 'da-more' });
-            more.innerHTML = '<summary><i class="bi bi-list-ul"></i> More details: tasks, error messages, recent activity and students not started</summary>';
+            more.innerHTML = '<summary><i class="bi bi-list-ul"></i> More details <span class="da-more-counts" data-k="more-counts"></span></summary>';
             root.querySelectorAll('.da-grid-2').forEach(grid => more.append(grid));
             root.append(more);
         }
@@ -470,34 +676,57 @@ export function renderClassOverview(root, students, options = {}) {
         ? `Level 1: ${s.levelCounts[1]} of ${s.total} students (${Math.round(s.levelCounts[1] / s.total * 100)}%). Furthest level completed by anyone: Level ${highest}.`
         : 'No student has completed a level yet.');
 
+    // Access: levels nobody can reach yet are summed up in one line instead of 19 rows of zeros.
+    const reachable = LEVEL_CATALOG.filter(l => s.access[l.id].locked < s.total);
+    q(root, '[data-k="access-rows"]').innerHTML = reachable.map(l => {
+        const a = s.access[l.id];
+        const withAccess = a.unlocked + a['in-progress'] + a.completed;
+        return `<tr><td><strong>Level ${l.id}</strong><small>${safeText(l.title)}</small></td><td>${a.locked}</td><td>${a.eligible}</td><td>${a.unlocked}</td><td>${a['in-progress']}</td><td>${a.completed}</td>
+            <td>${withAccess ? `${a.completed} of ${withAccess} (${Math.round(a.completed / withAccess * 100)}%)` : '<span class="da-muted">No one yet</span>'}</td></tr>`;
+    }).join('');
+    const hiddenLevels = TOTAL_LEVELS - reachable.length;
+    set(root, '[data-k="access-note"]', s.total && hiddenLevels ? `${plural(hiddenLevels, 'level')} not listed: still locked for every student, so they do not count against anyone.` : '');
+
     // Topics
     const empty = !s.topics.length;
     q(root, '[data-k="topic-empty"]').hidden = !empty;
     root.querySelectorAll('.da-chart, .da-highlights, .da-charts, .da-table-title').forEach(el => { el.hidden = empty; });
     q(root, '[data-k="topic-rows"]').closest('.da-table-wrap').hidden = empty;
-    const mostTime = topBy(s.topics, 'avgTime'), mostWrong = topBy(s.topics, 'avgWrong');
-    const mostPeople = topBy(s.topics.filter(t => t.withErrors > 0), 'withErrors');
+    syncViewSwitch(root);
+    const latestView = root._view === 'latest';
+    const timeKey = latestView ? 'avgLatestTime' : 'avgTime', wrongKey = latestView ? 'avgLatestWrong' : 'avgWrong';
+    const scope = latestView ? 'latest attempt' : 'all attempts';
+    set(root, '[data-k="topic-note"]', latestView
+        ? "Each student's most recent try at each topic, averaged across the students who played it."
+        : "Every recorded attempt added up per student, then averaged. Retries increase these numbers.");
+    set(root, '[data-k="time-caption"]', `Average per student, ${scope}. Longer bar = more time.`);
+    set(root, '[data-k="error-caption"]', `Average incorrect submissions per student, ${scope}. Longer bar = more errors.`);
+    const timeOf = t => t[timeKey], wrongOf = t => t[wrongKey], errorStudents = t => latestView ? t.latestWithErrors : t.withErrors;
+    const totalTimeOf = t => latestView ? t.latestTime : t.time, totalWrongOf = t => latestView ? t.latestWrong : t.wrong;
+    const mostTime = topBy(s.topics, timeKey), mostWrong = topBy(s.topics, wrongKey);
+    const withErrorsList = s.topics.map(t => ({ ...t, shownWithErrors: errorStudents(t) })).filter(t => t.shownWithErrors > 0);
+    const mostPeople = topBy(withErrorsList, 'shownWithErrors');
     set(root, '[data-k="hl-time"]', mostTime?.topic ?? '--');
-    set(root, '[data-k="hl-time-note"]', mostTime ? `Average: about ${fmtTime(mostTime.avgTime)} per student` : '');
-    set(root, '[data-k="hl-error"]', mostWrong?.avgWrong ? mostWrong.topic : 'None recorded');
-    set(root, '[data-k="hl-error-note"]', mostWrong?.avgWrong ? `Average: ${aboutCount(mostWrong.avgWrong)} per student` : '');
+    set(root, '[data-k="hl-time-note"]', mostTime ? `Average, ${scope}: about ${fmtTime(timeOf(mostTime))} per student` : '');
+    set(root, '[data-k="hl-error"]', mostWrong && wrongOf(mostWrong) ? mostWrong.topic : 'None recorded');
+    set(root, '[data-k="hl-error-note"]', mostWrong && wrongOf(mostWrong) ? `Average, ${scope}: ${aboutCount(wrongOf(mostWrong))} per student` : '');
     set(root, '[data-k="hl-people"]', mostPeople?.topic ?? 'None recorded');
-    set(root, '[data-k="hl-people-note"]', mostPeople ? `${mostPeople.withErrors} of ${mostPeople.students} students made at least one error` : '');
-    const unit = timeUnit(Math.max(0, ...s.topics.map(t => t.avgTime)));
-    horizontalBars(q(root, '[data-c="time"]'), s.topics, t => t.avgTime / unit.divide, c.time, t => fmtTime(t.avgTime), t => `${fmtTime(t.time)} ÷ ${plural(t.students, 'student')} = about ${fmtTime(t.avgTime)} per student`, `${unit.name} per student`);
-    horizontalBars(q(root, '[data-c="errors"]'), s.topics, t => t.avgWrong, c.error, t => fmtWhole(t.avgWrong), t => `${plural(t.wrong, 'wrong submission')} ÷ ${plural(t.students, 'student')} = ${aboutCount(t.avgWrong)} per student`, 'Wrong submissions per student');
+    set(root, '[data-k="hl-people-note"]', mostPeople ? `${mostPeople.shownWithErrors} of ${mostPeople.students} students, ${scope}` : '');
+    const unit = timeUnit(Math.max(0, ...s.topics.map(timeOf)));
+    horizontalBars(q(root, '[data-c="time"]'), s.topics, t => timeOf(t) / unit.divide, c.time, t => fmtTime(timeOf(t)), t => `${fmtTime(totalTimeOf(t))} ÷ ${plural(t.students, 'student')} = about ${fmtTime(timeOf(t))} per student`, `${unit.name} per student`);
+    horizontalBars(q(root, '[data-c="errors"]'), s.topics, wrongOf, c.error, t => fmtWhole(wrongOf(t)), t => `${plural(totalWrongOf(t), 'incorrect submission')} ÷ ${plural(t.students, 'student')} = ${aboutCount(wrongOf(t))} per student`, 'Incorrect submissions per student');
     q(root, '[data-k="topic-rows"]').innerHTML = empty
         ? ''
         : [...s.topics].sort((a, b) => (a.level ?? 99) - (b.level ?? 99) || a.topic.localeCompare(b.topic)).map(t => `
             <tr><td><strong>${t.level ? `Level ${t.level} · ` : ''}${safeText(t.topic)}</strong><small>${safeText(t.main)}</small></td>
-            <td>${t.students}</td><td>${fmtTime(t.avgTime)}<small>Total: ${fmtTime(t.time)}</small></td><td>${fmtWhole(t.avgWrong)}<small>Total: ${t.wrong}</small></td><td>${t.withErrors} of ${t.students}</td><td>${t.attempts}</td></tr>`).join('');
+            <td>${t.students}</td><td>${fmtTime(t.avgLatestTime)}<small>${fmtWhole(t.avgLatestWrong)} incorrect</small></td><td>${fmtTime(t.avgTime)}<small>${fmtWhole(t.avgWrong)} incorrect · total ${t.wrong}</small></td><td>${t.withErrors} of ${t.students}</td><td>${t.attempts}</td></tr>`).join('');
 
     // Plain-language summary of the same figures shown below.
     const glance = !s.total ? ['No students in this selection yet.'] : [
         `${s.started} of ${s.total} students have started playing${s.notStarted.length ? `; ${s.notStarted.length} ${s.notStarted.length === 1 ? 'has' : 'have'} not started yet` : ''}.`,
         `On average, students have finished ${fmtWhole(avgLevels)} of ${TOTAL_LEVELS} levels.`,
-        mostWrong?.avgWrong ? `Review <strong>${safeText(mostWrong.topic)}</strong> first: it has the most wrong submissions, ${aboutCount(mostWrong.avgWrong)} per student (${plural(mostWrong.students, 'student')} played it).` : '',
-        mostTime ? `<strong>${safeText(mostTime.topic)}</strong> takes the longest, about ${fmtTime(mostTime.avgTime)} per student.` : ''
+        mostWrong && wrongOf(mostWrong) ? `Review <strong>${safeText(mostWrong.topic)}</strong> first: it has the most incorrect submissions (${scope}), ${aboutCount(wrongOf(mostWrong))} per student (${plural(mostWrong.students, 'student')} played it).` : '',
+        mostTime ? `<strong>${safeText(mostTime.topic)}</strong> takes the longest (${scope}), about ${fmtTime(timeOf(mostTime))} per student.` : ''
     ].filter(Boolean);
     q(root, '[data-k="glance"]').innerHTML = glance.map(line => `<li>${line}</li>`).join('');
 
@@ -507,35 +736,66 @@ export function renderClassOverview(root, students, options = {}) {
         'time-total': s.started ? `Class total: ${fmtTime(s.totalTime)}.\n${fmtTime(s.totalTime)} ÷ ${s.started} who started = about ${fmtTime(avgTime)} per student.` : '',
         'wrong-total': s.started ? `Class total: ${s.totalWrong}.\n${s.totalWrong} ÷ ${s.started} who started = ${aboutCount(avgWrong)} per student.` : '',
         'level-chart': s.total ? `${s.total} students in this view. Level 1: ${s.levelCounts[1]} of ${s.total} (${Math.round(s.levelCounts[1] / s.total * 100)}%).` : '',
-        'hl-time': mostTime ? `${mostTime.topic}: ${fmtTime(mostTime.time)} ÷ ${plural(mostTime.students, 'student')} = about ${fmtTime(mostTime.avgTime)} per student.` : '',
-        'hl-error': mostWrong?.avgWrong ? `${mostWrong.topic}: ${plural(mostWrong.wrong, 'wrong submission')} ÷ ${plural(mostWrong.students, 'student')} = ${aboutCount(mostWrong.avgWrong)} per student.` : '',
-        'hl-people': mostPeople ? `${mostPeople.topic}: ${mostPeople.withErrors} of ${mostPeople.students} students made at least one error.` : '',
+        'hl-time': mostTime ? `${mostTime.topic} (${scope}): ${fmtTime(totalTimeOf(mostTime))} ÷ ${plural(mostTime.students, 'student')} = about ${fmtTime(timeOf(mostTime))} per student.` : '',
+        'hl-error': mostWrong && wrongOf(mostWrong) ? `${mostWrong.topic} (${scope}): ${plural(totalWrongOf(mostWrong), 'incorrect submission')} ÷ ${plural(mostWrong.students, 'student')} = ${aboutCount(wrongOf(mostWrong))} per student.` : '',
+        'hl-people': mostPeople ? `${mostPeople.topic} (${scope}): ${mostPeople.shownWithErrors} of ${mostPeople.students} students made at least one error.` : '',
+        'level-access': s.total && reachable.length ? `Level ${reachable[reachable.length - 1].id}: ${s.access[reachable[reachable.length - 1].id].eligible} waiting for a code, ${s.access[reachable[reachable.length - 1].id].locked} still locked.` : '',
         'not-started': s.total ? `${s.total} on the class list − ${s.started} with game records = ${s.notStarted.length} listed.` : ''
     });
 
+    // Lists. The Super Admin's compact view starts short; "Show all" opens the rest.
+    const compact = root._compact;
+    const opened = key => !compact || root._expanded.has(key);
+    const moreButton = (key, count, shown) => {
+        const slot = q(root, `[data-more="${key}"]`);
+        if (slot) slot.innerHTML = compact && count > shown
+            ? `<button type="button" class="da-show-more" data-expand="${key}" aria-expanded="${opened(key)}">${opened(key) ? 'Show less' : `Show all (${count})`}</button>` : '';
+    };
+
     // Tasks
-    const tasks = s.tasks.filter(t => t.wrong > 0).sort((a, b) => b.wrong - a.wrong || b.students - a.students).slice(0, 8);
+    const allTasks = s.tasks.filter(t => t.wrong > 0).sort((a, b) => b.wrong - a.wrong || b.students - a.students).slice(0, 8);
+    const tasks = opened('tasks') ? allTasks : allTasks.slice(0, 3);
     q(root, '[data-k="task-rows"]').innerHTML = tasks.length
         ? tasks.map(t => `<tr><td><strong>${safeText(t.task)}</strong><small>${t.level ? `Level ${t.level} · ` : ''}${safeText(t.topic)}</small></td><td>${t.students}</td><td>${t.wrong}</td>
             <td>${t.topMessage ? `${safeText(t.topMessage[0])}<small>${plural(t.topMessage[1], 'time')}</small>` : '<span class="da-muted">--</span>'}</td></tr>`).join('')
-        : '<tr><td colspan="4" class="da-muted">No wrong submissions recorded yet.</td></tr>';
+        : '<tr><td colspan="4" class="da-muted">No incorrect submissions recorded yet.</td></tr>';
+    moreButton('tasks', allTasks.length, 3);
 
+    // Messages: grouped by topic until opened, because the full wording can be long.
     const messages = commonMessages(s.topics);
-    q(root, '[data-k="messages"]').innerHTML = messages.length
-        ? messages.map(m => `<li><strong>${safeText(m.message)}</strong><small>${plural(m.count, 'time')} · ${safeText(m.topic)}</small></li>`).join('')
-        : '<li class="da-none">No error messages recorded yet.</li>';
+    const groups = new Map();
+    s.topics.forEach(t => t.messages.forEach(count => {
+        const g = groups.get(t.topic) || { topic: t.topic, kinds: 0, count: 0 };
+        g.kinds++; g.count += count; groups.set(t.topic, g);
+    }));
+    const groupList = [...groups.values()].sort((a, b) => b.count - a.count || a.topic.localeCompare(b.topic));
+    q(root, '[data-k="messages"]').innerHTML = !messages.length
+        ? '<li class="da-none">No error messages recorded yet.</li>'
+        : opened('messages')
+            ? messages.map(m => `<li><strong>${safeText(m.message)}</strong><small>${plural(m.count, 'time')} · ${safeText(m.topic)}</small></li>`).join('')
+            : groupList.slice(0, 3).map(g => `<li><strong>${safeText(g.topic)}</strong><small>${plural(g.kinds, 'different message')} · shown ${plural(g.count, 'time')}</small></li>`).join('');
+    moreButton('messages', messages.length, 0);
 
     // Activity
-    q(root, '[data-k="recent-rows"]').innerHTML = s.recent.length
-        ? s.recent.slice(0, 8).map(r => `<tr><td><strong>${safeText(r.student.name ?? r.student.id)}</strong><small>${safeText(r.student.section ?? '')}</small></td>
+    const recent = s.recent.slice(0, opened('recent') ? 8 : 3);
+    q(root, '[data-k="recent-rows"]').innerHTML = recent.length
+        ? recent.map(r => `<tr><td><strong>${safeText(r.student.name ?? r.student.id)}</strong><small>${safeText(r.student.section ?? r.student.sectionName ?? '')}</small></td>
             <td>${r.level ? `Level ${r.level} · ` : ''}${safeText(r.topic)}</td><td>#${r.attempt}</td>
-            <td>${r.completed ? '<span class="da-pill da-pill-ok">Completed</span>' : '<span class="da-pill">Not completed</span>'}<small>This attempt: ${fmtTime(r.time)} · ${plural(r.wrong, 'wrong submission')}</small></td>
+            <td>${!r.hasResult ? '<span class="da-pill">In progress</span><small>Opened, nothing saved yet</small>' : `${r.completed ? '<span class="da-pill da-pill-ok">Completed</span>' : '<span class="da-pill">Not completed</span>'}<small>This attempt: ${fmtTime(r.time)} · ${plural(r.wrong, 'incorrect submission')}</small>`}</td>
             <td>${fmtDate(r.when)}</td></tr>`).join('')
         : '<tr><td colspan="5" class="da-muted">No recorded attempts yet.</td></tr>';
+    moreButton('recent', Math.min(s.recent.length, 8), 3);
+
+    // Not started
     const names = [...s.notStarted].sort((a, b) => String(a.name ?? '').localeCompare(String(b.name ?? '')));
+    const countLine = q(root, '[data-k="not-started-count"]');
+    countLine.hidden = !compact || !s.total;
+    countLine.textContent = `${names.length} of ${plural(s.total, 'student')} ${names.length === 1 ? 'has' : 'have'} not started.`;
     q(root, '[data-k="not-started"]').innerHTML = names.length
-        ? names.map(st => `<li><strong>${safeText(st.name ?? st.id)}</strong><small>${safeText(st.id ?? '')}${st.section ? ' · ' + safeText(st.section) : ''}</small></li>`).join('')
+        ? (opened('not-started') ? names : []).map(st => `<li><strong>${safeText(st.name ?? st.id)}</strong><small>${safeText(st.id ?? '')}${st.section || st.sectionName ? ' · ' + safeText(st.section ?? st.sectionName) : ''}</small></li>`).join('')
         : `<li class="da-none">${s.total ? 'Every student has started playing.' : 'No students in this selection yet.'}</li>`;
+    moreButton('not-started', names.length, 0);
+    set(root, '[data-k="more-counts"]', `${plural(allTasks.length, 'task')} with errors · ${plural(messages.length, 'error message')} · ${names.length} not started`);
     labelCells(root);
 }
 
@@ -544,7 +804,7 @@ const SUMMARY_TEMPLATE = `
 <div class="da-stat-list">
   <div><span>Levels completed ${info('col-levels')}</span><strong data-k="levels">--</strong></div>
   <div><span>Time recorded ${info('col-time')}</span><strong data-k="time">--</strong></div>
-  <div><span>Wrong submissions ${info('col-wrong')}</span><strong data-k="wrong">--</strong></div>
+  <div><span>Incorrect submissions ${info('col-wrong')}</span><strong data-k="wrong">--</strong></div>
   <div><span>Attempts ${info('s-attempts')}</span><strong data-k="attempts">--</strong></div>
   <div class="da-stat-wide"><span>Last activity ${info('col-last')}</span><strong data-k="last">--</strong></div>
 </div>
@@ -567,33 +827,36 @@ export function renderStudentSummary(root, student) {
 
 const DETAIL_TEMPLATE = `
 <section class="da-card da-plain">
-  <div class="da-card-head"><div><span class="da-eyebrow">DATA ANALYSIS BY TOPIC</span><h3>Time spent and errors per topic</h3><p>Totals from this student's game records, all attempts added up.</p></div></div>
+  <div class="da-card-head"><div><span class="da-eyebrow">DATA ANALYSIS BY TOPIC</span><h3>Time spent and errors per topic</h3><p data-k="topic-note"></p></div>${viewSwitch}</div>
   <p class="da-empty" data-k="empty" hidden><i class="bi bi-inbox"></i> No game records for this student yet. This fills in after they finish a level in the mobile game.</p>
   <div class="da-charts da-charts-stack">
-    <figure class="da-chart da-chart-time"><figcaption><strong><i class="bi bi-hourglass-split"></i> Time spent per topic ${info('s-topic-time')}</strong><span>This student's total. Longer bar = more time.</span></figcaption>
+    <figure class="da-chart da-chart-time"><figcaption><strong><i class="bi bi-hourglass-split"></i> Time spent per topic ${info('s-topic-time')}</strong><span data-k="time-caption"></span></figcaption>
       <div class="da-canvas"><canvas data-c="time" role="img" aria-label="Bar chart of time spent on each topic"></canvas></div></figure>
-    <figure class="da-chart da-chart-error"><figcaption><strong><i class="bi bi-bug"></i> Errors per topic ${info('s-topic-wrong')}</strong><span>This student's total. Longer bar = more wrong submissions.</span></figcaption>
-      <div class="da-canvas"><canvas data-c="errors" role="img" aria-label="Bar chart of wrong submissions in each topic"></canvas></div></figure>
+    <figure class="da-chart da-chart-error"><figcaption><strong><i class="bi bi-bug"></i> Errors per topic ${info('s-topic-wrong')}</strong><span data-k="error-caption"></span></figcaption>
+      <div class="da-canvas"><canvas data-c="errors" role="img" aria-label="Bar chart of incorrect submissions in each topic"></canvas></div></figure>
   </div>
+  <div class="da-table-title" data-k="topics-title"><strong>Latest, earlier and total, per topic</strong>${info('s-topic-table')}</div>
+  <div class="da-table-wrap" data-k="topics-wrap"><table class="da-table"><thead><tr><th>Level · Topic</th><th>Latest attempt</th><th>Earlier attempts</th><th>Total attempts</th><th>All attempts</th></tr></thead><tbody data-k="topic-rows"></tbody></table></div>
+  <div class="da-export-row"><button type="button" class="da-btn" data-export-student><i class="bi bi-download"></i> Export this student's attempts (CSV)</button></div>
 </section>
 <section class="da-card da-plain" data-k="progress-card">
-  <div class="da-card-head"><div><h3><i class="bi bi-graph-down-arrow"></i> Attempt progress</h3><p>How each retried level changed from one attempt to the next. A line going down means less time or fewer wrong submissions.</p></div>${help('s-progress')}</div>
+  <div class="da-card-head"><div><h3><i class="bi bi-graph-down-arrow"></i> Attempt progress</h3><p>How each retried level changed from one attempt to the next. A line going down means less time or fewer incorrect submissions.</p></div>${help('s-progress')}</div>
   <div class="da-progress-stats">
     <div><i class="bi bi-arrow-repeat"></i><strong data-k="retried">0</strong><span data-k="retried-label">levels retried</span></div>
     <div class="is-good"><i class="bi bi-lightning-charge"></i><strong data-k="faster">0</strong><span data-k="faster-label">faster on latest try</span></div>
-    <div class="is-good"><i class="bi bi-check2-circle"></i><strong data-k="fewer">0</strong><span data-k="fewer-label">fewer wrong submissions</span></div>
+    <div class="is-good"><i class="bi bi-check2-circle"></i><strong data-k="fewer">0</strong><span data-k="fewer-label">fewer incorrect submissions</span></div>
   </div>
   <p class="da-empty" data-k="progress-empty" hidden><i class="bi bi-arrow-repeat"></i> No level has been played more than once yet, so there is no change to compare.</p>
   <div class="da-charts" data-k="progress-charts">
     <figure class="da-chart da-chart-time"><figcaption><strong><i class="bi bi-hourglass-split"></i> Time per attempt</strong><span>Time on each try.</span></figcaption>
       <div class="da-canvas da-canvas-line"><canvas data-c="att-time" role="img" aria-label="Line chart of time per attempt for each retried level"></canvas></div></figure>
-    <figure class="da-chart da-chart-error"><figcaption><strong><i class="bi bi-bug"></i> Wrong submissions per attempt</strong><span>Wrong answers on each try.</span></figcaption>
-      <div class="da-canvas da-canvas-line"><canvas data-c="att-wrong" role="img" aria-label="Line chart of wrong submissions per attempt for each retried level"></canvas></div></figure>
+    <figure class="da-chart da-chart-error"><figcaption><strong><i class="bi bi-bug"></i> Incorrect submissions per attempt</strong><span>Incorrect submissions on each try.</span></figcaption>
+      <div class="da-canvas da-canvas-line"><canvas data-c="att-wrong" role="img" aria-label="Line chart of incorrect submissions per attempt for each retried level"></canvas></div></figure>
   </div>
 </section>
 <section class="da-card da-plain" data-k="history-card">
-  <div class="da-card-head"><div><h3><i class="bi bi-clock-history"></i> Attempt history</h3><p>Bar = time · dots = wrong submissions. Tap an attempt for its tasks and error messages.</p></div>${help('s-history')}</div>
-  <div class="da-legend-row"><span><i class="da-key-bar"></i> Time</span><span><i class="da-key-dot"></i> 1 wrong submission</span><span><i class="bi bi-check-circle-fill da-ok"></i> Completed</span></div>
+  <div class="da-card-head"><div><h3><i class="bi bi-clock-history"></i> Attempt history</h3><p>One row per recorded attempt, oldest first. Bar = time · dots = incorrect submissions. Tap an attempt for its tasks and error messages.</p></div>${help('s-history')}</div>
+  <div class="da-legend-row"><span><i class="da-key-bar"></i> Time</span><span><i class="da-key-dot"></i> 1 incorrect submission</span><span><i class="bi bi-check-circle-fill da-ok"></i> Completed</span><span><b class="da-latest-tag">Latest</b> Most recent attempt</span></div>
   <div data-k="history"></div>
 </section>
 <section class="da-card da-plain" data-k="messages-card">
@@ -656,7 +919,7 @@ function attemptLines(canvas, topics, valueOf, maxAttempts, axisTitle, tooltipVa
             datasets: topics.map(t => ({
                 label: t.level ? `Level ${t.level} · ${t.topic}` : t.topic,
                 shortLabel: t.level ? `L${t.level}` : t.topic.slice(0, 8),
-                data: Array.from({ length: maxAttempts }, (_, i) => t.attempts.find(a => a.n === i + 1) ? valueOf(t.attempts.find(a => a.n === i + 1)) : null),
+                data: Array.from({ length: maxAttempts }, (_, i) => { const a = t.attempts.find(x => x.n === i + 1 && hasResult(x)); return a ? valueOf(a) : null; }),
                 borderColor: t.color, backgroundColor: t.color,
                 pointStyle: t.shape, pointRadius: 5, pointHoverRadius: 8, pointBorderWidth: 2, pointBackgroundColor: surface,
                 borderWidth: 2, tension: 0, spanGaps: true
@@ -689,36 +952,65 @@ function changeBadge(first, last, kind) {
             ? `<span class="da-chg is-good"><i class="bi bi-arrow-down-right"></i> ${fmtShort(diff)} faster</span>`
             : `<span class="da-chg is-worse"><i class="bi bi-arrow-up-right"></i> ${fmtShort(diff)} slower</span>`;
     }
-    if (diff === 0) return `<span class="da-chg"><i class="bi bi-dash"></i> ${last} wrong, same</span>`;
+    if (diff === 0) return `<span class="da-chg"><i class="bi bi-dash"></i> ${last} incorrect, same</span>`;
     return diff < 0
-        ? `<span class="da-chg is-good"><i class="bi bi-arrow-down-right"></i> ${first} → ${last} wrong</span>`
-        : `<span class="da-chg is-worse"><i class="bi bi-arrow-up-right"></i> ${first} → ${last} wrong</span>`;
+        ? `<span class="da-chg is-good"><i class="bi bi-arrow-down-right"></i> ${first} → ${last} incorrect</span>`
+        : `<span class="da-chg is-worse"><i class="bi bi-arrow-up-right"></i> ${first} → ${last} incorrect</span>`;
 }
 
 function errorDots(n) {
-    if (!n) return '<span class="da-dots is-zero" title="No wrong submissions">0</span>';
+    if (!n) return '<span class="da-dots is-zero" title="No incorrect submissions">0</span>';
     const shown = Math.min(n, 8);
-    return `<span class="da-dots" title="${plural(n, 'wrong submission')}">${'<i></i>'.repeat(shown)}${n > shown ? `<b>+${n - shown}</b>` : ''}<em>${n}</em></span>`;
+    return `<span class="da-dots" title="${plural(n, 'incorrect submission')}">${'<i></i>'.repeat(shown)}${n > shown ? `<b>+${n - shown}</b>` : ''}<em>${n}</em></span>`;
 }
 
-export function renderStudentDetail(root, student) {
+export function renderStudentDetail(root, student, options = {}) {
     if (!root) return;
-    if (!root.dataset.ready) { root.innerHTML = DETAIL_TEMPLATE; root.dataset.ready = '1'; }
+    if (!root.dataset.ready) {
+        root.innerHTML = DETAIL_TEMPLATE;
+        root.dataset.ready = '1';
+        root._view = 'latest';
+        root.addEventListener('click', event => {
+            const view = event.target.closest('[data-view]');
+            if (view) { root._view = view.dataset.view; renderStudentDetail(root, root._student, { yearOf: root._yearOf }); return; }
+            if (!event.target.closest('[data-export-student]')) return;
+            const s = root._student;
+            downloadCsv(csvFileName(s.id, s.name), ATTEMPT_CSV_HEADER, attemptCsvRows(s, root._yearOf));
+            toast('Student attempts exported.');
+        });
+    }
     root._student = student;
+    root._yearOf = options.yearOf ?? root._yearOf;
     const r = studentRecord(student);
     const c = themeColors();
     const empty = !r.topics.length;
     q(root, '[data-k="empty"]').hidden = !empty;
     root.querySelectorAll('.da-charts-stack, [data-k="progress-card"], [data-k="history-card"], [data-k="messages-card"]').forEach(el => { el.hidden = empty; });
-    const items = r.topics.map(t => ({ ...t, avgTime: t.time }));
-    const unit = timeUnit(Math.max(0, ...r.topics.map(t => t.time)));
-    horizontalBars(q(root, '[data-c="time"]'), items, t => t.time / unit.divide, c.time, t => fmtShort(t.time), t => `${fmtTime(t.time)} over ${plural(t.attempts.length, 'attempt')}`, unit.name);
-    horizontalBars(q(root, '[data-c="errors"]'), items, t => t.wrong, c.error, t => String(t.wrong), t => `${plural(t.wrong, 'wrong submission')} over ${plural(t.attempts.length, 'attempt')}`, 'Wrong submissions');
+    syncViewSwitch(root);
+    root.querySelectorAll('[data-k="topics-title"], [data-k="topics-wrap"], .da-export-row').forEach(el => { el.hidden = empty; });
+    const latestView = root._view === 'latest';
+    set(root, '[data-k="topic-note"]', latestView
+        ? "This student's most recent try at each topic. Earlier tries stay in the table and history below."
+        : "Every recorded attempt added up. These totals grow each time the student replays a level.");
+    set(root, '[data-k="time-caption"]', latestView ? 'Latest attempt. Longer bar = more time.' : 'All attempts added up. Longer bar = more time.');
+    set(root, '[data-k="error-caption"]', latestView ? 'Latest attempt. Longer bar = more incorrect submissions.' : 'All attempts added up. Longer bar = more incorrect submissions.');
+    const timeOf = t => latestView ? t.latest.time : t.time, wrongOf = t => latestView ? t.latest.wrong : t.wrong;
+    const items = r.topics.map(t => ({ ...t, avgTime: timeOf(t) }));
+    const unit = timeUnit(Math.max(0, ...r.topics.map(timeOf)));
+    const howMany = t => latestView ? `latest attempt (#${t.latest.n})` : `over ${plural(t.attempts.length, 'attempt')}`;
+    horizontalBars(q(root, '[data-c="time"]'), items, t => timeOf(t) / unit.divide, c.time, t => fmtShort(timeOf(t)), t => `${fmtTime(timeOf(t))}, ${howMany(t)}`, unit.name);
+    horizontalBars(q(root, '[data-c="errors"]'), items, wrongOf, c.error, t => String(wrongOf(t)), t => `${plural(wrongOf(t), 'incorrect submission')}, ${howMany(t)}`, 'Incorrect submissions');
+    q(root, '[data-k="topic-rows"]').innerHTML = r.topics.map(t => `<tr><td><strong>${t.level ? `Level ${t.level} · ` : ''}${safeText(t.topic)}</strong><small>${t.latest.completed ? 'Latest attempt completed' : 'Latest attempt not completed'}</small></td>
+        <td>${fmtTime(t.latest.time)}<small>${plural(t.latest.wrong, 'incorrect')}, ${t.latest.when ? fmtDate(t.latest.when, false) : 'no date saved'}</small></td>
+        <td>${t.previous.count ? `${fmtTime(t.previous.time)}<small>${plural(t.previous.wrong, 'incorrect')} over ${plural(t.previous.count, 'attempt')}</small>` : '<span class="da-muted">None</span>'}</td>
+        <td>${t.attempts.length}</td><td>${fmtTime(t.time)}<small>${plural(t.wrong, 'incorrect')}</small></td></tr>`).join('');
+    labelCells(root);
 
     // Attempt progress: only levels played at least twice can show a change.
     r.topics.forEach((t, i) => { t.color = seriesColor(i); t.shape = SHAPES[i % SHAPES.length]; });
-    const retried = r.topics.filter(t => t.attempts.length >= 2);
-    const firstLast = t => [t.attempts[0], t.attempts[t.attempts.length - 1]];
+    const played = t => t.attempts.filter(hasResult);
+    const retried = r.topics.filter(t => played(t).length >= 2);
+    const firstLast = t => { const list = played(t); return [list[0], list[list.length - 1]]; };
     const faster = retried.filter(t => { const [a, b] = firstLast(t); return Math.round(b.time) < Math.round(a.time); }).length;
     const fewer = retried.filter(t => { const [a, b] = firstLast(t); return b.wrong < a.wrong; }).length;
     set(root, '[data-k="retried"]', String(retried.length));
@@ -729,10 +1021,10 @@ export function renderStudentDetail(root, student) {
     q(root, '[data-k="progress-charts"]').hidden = !retried.length;
     root.querySelector('.da-progress-stats').hidden = !retried.length;
     if (retried.length) {
-        const maxAttempts = Math.max(...retried.map(t => Math.max(...t.attempts.map(a => a.n))));
+        const maxAttempts = Math.max(...retried.map(t => Math.max(...played(t).map(a => a.n))));
         const attemptUnit = timeUnit(Math.max(...retried.flatMap(t => t.attempts.map(a => a.time))));
         attemptLines(q(root, '[data-c="att-time"]'), retried, a => a.time / attemptUnit.divide, maxAttempts, attemptUnit.name, v => fmtTime(v * attemptUnit.divide));
-        attemptLines(q(root, '[data-c="att-wrong"]'), retried, a => a.wrong, maxAttempts, 'Wrong submissions', v => plural(v, 'wrong submission'));
+        attemptLines(q(root, '[data-c="att-wrong"]'), retried, a => a.wrong, maxAttempts, 'Incorrect submissions', v => plural(v, 'incorrect submission'));
     } else {
         clearChart(q(root, '[data-c="att-time"]'));
         clearChart(q(root, '[data-c="att-wrong"]'));
@@ -744,7 +1036,7 @@ export function renderStudentDetail(root, student) {
     historyEl.innerHTML = r.topics.map(t => {
         const maxTime = Math.max(1, ...t.attempts.map(a => a.time));
         const [first, last] = firstLast(t);
-        const badges = t.attempts.length >= 2 ? `${changeBadge(first.time, last.time, 'time')}${changeBadge(first.wrong, last.wrong, 'wrong')}` : '';
+        const badges = played(t).length >= 2 ? `${changeBadge(first.time, last.time, 'time')}${changeBadge(first.wrong, last.wrong, 'wrong')}` : '';
         return `
       <div class="da-history" style="--lvl:${t.color}">
         <div class="da-history-head">
@@ -754,15 +1046,16 @@ export function renderStudentDetail(root, student) {
         ${t.attempts.map(a => {
             const id = `${t.key}|${a.n}`;
             return `<details data-id="${safeText(id)}" ${open.has(id) ? 'open' : ''}>
-              <summary title="Attempt ${a.n}: ${fmtTime(a.time)}, ${plural(a.wrong, 'wrong submission')}${a.when ? ', ' + fmtDate(a.when) : ''}">
-                <span class="da-att">#${a.n}</span>
-                <span class="da-tbar"><i style="width:max(4px, calc((100% - 62px) * ${(a.time / maxTime).toFixed(3)}))"></i><b>${fmtShort(a.time)}</b></span>
+              <summary title="Attempt ${a.n}: ${fmtTime(a.time)}, ${plural(a.wrong, 'incorrect submission')}${a.when ? ', ' + fmtDate(a.when) : ''}">
+                <span class="da-att">#${a.n}${a === t.latest && t.attempts.length > 1 ? '<b class="da-latest-tag">Latest</b>' : ''}</span>
+                <span class="da-tbar"><i style="width:max(4px, calc((100% - 62px) * ${(a.time / maxTime).toFixed(3)}))"></i><b>${hasResult(a) ? fmtShort(a.time) : 'In progress'}</b></span>
                 ${errorDots(a.wrong)}
                 <span class="da-res">${a.completed ? '<i class="bi bi-check-circle-fill da-ok" title="Completed"></i>' : '<i class="bi bi-circle da-muted" title="Not completed"></i>'}</span>
-                <time>${a.when ? new Date(a.when).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) : ''}</time>
+                <time>${a.when ? new Date(a.when).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date'}</time>
               </summary>
+              ${a.tasks.length ? `<p class="da-attempt-facts">Tasks completed: ${a.tasksDone} of ${a.tasks.length} · Incorrect submissions: ${a.wrong}${a.when ? ` · ${fmtDate(a.when)}` : ''}</p>` : ''}
               <ul class="da-tasks">${a.tasks.map(task => `
-                <li><div><strong>${safeText(task.name)}</strong><span>${task.time !== null ? fmtShort(task.time) : '--'}</span>${errorDots(task.wrong ?? 0)}</div>
+                <li><div><strong>${safeText(task.name)}</strong><span>${task.time !== null ? fmtShort(task.time) : task.doneAt !== null ? `done at ${clock(task.doneAt)}` : '--'}</span>${task.completed ? '<i class="bi bi-check-circle-fill da-ok" title="Task completed"></i>' : '<i class="bi bi-circle da-muted" title="Task not completed"></i>'}${errorDots(task.wrong ?? 0)}</div>
                 ${task.errors.length ? `<ol>${task.errors.map(e => `<li>${e.at !== null ? `<time>${clock(e.at)}</time>` : ''}${safeText(e.message)}</li>`).join('')}</ol>` : ''}</li>`).join('') || '<li class="da-muted">No task details recorded.</li>'}
               </ul></details>`;
         }).join('')}
@@ -779,12 +1072,12 @@ export function renderStudentDetail(root, student) {
         ? list.map(m => `<li><strong>${safeText(m.message)}</strong><small>${plural(m.count, 'time')} · ${m.topics.size > 1 ? `${m.topics.size} topics` : safeText([...m.topics][0])}</small></li>`).join('')
         : '<li class="da-none">No error messages recorded.</li>';
     setLiveNumbers(root, {
-        's-progress': retried.length ? `${plural(retried.length, 'level')} retried: ${faster} faster, ${fewer} with fewer wrong submissions.` : 'No level has been played more than once yet.'
+        's-progress': retried.length ? `${plural(retried.length, 'level')} retried: ${faster} faster, ${fewer} with fewer incorrect submissions.` : 'No level has been played more than once yet.'
     });
 }
 
 // Chart colors follow the light/dark theme, so redraw visible views when it changes.
 new MutationObserver(() => {
     document.querySelectorAll('[data-da-class]').forEach(root => root._students && renderClassOverview(root, root._students));
-    document.querySelectorAll('[data-da-detail]').forEach(root => root._student && root.offsetParent && renderStudentDetail(root, root._student));
+    document.querySelectorAll('[data-da-detail]').forEach(root => root._student && root.offsetParent && renderStudentDetail(root, root._student, { yearOf: root._yearOf }));
 }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });

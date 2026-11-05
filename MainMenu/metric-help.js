@@ -9,85 +9,85 @@ export const METRIC_HELP = {
     students: {
         title: 'Students',
         what: 'How many students are in this view, and how many have started the game.',
-        how: 'Count the names on the class list. "Started" means the game saved at least one record for them.',
+        how: "Count the names on the class list. \"Started\" means a saved attempt or a finished level.",
         example: '30 on the list, 24 with records: 6 not started.',
         read: 'If few started, the numbers below describe only part of the class.'
     },
     'levels-avg': {
         title: 'Levels completed',
         what: 'How many of the 19 levels a student has finished, on average.',
-        how: 'Levels finished by everyone ÷ all students, including those who have not started. Replaying a level counts once.',
+        how: "Levels finished by everyone ÷ all students, including those not started. Replays count once.",
         example: '(6 + 4 + 0) ÷ 3 students = 3.33, shown as 3.',
         read: 'An average can hide big gaps. Check the chart below.'
     },
     'time-total': {
         title: 'Time recorded',
         what: 'Total game time saved for this group, plus the average per student.',
-        how: 'Add the saved time of every attempt, including unfinished ones.\nAverage = total ÷ students who started.',
+        how: "Add the saved time of every attempt, latest and earlier.\nAverage = total ÷ students who started.",
         example: '5 + 3 + 2 = 10 min.\n10 min ÷ 3 students = about 3 min 20 s.',
         read: 'More time can mean difficulty or retries.'
     },
     'wrong-total': {
-        title: 'Wrong submissions',
-        what: 'How many wrong answers the game counted for this group.',
-        how: 'Add the wrong answers from every task in every attempt.\nAverage = total ÷ students who started.',
-        example: '7 + 2 + 3 = 12 wrong.\n12 ÷ 3 students = 4 per student.',
+        title: 'Incorrect submissions',
+        what: 'How many incorrect submissions the game counted for this group.',
+        how: "Add the incorrect submissions from every attempt, latest and earlier.\nAverage = total ÷ students who started.",
+        example: "7 + 2 + 3 = 12 incorrect.\n12 ÷ 3 students = 4 per student.",
         read: 'Retries also add to this total.'
     },
     'level-chart': {
-        title: 'Level completion',
-        what: 'How many students finished each of the 19 levels.',
-        how: 'For each level, count the students the game marked as finished. Select a bar for the percentage.',
-        example: '8 of 12 finished Level 2: the bar shows 8, and 8 ÷ 12 = 67%.',
-        read: 'A sharp drop shows where students stopped, or a level still locked.'
+        title: "Level completion",
+        what: "How many students genuinely finished each of the 19 levels.",
+        how: "Count students the game marked as finished. Opening a level or having a code does not count.",
+        example: "8 of 12 finished Level 2: the bar shows 8, and 8 ÷ 12 = 67%.",
+        read: "A low bar may mean the level is locked. See the table."
     },
     'hl-time': {
         title: 'Most time spent',
         what: 'The topic with the highest average time per student.',
-        how: 'For each topic: total time ÷ students who played it. The highest result is shown.',
+        how: "Each topic's total time ÷ students who played it. Highest shown. Follows the attempts switch.",
         example: 'Loops: 30 min ÷ 5 = 6 min.\nArrays: 20 min ÷ 2 = 10 min. Arrays is shown.',
         read: 'A small group can change the average a lot.'
     },
     'hl-error': {
-        title: 'Most wrong submissions',
-        what: 'The topic with the most wrong answers per student, on average.',
-        how: 'For each topic: total wrong answers ÷ students who played it. The highest result is shown.',
+        title: 'Most incorrect submissions',
+        what: 'The topic with the most incorrect submissions per student, on average.',
+        how: "Each topic's incorrect submissions ÷ students who played it. Highest shown. Follows the attempts switch.",
         example: 'Loops: 20 ÷ 5 = 4.\nArrays: 12 ÷ 2 = 6. Arrays is shown.',
         read: 'A good topic to review with the class.'
     },
     'hl-people': {
         title: 'Most students with errors',
         what: 'The topic where the most students made at least one mistake.',
-        how: 'For each topic, count the students with 1 or more wrong answers. Each student counts once.',
+        how: "Count students with 1 or more incorrect submissions in the topic. Follows the attempts switch.",
         example: 'Loops: 7 of 9 students.\nArrays: 4 of 4 students. Loops is shown because 7 is higher.',
         read: 'This shows how widespread a problem is.'
     },
     'topic-time': {
-        title: 'Time spent per topic',
-        what: 'The average time per student for each topic, longest first.',
-        how: 'Total time on the topic ÷ students who played it. Every attempt counts, so retries make the bar longer.',
-        example: '(4 + 2 + 3 min) ÷ 3 students = 3 min per student.',
-        read: 'Compare bar lengths. Select a bar to see the total behind it.'
+        title: "Time spent per topic",
+        what: "The average time per student for each topic, longest first.",
+        how: "Latest attempt: each student's newest try with a saved result. All attempts: every try added up. Divide by students who played.",
+        example: "Latest tries of 4, 2 and 3 min: (4 + 2 + 3) ÷ 3 = 3 min.",
+        read: "All attempts grows with every replay."
     },
     'topic-wrong': {
-        title: 'Errors per topic',
-        what: 'The average wrong answers per student for each topic, highest first.',
-        how: 'Total wrong answers in the topic ÷ students who played it, rounded. "<1" means above 0 but below 1.',
-        example: '14 wrong ÷ 4 students = 3.5, shown as 4.',
-        read: 'A long bar means students often answered that topic incorrectly.'
+        title: "Errors per topic",
+        what: "The average incorrect submissions per student for each topic, highest first.",
+        how: "Latest attempt: the newest try with a saved result. All attempts: every try added up. Divide by students who played, then round.",
+        example: "14 incorrect ÷ 4 students = 3.5, shown as 4.",
+        read: "\"<1\" means above 0 but below 1."
     },
     'topic-table': {
-        title: 'Numbers per topic',
-        what: 'The numbers behind the two charts above, in level order.',
-        how: 'Average = total ÷ students who played the topic. The total is shown under each average.',
-        example: '12 min and 8 wrong from 4 students: average 3 min and 2 wrong.',
-        read: 'An average from 2 students says less than one from 30.'
+        title: "Numbers per topic",
+        what: "The numbers behind the two charts, in level order.",
+        how: "Latest attempt averages each student's newest try with a saved result. All attempts averages everything recorded. Both divide by the students who played.",
+        example: "4 students, latest tries totalling 12 min: average 3 min.",
+        read: "An average from 2 students says less than one from 30."
     },
     tasks: {
-        title: 'Tasks with the most wrong submissions',
-        what: 'The coding tasks with the most wrong answers (top 8).',
-        how: 'Add each task\'s wrong answers across all students and attempts. "Students" counts everyone who has a record for the task.',
-        example: 'Ana 3 + Ben 1 + Carla 0 = 4 wrong, from 3 students.',
+        title: 'Tasks with the most incorrect submissions',
+        what: 'The coding tasks with the most incorrect submissions (top 8).',
+        how: 'Add each task\'s incorrect submissions across all students and attempts. "Students" counts everyone who has a record for the task.',
+        example: "Ana 3 + Ben 1 + Carla 0 = 4 incorrect, from 3 students.",
         read: 'This points to the exact exercise to review.'
     },
     messages: {
@@ -95,21 +95,29 @@ export const METRIC_HELP = {
         what: 'The messages the game showed most when an answer was wrong (top 6).',
         how: 'Count how many times each exact message was saved in each topic. Different wording counts separately.',
         example: '"Float must end with f!" saved 5 times shows as "5 times".',
-        read: 'The wording shows which misunderstanding to address. Counts can differ from wrong-submission totals.'
+        read: "Shows which misunderstanding to address. Not every incorrect submission saves a message."
     },
     recent: {
         title: 'Recent activity',
         what: 'The 8 latest saved attempts, newest first.',
-        how: 'Sort dated attempts by date. Each row shows that one attempt, not a total.',
+        how: "Sort dated attempts, newest first. Each row is one attempt, not a total. \"In progress\" means opened with nothing saved yet.",
         example: 'Ana at 10:05 is listed above Ben at 9:50.',
         read: 'Use this to confirm students are playing. Open a student on the Students page for their full history.'
     },
     'not-started': {
         title: 'Not started yet',
         what: 'Students with no game records so far.',
-        how: 'Class list − students with at least one saved game record.',
+        how: "Class list − students with a saved attempt or a finished level.",
         example: '30 on the list − 24 with records = 6 listed.',
         read: 'Follow up in case they cannot sign in or have no device.'
+    },
+
+    'level-access': {
+        title: 'Who can play each level',
+        what: "Where students stand on each level, so locked levels are not missed work.",
+        how: "Waiting for code: finished the previous level. Unlocked: code accepted, no attempt saved. Started: attempt saved, unfinished. Last column: completed ÷ students with access.",
+        example: "6 completed of 10 with access: 60%.",
+        read: "Many waiting may mean it is time for that code."
     },
 
     // ---------- Students page ----------
@@ -123,7 +131,7 @@ export const METRIC_HELP = {
     started: {
         title: 'Started playing',
         what: 'How many students in this view have begun the game.',
-        how: 'Count the students with at least one saved game record.',
+        how: "Count the students with a saved attempt or a finished level.",
         example: '24 of 30 students have records: the box shows 24.',
         read: 'Started playing + Not started always equals Students.'
     },
@@ -137,23 +145,23 @@ export const METRIC_HELP = {
     'col-levels': {
         title: 'Levels completed',
         what: 'How many of the 19 levels this student has finished.',
-        how: 'Count the different levels the game marked as finished. Replays count once.',
+        how: "Count the different levels the game marked as finished. Replays count once. Opening a level or having its code does not count.",
         example: 'Levels 1, 2, 3 and 5 finished: 4 of 19.',
         read: 'This counts finished levels, not how well the student understands C#.'
     },
     'col-time': {
-        title: 'Time recorded',
-        what: 'The total game time saved for this student.',
-        how: 'Add the time of every attempt in every topic, including unfinished attempts.',
-        example: '4 + 3 + 5 min = 12 min.',
-        read: 'Much time on few levels may mean the student needs support.'
+        title: "Total time",
+        what: "All game time saved for this student.",
+        how: "Add the time of every attempt in every topic. Details separates the latest attempt.",
+        example: "4 + 3 + 5 min = 12 min.",
+        read: "This grows with every replay, so it does not show current speed."
     },
     'col-wrong': {
-        title: 'Wrong submissions',
-        what: 'The total wrong answers the game counted for this student.',
-        how: 'Add the wrong answers from every task in every attempt.',
-        example: '3 + 1 + 2 = 6.',
-        read: 'Open Details to see whether the count falls on later attempts.'
+        title: "Total incorrect submissions",
+        what: "Every incorrect submission the game counted for this student.",
+        how: "Add the count from every attempt. One attempt can contain several incorrect submissions.",
+        example: "3 + 1 + 2 = 6.",
+        read: "Open Details to see whether the count falls on later attempts."
     },
     'col-last': {
         title: 'Last activity',
@@ -167,37 +175,44 @@ export const METRIC_HELP = {
     's-attempts': {
         title: 'Attempts',
         what: 'How many tries the game saved for this student, across all topics.',
-        how: 'Count the saved attempts in every topic.',
+        how: "Count the saved attempts in every topic, including any opened but not finished.",
         example: 'Loops 3 + Arrays 1 = 4.',
         read: 'More attempts than levels means the student retried some levels.'
     },
     's-topic-time': {
-        title: 'Time spent per topic',
-        what: 'This student\'s total time on each topic, longest first.',
-        how: 'Add the time of all their attempts in the topic. Nothing is averaged.',
-        example: '4 min + 3 min = 7 min.',
-        read: 'See Attempt history for the time of each try.'
+        title: "Time spent per topic",
+        what: "This student's time on each topic, longest first.",
+        how: "Latest attempt: the newest try with a saved result. All attempts: every try added up.",
+        example: "Tries of 4 min then 3 min: latest 3 min, all attempts 7 min.",
+        read: "See Attempt history for the time of each try."
     },
     's-topic-wrong': {
-        title: 'Errors per topic',
-        what: 'This student\'s total wrong answers on each topic, highest first.',
-        how: 'Add the wrong answers of all their attempts in the topic. Nothing is averaged.',
-        example: '3 + 1 = 4.',
-        read: 'Open Attempt history to read the exact error messages.'
+        title: "Errors per topic",
+        what: "This student's incorrect submissions on each topic, highest first.",
+        how: "Latest attempt: the newest try with a saved result. All attempts: every try added up.",
+        example: "3 then 1 incorrect: latest 1, all attempts 4.",
+        read: "A falling count shows improvement. Attempt history has the exact messages."
+    },
+    's-topic-table': {
+        title: 'Latest, earlier and total',
+        what: 'This student\'s most recent try beside their earlier tries and the overall total.',
+        how: "Latest: the newest attempt with a saved result. Earlier: every other attempt. All attempts: both added together.",
+        example: 'Latest 3 min + earlier 4 min = 7 min in all.',
+        read: 'Old attempts are kept, never overwritten, so progress over time stays visible.'
     },
     's-progress': {
         title: 'Attempt progress',
         what: 'Whether the student improved on levels played more than once.',
-        how: 'Compare the first and latest attempt. "Faster" means less time; "fewer wrong" means fewer wrong answers.',
-        example: 'First try 5 min and 4 wrong, latest 3 min and 1 wrong: counts as both.',
+        how: "Compare the first and latest attempts with a saved result. Attempts only opened are skipped.",
+        example: "First try 5 min and 4 incorrect, latest 3 min and 1 incorrect: faster, and fewer incorrect.",
         read: 'A line going down shows improvement. This compares the student only with themselves.'
     },
     's-history': {
         title: 'Attempt history',
         what: 'Every saved attempt of this student, by topic.',
-        how: 'Longer bar = more time, within that topic. One dot = one wrong answer. Check mark = completed.',
+        how: "Longer bar = more time in that topic. One dot = one incorrect submission. Check mark = completed. \"In progress\" = nothing saved yet.",
         example: 'Attempts of 4 min and 2 min: the second bar is half as long.',
-        read: 'Open an attempt to see each task and its error messages.'
+        read: 'Open an attempt to see its tasks and messages.'
     },
     's-messages': {
         title: 'Most common errors',
@@ -209,11 +224,11 @@ export const METRIC_HELP = {
 
     // ---------- Levels page ----------
     'levels-page': {
-        title: 'Level completion',
-        what: 'The share of students in this section who finished each level.',
-        how: 'Students who finished ÷ all students in the section × 100, rounded.',
-        example: '18 ÷ 24 × 100 = 75%.',
-        read: 'Use it to decide when to generate the next level\'s code.'
+        title: "Level completion",
+        what: "The share of students in this section who finished each level.",
+        how: "Students who finished ÷ all students in the section × 100, rounded. \"Waiting for code\" finished the previous level but have not unlocked this one.",
+        example: "18 ÷ 24 × 100 = 75%.",
+        read: "Use it to decide when to generate the next code."
     }
 };
 
