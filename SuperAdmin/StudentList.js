@@ -3,7 +3,7 @@ import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/fi
 import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 import {
     renderClassOverview, renderStudentSummary, renderStudentDetail, classSummary, studentSummary, topBy,
-    downloadCsv, csvFileName, studentCsvRows, topicCsvRows, STUDENT_CSV_HEADER, TOPIC_CSV_HEADER, fmtDate, safeText, TOTAL_LEVELS, fmtWhole, aboutCount
+    downloadCsv, csvFileName, studentCsvRows, topicCsvRows, STUDENT_CSV_HEADER, TOPIC_CSV_HEADER, safeText, TOTAL_LEVELS, fmtWhole, aboutCount
 } from "../MainMenu/record-analysis.js";
 import { toast, withBusy } from "../MainMenu/ui-feedback.js";
 import { STATUS_LABEL, activeYear, sectionYearId, watchSchoolYears } from "../MainMenu/school-years.js";
@@ -242,7 +242,7 @@ function renderTable(section) {
             <td><strong>${safeText(s.name || 'Unknown')}</strong><br><small style="color:var(--sa-muted)">${safeText(s.id || s.firebaseId)}</small></td>
             <td><span style="background:var(--sa-soft);border:1px solid var(--sa-line);padding:4px 10px;border-radius:20px;white-space:nowrap">${safeText(s.sectionName)}</span></td>
             <td><strong>${r.levels} of ${TOTAL_LEVELS}</strong><div style="width:100px;background:var(--sa-line);height:6px;border-radius:10px;margin-top:6px"><div style="width:${percent}%;background:#0f8a5f;height:100%;border-radius:10px"></div></div></td>
-            <td>${r.lastActivity ? fmtDate(r.lastActivity) : '<span style="color:var(--sa-muted)">No activity yet</span>'}${movedNote(s)}${r.online ? '<br><small style="color:#15803d;font-weight:700">Online (reported by the game)</small>' : ''}</td>
+            <td>${r.online ? '<small style="color:#15803d;font-weight:700">Online (reported by the game)</small>' : r.hasRecords ? 'Started' : '<span style="color:var(--sa-muted)">Not started</span>'}${movedNote(s)}</td>
             <td><button data-student-id="${safeText(s.firebaseId)}" data-section-id="${safeText(s.parentDocId)}" class="open-student-summary" style="background:#2563eb;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer">Details</button></td>
         </tr>`;
     }).join("");

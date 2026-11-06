@@ -612,7 +612,7 @@ const CLASS_TEMPLATE = `
 <div class="da-grid-2">
   <section class="card da-card">
     <div class="da-card-head"><div><h3><i class="bi bi-clock-history"></i> Recent activity</h3><p>The latest recorded attempts, newest first.</p></div>${help('recent')}</div>
-    <div class="da-table-wrap"><table class="da-table"><thead><tr><th>Student</th><th>Level · Topic</th><th>Attempt</th><th>Result</th><th>When</th></tr></thead><tbody data-k="recent-rows"></tbody></table></div>
+    <div class="da-table-wrap"><table class="da-table"><thead><tr><th>Student</th><th>Level · Topic</th><th>Attempt</th><th>Result</th></tr></thead><tbody data-k="recent-rows"></tbody></table></div>
     <div data-more="recent"></div>
   </section>
   <section class="card da-card">
@@ -781,9 +781,8 @@ export function renderClassOverview(root, students, options = {}) {
     q(root, '[data-k="recent-rows"]').innerHTML = recent.length
         ? recent.map(r => `<tr><td><strong>${safeText(r.student.name ?? r.student.id)}</strong><small>${safeText(r.student.section ?? r.student.sectionName ?? '')}</small></td>
             <td>${r.level ? `Level ${r.level} · ` : ''}${safeText(r.topic)}</td><td>#${r.attempt}</td>
-            <td>${!r.hasResult ? '<span class="da-pill">In progress</span><small>Opened, nothing saved yet</small>' : `${r.completed ? '<span class="da-pill da-pill-ok">Completed</span>' : '<span class="da-pill">Not completed</span>'}<small>This attempt: ${fmtTime(r.time)} · ${plural(r.wrong, 'incorrect submission')}</small>`}</td>
-            <td>${fmtDate(r.when)}</td></tr>`).join('')
-        : '<tr><td colspan="5" class="da-muted">No recorded attempts yet.</td></tr>';
+            <td>${!r.hasResult ? '<span class="da-pill">In progress</span><small>Opened, nothing saved yet</small>' : `${r.completed ? '<span class="da-pill da-pill-ok">Completed</span>' : '<span class="da-pill">Not completed</span>'}<small>This attempt: ${fmtTime(r.time)} · ${plural(r.wrong, 'incorrect submission')}</small>`}</td></tr>`).join('')
+        : '<tr><td colspan="4" class="da-muted">No recorded attempts yet.</td></tr>';
     moreButton('recent', Math.min(s.recent.length, 8), 3);
 
     // Not started
@@ -806,7 +805,6 @@ const SUMMARY_TEMPLATE = `
   <div><span>Time recorded ${info('col-time')}</span><strong data-k="time">--</strong></div>
   <div><span>Incorrect submissions ${info('col-wrong')}</span><strong data-k="wrong">--</strong></div>
   <div><span>Attempts ${info('s-attempts')}</span><strong data-k="attempts">--</strong></div>
-  <div class="da-stat-wide"><span>Last activity ${info('col-last')}</span><strong data-k="last">--</strong></div>
 </div>
 <div class="da-level-chips" data-k="chips" aria-label="Levels completed"></div>`;
 
@@ -819,8 +817,6 @@ export function renderStudentSummary(root, student) {
     set(root, '[data-k="time"]', played ? fmtTime(r.time) : '--');
     set(root, '[data-k="wrong"]', played ? String(r.wrong) : '--');
     set(root, '[data-k="attempts"]', String(r.attempts));
-    // isOnline is the game's own flag and can stay true if the app was closed abruptly, so the date is shown too.
-    set(root, '[data-k="last"]', `${r.lastActivity ? fmtDate(r.lastActivity) : 'No activity yet'}${r.online ? ' · game reports online' : ''}`);
     q(root, '[data-k="chips"]').innerHTML = Array.from({ length: TOTAL_LEVELS }, (_, i) => i + 1)
         .map(l => `<span class="${r.levels.has(l) ? 'is-done' : ''}" title="Level ${l}: ${r.levels.has(l) ? 'completed' : 'not completed'}">${l}</span>`).join('');
 }
@@ -1001,7 +997,7 @@ export function renderStudentDetail(root, student, options = {}) {
     horizontalBars(q(root, '[data-c="time"]'), items, t => timeOf(t) / unit.divide, c.time, t => fmtShort(timeOf(t)), t => `${fmtTime(timeOf(t))}, ${howMany(t)}`, unit.name);
     horizontalBars(q(root, '[data-c="errors"]'), items, wrongOf, c.error, t => String(wrongOf(t)), t => `${plural(wrongOf(t), 'incorrect submission')}, ${howMany(t)}`, 'Incorrect submissions');
     q(root, '[data-k="topic-rows"]').innerHTML = r.topics.map(t => `<tr><td><strong>${t.level ? `Level ${t.level} · ` : ''}${safeText(t.topic)}</strong><small>${t.latest.completed ? 'Latest attempt completed' : 'Latest attempt not completed'}</small></td>
-        <td>${fmtTime(t.latest.time)}<small>${plural(t.latest.wrong, 'incorrect')}, ${t.latest.when ? fmtDate(t.latest.when, false) : 'no date saved'}</small></td>
+        <td>${fmtTime(t.latest.time)}<small>${plural(t.latest.wrong, 'incorrect')}</small></td>
         <td>${t.previous.count ? `${fmtTime(t.previous.time)}<small>${plural(t.previous.wrong, 'incorrect')} over ${plural(t.previous.count, 'attempt')}</small>` : '<span class="da-muted">None</span>'}</td>
         <td>${t.attempts.length}</td><td>${fmtTime(t.time)}<small>${plural(t.wrong, 'incorrect')}</small></td></tr>`).join('');
     labelCells(root);
@@ -1046,14 +1042,13 @@ export function renderStudentDetail(root, student, options = {}) {
         ${t.attempts.map(a => {
             const id = `${t.key}|${a.n}`;
             return `<details data-id="${safeText(id)}" ${open.has(id) ? 'open' : ''}>
-              <summary title="Attempt ${a.n}: ${fmtTime(a.time)}, ${plural(a.wrong, 'incorrect submission')}${a.when ? ', ' + fmtDate(a.when) : ''}">
+              <summary title="Attempt ${a.n}: ${fmtTime(a.time)}, ${plural(a.wrong, 'incorrect submission')}">
                 <span class="da-att">#${a.n}${a === t.latest && t.attempts.length > 1 ? '<b class="da-latest-tag">Latest</b>' : ''}</span>
                 <span class="da-tbar"><i style="width:max(4px, calc((100% - 62px) * ${(a.time / maxTime).toFixed(3)}))"></i><b>${hasResult(a) ? fmtShort(a.time) : 'In progress'}</b></span>
                 ${errorDots(a.wrong)}
                 <span class="da-res">${a.completed ? '<i class="bi bi-check-circle-fill da-ok" title="Completed"></i>' : '<i class="bi bi-circle da-muted" title="Not completed"></i>'}</span>
-                <time>${a.when ? new Date(a.when).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date'}</time>
               </summary>
-              ${a.tasks.length ? `<p class="da-attempt-facts">Tasks completed: ${a.tasksDone} of ${a.tasks.length} · Incorrect submissions: ${a.wrong}${a.when ? ` · ${fmtDate(a.when)}` : ''}</p>` : ''}
+              ${a.tasks.length ? `<p class="da-attempt-facts">Tasks completed: ${a.tasksDone} of ${a.tasks.length} · Incorrect submissions: ${a.wrong}</p>` : ''}
               <ul class="da-tasks">${a.tasks.map(task => `
                 <li><div><strong>${safeText(task.name)}</strong><span>${task.time !== null ? fmtShort(task.time) : task.doneAt !== null ? `done at ${clock(task.doneAt)}` : '--'}</span>${task.completed ? '<i class="bi bi-check-circle-fill da-ok" title="Task completed"></i>' : '<i class="bi bi-circle da-muted" title="Task not completed"></i>'}${errorDots(task.wrong ?? 0)}</div>
                 ${task.errors.length ? `<ol>${task.errors.map(e => `<li>${e.at !== null ? `<time>${clock(e.at)}</time>` : ''}${safeText(e.message)}</li>`).join('')}</ol>` : ''}</li>`).join('') || '<li class="da-muted">No task details recorded.</li>'}
