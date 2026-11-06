@@ -364,6 +364,14 @@ function wireStudentExport(buttonId, label, header, rowsOf) {
 wireStudentExport("export-students-csv", "students", STUDENT_CSV_HEADER, studentCsvRows);
 wireStudentExport("export-topics-csv", "topics", TOPIC_CSV_HEADER, topicCsvRows);
 
+// Roster export: section, student number, name and email only. No passwords or game credentials.
+// ="..." keeps leading zeros of the student number when the file opens in Excel or Google Sheets.
+const ROSTER_CSV_HEADER = ["Section", "Student number", "Name", "Email"];
+const rosterCsvRows = (students) => uniqueStudents(students)
+    .map(s => [s.section ?? "", s.id != null ? `="${s.id}"` : "", s.name ?? "", s.email ?? ""])
+    .sort((a, b) => String(a[0]).localeCompare(String(b[0])) || String(a[2]).localeCompare(String(b[2])));
+wireStudentExport("export-roster-csv", "roster", ROSTER_CSV_HEADER, rosterCsvRows);
+
 // 4. EDIT & ARCHIVE LOGIC
 window.editStudent = function(studentId) {
     const student = allStudents.find(s => s.id === studentId);
