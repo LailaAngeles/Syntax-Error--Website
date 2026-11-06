@@ -1,0 +1,50 @@
+// Game Activity Monitor: Firestore rules to add (Firebase console > Firestore > Rules), inside
+// `match /databases/{database}/documents { ... }`. Not deployed by the website.
+// The same block is in the game project: FirebaseRules/stage1-add-now.rules and stage2-final.DRAFT.rules.
+//
+// sections/{section}/focusEvents/{eventId}
+//   Written by the game (AppSwitchWarning -> LevelResults.LeftGame -> ProgressSync.SendFocus) each
+//   time a student leaves a level that is in progress. Read live by the Students page
+//   (MainMenu/focus-monitor.js) of the section's teachers.
+//
+// Who may do what:
+//   - A student may create (or, on an upload retry, rewrite) a record only for their own classList
+//     record in that section, signed in with the Firebase Auth account linked to it (uid).
+//   - Only teachers who have the section in approvedUsers/<uid>.section may read it. Another
+//     teacher's sections stay closed.
+//   - Nobody can delete or edit records from the browser.
+//
+// Uses the helpers already in stage1-add-now.rules: signedIn(), ownsStudent(), teachesSection(),
+// optInt(), optText(). If your rules don't have them yet, copy them from that file too.
+//
+// Until this block is published (and while an open `match /{document=**}` rule is still in your
+// rules, that rule decides instead), the Students page shows "blocked by the Firestore security
+// rules" in the monitor and the game keeps the records on the phone and retries.
+
+    match /sections/{section}/focusEvents/{eventId} {
+      allow read: if teachesSection(section);
+      allow create: if validFocusEvent(section, eventId, request.resource.data);
+      // A retried upload sends the same document again; it must still belong to the same student.
+      allow update: if validFocusEvent(section, eventId, request.resource.data) &&
+        resource.data.studentDocId == request.resource.data.studentDocId &&
+        resource.data.studentUid == request.resource.data.studentUid;
+      allow delete: if false;
+    }
+    function validFocusEvent(section, eventId, d) {
+      return d.studentUid == request.auth.uid &&
+        ownsStudent(section, d.studentDocId) &&
+        d.keys().hasOnly(['eventId', 'type', 'levelId', 'levelName', 'studentDocId', 'studentUid', 'sessionId',
+                          'leftAt', 'returned', 'returnedAt', 'secondsAway', 'awayCount', 'syncedAt', 'platform', 'appVersion']) &&
+        d.eventId == eventId &&
+        d.type in ['app_paused', 'focus_lost', 'closed_while_away', 'tab_switch', 'window_blur'] &&
+        d.levelId is int && d.levelId >= 1 && d.levelId <= 30 &&
+        d.studentDocId is string && d.studentDocId.size() > 0 && d.studentDocId.size() <= 64 &&
+        // Phone clocks can be off, so leftAt is not compared with the server time.
+        d.leftAt is timestamp &&
+        d.returned is bool &&
+        (!('returnedAt' in d) || (d.returnedAt is timestamp && d.returnedAt >= d.leftAt)) &&
+        optInt(d, 'secondsAway', 0, 21600) && optInt(d, 'awayCount', 0, 10000) &&
+        d.syncedAt == request.time &&
+        optText(d, 'levelName', 100) && optText(d, 'sessionId', 64) &&
+        optText(d, 'platform', 40) && optText(d, 'appVersion', 40);
+    }

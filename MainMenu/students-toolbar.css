@@ -1,0 +1,129 @@
+/* Students page: one consistent control height, spacing and radius for the section bar and the
+   table toolbar (search, Show, Sort by, CSV exports). Loaded last on Students.html, so it settles
+   the older, competing rules in dashboard.css / data-analysis.css without changing them for other
+   pages. Colours stay the page's STI blue with the yellow accent on dropdowns. */
+:root { --stu-ctl-h: 44px; --stu-ctl-r: 10px; --stu-gap: 12px; }
+
+/* ---------- Section bar (section + class-list actions) ---------- */
+.main-content .student-controls.card {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: var(--stu-gap) !important;
+  padding: 16px !important;
+  min-width: 0;
+}
+.main-content .student-controls #section-select {
+  flex: 1 1 220px !important;
+  width: auto !important;
+  max-width: 340px;
+  min-width: 0 !important;
+  height: var(--stu-ctl-h) !important;
+  min-height: var(--stu-ctl-h) !important;
+  padding: 0 36px 0 14px !important;
+  border-radius: var(--stu-ctl-r) !important;
+  border: 1px solid var(--border) !important;
+  border-left: 4px solid #ffc107 !important;
+  font-weight: 600;
+  box-sizing: border-box !important;
+}
+.main-content .student-controls .action-group {
+  flex: 999 1 auto !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: auto !important;
+  min-width: 0;
+}
+.main-content .student-controls .action-group button {
+  flex: 0 1 auto;
+  min-width: 0 !important;
+  height: var(--stu-ctl-h) !important;
+  min-height: var(--stu-ctl-h) !important;
+  padding: 0 16px !important;
+  border-radius: var(--stu-ctl-r) !important;
+  font-size: .82rem !important;
+  max-width: 100%;
+}
+.main-content .student-controls .choose-file-btn {
+  border: 1px solid var(--border) !important;
+  background: var(--bg-color) !important;
+  color: var(--text-main) !important;
+}
+.main-content .student-controls .choose-file-btn #file-name-text {
+  max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ---------- Table toolbar ---------- */
+/* Search, Show and Sort by share the first row; the CSV exports sit right-aligned under them
+   (on very wide screens everything fits on one row). */
+.student-table-card .student-table-tools {
+  display: grid !important;
+  grid-template-columns: minmax(220px, 1fr) minmax(160px, 210px) minmax(160px, 240px);
+  align-items: end !important;
+  gap: var(--stu-gap) !important;
+  margin: 0 0 10px !important;
+}
+.student-table-tools > * { min-width: 0; margin: 0 !important; }
+.student-table-tools .da-filter { gap: 6px; min-width: 0; }
+.student-table-tools .student-search-field { width: 100%; }
+
+/* flex:none - the older "flex: 1 1 240px" would stretch it 240px tall inside the column label. */
+.student-table-tools .student-table-search { flex: none !important; margin: 0 !important; width: 100% !important; }
+.student-table-tools .student-table-search input {
+  -webkit-appearance: none; appearance: none;
+  height: var(--stu-ctl-h) !important;
+  line-height: normal !important;
+  border-radius: var(--stu-ctl-r) !important;
+  font-size: .9rem !important;
+  font-weight: 500;
+  text-transform: none; letter-spacing: 0;
+}
+.student-table-tools .student-table-search input::-webkit-search-cancel-button { cursor: pointer; }
+
+.student-table-tools .da-filter select {
+  width: 100%;
+  min-width: 0 !important;
+  height: var(--stu-ctl-h);
+  min-height: var(--stu-ctl-h);
+  border-radius: var(--stu-ctl-r);
+  box-sizing: border-box;
+}
+
+.student-table-tools .student-export-group { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; justify-content: flex-end; }
+.student-table-tools .da-btn {
+  height: var(--stu-ctl-h);
+  min-height: var(--stu-ctl-h);
+  padding: 0 14px;
+  border-radius: var(--stu-ctl-r);
+  white-space: nowrap;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.student-table-tools .da-btn i { color: #1f6fd1; }
+html[data-theme="dark"] .student-table-tools .da-btn i { color: #5aa4ff; }
+
+@media (min-width: 1680px) {
+  .student-table-card .student-table-tools { grid-template-columns: minmax(280px, 1fr) 210px 240px auto; }
+  .student-table-tools .student-export-group { grid-column: auto; }
+}
+/* Tablet: search on its own row, the two dropdowns side by side, exports share a row. */
+@media (max-width: 860px) {
+  .student-table-card .student-table-tools { grid-template-columns: 1fr 1fr; }
+  .student-table-tools .student-search-field { grid-column: 1 / -1; }
+  .student-table-tools .student-export-group { display: grid; grid-template-columns: 1fr 1fr; }
+  .student-table-tools .da-btn { width: 100%; }
+  .main-content .student-controls.card { flex-direction: column !important; align-items: stretch !important; }
+  .main-content .student-controls #section-select { flex: none !important; width: 100% !important; max-width: none; }
+  .main-content .student-controls .action-group { display: grid !important; grid-template-columns: 1fr 1fr; width: 100% !important; }
+  .main-content .student-controls .action-group button { width: 100% !important; }
+}
+/* Phone: everything stacks at full width. */
+@media (max-width: 560px) {
+  .student-table-card .student-table-tools { grid-template-columns: minmax(0, 1fr); }
+  .student-table-tools .student-export-group { grid-template-columns: minmax(0, 1fr); }
+  .main-content .student-controls .action-group { grid-template-columns: minmax(0, 1fr); }
+  .main-content .student-controls .choose-file-btn #file-name-text { max-width: 60vw; }
+}

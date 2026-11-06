@@ -28,6 +28,9 @@
 
         <link rel="icon" type="image/png" href="../logo-48.png">
     <link rel="stylesheet" href="../brand-logo.css?v=20261105">
+    <link rel="stylesheet" href="students-toolbar.css?v=20261106">
+    <link rel="stylesheet" href="focus-monitor.css?v=20261106">
+
 </head>
 
     <body>
@@ -97,7 +100,7 @@
 
         <div class="student-controls card">
 
-            <select id="section-select">
+            <select id="section-select" aria-label="Section">
 
                 <option value="">Loading sections...</option>
 
@@ -111,7 +114,7 @@
 
                 <input type="file" id="excel-input" accept=".xlsx, .xls" style="display: none;">
 
-                <button onclick="document.getElementById('excel-input').click()" style="background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; cursor: pointer;">
+                <button type="button" class="choose-file-btn" onclick="document.getElementById('excel-input').click()" style="background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; cursor: pointer;">
 
                     <i class="bi bi-file-earmark-excel"></i> <span id="file-name-text">Choose File</span>
 
@@ -151,15 +154,40 @@
         <div class="da-kpi da-kpi-error"><span><i class="bi bi-hourglass"></i> Not started <button type="button" class="da-info" data-da-info="not-started-count" title="How is this computed?" aria-label="How is this computed? Not started"><i class="bi bi-info-circle" aria-hidden="true"></i></button></span><strong id="not-started-count">0</strong><small>No game records yet</small></div>
     </div>
 
+    <!-- Game Activity Monitor: students who left the game while a level was in progress (focus-monitor.js) -->
+    <section class="card fm-card" id="focus-monitor" aria-labelledby="focus-monitor-title">
+        <div class="fm-head">
+            <div>
+                <h2 id="focus-monitor-title"><i class="bi bi-eye" aria-hidden="true"></i> Game Activity Monitor <span class="fm-new" id="focus-monitor-new" hidden></span></h2>
+                <p>Times a student left the game while a level was in progress: switching apps, going to the home screen, or closing the game. Recorded by the game for monitoring only; it is not counted as a mistake or as cheating, and it does not change progress or level time. Updates live.</p>
+            </div>
+            <div class="fm-tools">
+                <label class="da-filter" for="focus-monitor-range">Period
+                    <select id="focus-monitor-range">
+                        <option value="1">Last 24 hours</option>
+                        <option value="7" selected>Last 7 days</option>
+                        <option value="30">Last 30 days</option>
+                        <option value="0">All loaded records</option>
+                    </select>
+                </label>
+                <button type="button" class="da-btn" id="focus-monitor-mark-seen" disabled><i class="bi bi-check2-all"></i> Mark all as reviewed</button>
+            </div>
+        </div>
+        <p class="student-table-count" id="focus-monitor-count"></p>
+        <div id="focus-monitor-list"><p class="fm-state"><span class="da-loading" role="status"><span class="da-spinner" aria-hidden="true"></span> Loading game activity...</span></p></div>
+    </section>
+
     <div class="card student-table-card">
 
 
 
         <div class="student-table-tools">
-            <div class="student-table-search">
-                <i class="bi bi-search" aria-hidden="true"></i>
-                <input type="text" id="search-student" placeholder="Search by name or ID...">
-            </div>
+            <label class="da-filter student-search-field" for="search-student">Search
+                <span class="student-table-search">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input type="search" id="search-student" placeholder="Name, student number or email" autocomplete="off" spellcheck="false">
+                </span>
+            </label>
             <label class="da-filter" for="student-filter">Show
                 <select id="student-filter">
                     <option value="all">All students</option>
@@ -178,8 +206,10 @@
                     <option value="recent">Most recent activity</option>
                 </select>
             </label>
-            <button type="button" class="da-btn" id="export-students-csv" title="One row per student"><i class="bi bi-download"></i> Export students (CSV)</button>
-            <button type="button" class="da-btn" id="export-topics-csv" title="One row per student per topic"><i class="bi bi-download"></i> Export topics (CSV)</button>
+            <div class="student-export-group" role="group" aria-label="Export">
+                <button type="button" class="da-btn" id="export-students-csv" title="One row per student"><i class="bi bi-download"></i> Export students (CSV)</button>
+                <button type="button" class="da-btn" id="export-topics-csv" title="One row per student per topic"><i class="bi bi-download"></i> Export topics (CSV)</button>
+            </div>
         </div>
         <p class="student-table-count" id="table-results"></p>
         <div class="table-responsive">

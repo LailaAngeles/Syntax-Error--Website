@@ -8,6 +8,8 @@ import { toast, withBusy } from "./ui-feedback.js";
 import { logTeacherActivity } from "./activity-log.js";
 import { setLiveNumbers } from "./metric-help.js";
 import { isCurrentSection, closedYearNotice, watchSchoolYears, sectionYearId, yearLabel } from "./school-years.js";
+import { searchStudents } from "./student-search.js";
+import { createFocusMonitor } from "./focus-monitor.js";
 import { checkStudentNumber, checkName, checkMiddleInitial, formatMiddleInitial, checkFullName, checkEmail, checkBirthday, checkStudentDetails, birthdayBounds, cleanSpaces, showFieldError } from "./student-rules.js";
 
 // 1. FIREBASE CONFIG
@@ -53,6 +55,28 @@ function failLoading(error) {
     loadStudents(document.getElementById("section-select")?.value || "");
 }
 
+// classList document id -> the student's number, per section (they differ only for some moved records).
+const studentDocNumbers = new Map();
+
+// Game Activity Monitor: one listener per assigned section on sections/<id>/focusEvents.
+const focusMonitor = createFocusMonitor({
+    db,
+    teacherUid: () => auth.currentUser?.uid || "",
+    selectedSection: () => document.getElementById("section-select")?.value || "",
+    pageLoading: () => stillLoading() && !studentLoadFailed,
+    describeStudent(sectionDocId, studentDocId) {
+        const number = studentDocNumbers.get(sectionDocId)?.get(studentDocId) ?? studentDocId;
+        const student = allStudents.find(s => String(s.parentDocId) === String(sectionDocId) && String(s.id) === String(number));
+        if (!student) return null;
+        return {
+            name: student.name,
+            number: String(student.id ?? number),
+            online: studentSummary(student).online,
+            completedLevels: new Set(student.levelProgress?.completedLevelNumbers || [])
+        };
+    }
+});
+
 function stopStudentRealtimeListeners() {
     if (unsubscribeStudentUser) { unsubscribeStudentUser(); unsubscribeStudentUser = null; }
     if (unsubscribeStudentSections) { unsubscribeStudentSections(); unsubscribeStudentSections = null; }
@@ -60,6 +84,8 @@ function stopStudentRealtimeListeners() {
     studentClassListeners.forEach(stop => stop());
     studentClassListeners.clear();
     studentClassSnapshots.clear();
+    studentDocNumbers.clear();
+    focusMonitor.stop();
 }
 
 // =========== FIRESTORE-BASED 19-LEVEL GAME PROGRESS ===========
@@ -121,6 +147,7 @@ function withFirestoreProgress(student) {
 function renderRealtimeStudents() {
     allStudents = [...studentClassSnapshots.values()].flat().map(withFirestoreProgress);
     loadStudents(document.getElementById("section-select")?.value || "");
+    focusMonitor.render();
     // Re-render the open student record from the fresh snapshot; open attempt details stay open.
     if (activeStudentDetailsId !== null && document.getElementById("student-details-modal")?.style.display !== "none") {
         const current = allStudents.find(s => String(s.id) === String(activeStudentDetailsId) &&
@@ -223,6 +250,7 @@ async function fetchClassList() {
             studentClassSnapshots.set(docId, snap.docs.map(sDoc => ({
                 ...sDoc.data(), section: wanted.get(docId) || sectionName, parentDocId: docId
             })));
+            studentDocNumbers.set(docId, new Map(snap.docs.map(sDoc => [sDoc.id, String(sDoc.data().id ?? sDoc.id)])));
             renderRealtimeStudents();
         }, error => { studentClassSnapshots.set(docId, []); toast(`Students of ${sectionName} could not be loaded.`, "error"); failLoading(error); });
         studentClassListeners.set(docId, stop);
@@ -231,13 +259,14 @@ async function fetchClassList() {
         const name = wanted.get(id);
         if (name) students.forEach(student => { student.section = name; });
     });
+    focusMonitor.sync(wanted);
     renderRealtimeStudents();
 }
 
 // 3. TABLE LOADING & STAT UPDATES
 function loadStudents(section) {
     const table = document.getElementById("students-table");
-    const searchTerm = (document.getElementById("search-student")?.value || "").toLowerCase();
+    const searchTerm = document.getElementById("search-student")?.value || "";
     const filterBy = document.getElementById("student-filter")?.value || "all";
     const sort = document.getElementById("student-sort")?.value || "name";
     const displayText = (value) => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
@@ -264,15 +293,13 @@ function loadStudents(section) {
         "not-started-count": `${inSection.length} students − ${startedCount} started = ${inSection.length - startedCount}.`
     });
 
-    const rows = inSection.filter(({ student: s, summary }) => {
-        const matchesSearch = !searchTerm ||
-            (s.name && s.name.toLowerCase().includes(searchTerm)) ||
-            (s.id && s.id.toString().toLowerCase().includes(searchTerm));
+    // Student numbers are matched with leading zeros ignored (0200252 finds 200252); see student-search.js.
+    const rows = searchStudents(inSection, searchTerm, r => r.student).filter(({ summary }) => {
         const matchesFilter = filterBy === "all" ||
             (filterBy === "started" && summary.hasRecords) ||
             (filterBy === "notstarted" && !summary.hasRecords) ||
             (filterBy === "online" && summary.online);
-        return matchesSearch && matchesFilter;
+        return matchesFilter;
     });
     const byName = (a, b) => String(a.student.name || "").localeCompare(String(b.student.name || ""));
     const sorters = {
@@ -1150,7 +1177,7 @@ window.handlePasswordReset = function() {
 
     const filterResetList = () => {
         const selectedSec = sectionDrop.value;
-        const term = searchInput.value.toLowerCase();
+        const term = searchInput.value;
         
         studentDrop.innerHTML = '';
         
@@ -1159,17 +1186,12 @@ window.handlePasswordReset = function() {
             return;
         }
 
-        const filtered = allStudents.filter(s => {
-            const matchesSection = s.section === selectedSec;
-            const matchesSearch = s.name.toLowerCase().includes(term) || 
-                                  s.id.toString().includes(term);
-            return matchesSection && matchesSearch;
-        });
+        const filtered = searchStudents(allStudents.filter(s => s.section === selectedSec), term);
 
         if (filtered.length === 0) {
             studentDrop.innerHTML = '<option disabled>No students found...</option>';
         } else {
-            filtered.sort((a,b) => a.name.localeCompare(b.name)).forEach(s => {
+            filtered.sort((a,b) => String(a.name || "").localeCompare(String(b.name || ""))).forEach(s => {
                 const opt = document.createElement("option");
                 opt.value = s.id;
                 opt.textContent = `${s.name} (${s.id})`;
@@ -1244,7 +1266,7 @@ document.getElementById("excel-input")?.addEventListener("change", function() {
     updateFileName(this);
 });
 
-document.getElementById("section-select")?.addEventListener("change", (e) => loadStudents(e.target.value));
+document.getElementById("section-select")?.addEventListener("change", (e) => { loadStudents(e.target.value); focusMonitor.render(); });
 document.getElementById("search-student")?.addEventListener("input", () => {
     const sec = document.getElementById("section-select").value;
     loadStudents(sec);

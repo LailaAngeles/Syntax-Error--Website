@@ -1,0 +1,72 @@
+/* Game Activity Monitor (focus-monitor.js) on the Students page. STI blue with the yellow accent;
+   uses the page tokens (--da-*), so light and dark themes both work. */
+.fm-card { margin: 0 0 20px; padding: 18px 20px; border-top: 4px solid #ffc107; }
+.fm-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.fm-head > div:first-child { flex: 1 1 380px; min-width: 0; }
+.fm-head h2 { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; font-size: 1.12rem; color: var(--da-ink); }
+.fm-head h2 > i { color: #1f6fd1; }
+html[data-theme="dark"] .fm-head h2 > i { color: #5aa4ff; }
+.fm-head p { margin: 6px 0 0; font-size: .84rem; line-height: 1.5; color: var(--da-muted); max-width: 820px; }
+.fm-new { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; background: #ffc107; color: #3b2a00; font-size: .72rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.fm-tools { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.fm-tools .da-filter select { min-width: 170px; height: 44px; min-height: 44px; border-radius: 10px; }
+.fm-tools .da-btn { height: 44px; min-height: 44px; border-radius: 10px; }
+.fm-tools .da-btn:disabled { opacity: .55; cursor: default; }
+.fm-tools .da-btn:disabled:hover { border-color: var(--da-line); color: var(--da-ink); }
+
+.fm-state { margin: 6px 0 0; padding: 14px 16px; border-radius: 12px; background: var(--da-soft); border: 1px dashed var(--da-line); color: var(--da-muted); font-size: .88rem; }
+.fm-state code { font-size: .82rem; }
+.fm-empty i { color: #0f8a5f; margin-right: 6px; }
+.fm-error { border-style: solid; border-color: rgba(185, 28, 28, .35); background: rgba(254, 226, 226, .5); color: #991b1b; margin-bottom: 10px; }
+html[data-theme="dark"] .fm-error { background: rgba(127, 29, 29, .25); color: #fca5a5; }
+
+#focus-monitor-list .table-responsive { max-height: 460px; overflow: auto; border: 1px solid var(--da-line); border-radius: 12px; }
+.fm-table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+.fm-table th { position: sticky; top: 0; z-index: 1; background: var(--da-soft); color: var(--da-muted); text-align: left; font-size: .72rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; padding: 10px 12px; border-bottom: 1px solid var(--da-line); white-space: nowrap; }
+.fm-table td { padding: 10px 12px; border-bottom: 1px solid var(--da-line); vertical-align: top; color: var(--da-ink); }
+.fm-table tr:last-child td { border-bottom: 0; }
+.fm-table td small { display: block; margin-top: 2px; color: var(--da-muted); font-size: .76rem; }
+.fm-row-new td { background: rgba(255, 193, 7, .1); }
+.fm-row-new td:first-child { box-shadow: inset 4px 0 0 #ffc107; }
+.fm-type { font-weight: 700; }
+.fm-pill { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: .74rem; font-weight: 700; white-space: nowrap; }
+.fm-pill-done { background: rgba(15, 138, 95, .14); color: #0f7a54; }
+.fm-pill-active { background: rgba(31, 111, 209, .12); color: #1f5fb0; }
+.fm-pill-warn { background: rgba(217, 119, 6, .15); color: #92400e; }
+html[data-theme="dark"] .fm-pill-done { color: #4ade80; }
+html[data-theme="dark"] .fm-pill-active { color: #93c5fd; }
+html[data-theme="dark"] .fm-pill-warn { color: #fbbf24; }
+.fm-online { display: flex !important; align-items: center; gap: 5px; color: #15803d !important; font-weight: 700; }
+html[data-theme="dark"] .fm-online { color: #4ade80 !important; }
+.fm-online span { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; }
+
+/* Phones: each record becomes a small card. */
+@media (max-width: 760px) {
+  .fm-card { padding: 14px; }
+  .fm-tools, .fm-tools .da-filter, .fm-tools .da-filter select, .fm-tools .da-btn { width: 100%; min-width: 0; }
+  .fm-tools .da-btn { justify-content: center; }
+  #focus-monitor-list .table-responsive { max-height: none; border: 0; }
+  .fm-table thead { display: none; }
+  .fm-table, .fm-table tbody, .fm-table tr, .fm-table td { display: block; width: 100%; min-width: 0 !important; max-width: 100%; }
+  .fm-table td, .fm-table td * { white-space: normal !important; overflow-wrap: anywhere; }
+  .fm-table tr { margin-bottom: 10px; border: 1px solid var(--da-line); border-radius: 12px; overflow: hidden; }
+  .fm-table td { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px; padding: 8px 12px; }
+  .fm-table td::before { content: attr(data-label); font-size: .7rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--da-muted); }
+  .fm-table td > * { grid-column: 2; justify-self: start; }
+  .fm-table td small { grid-column: 2; }
+}
+
+/* Live notifications (top right, under the page header). */
+#fm-popups { position: fixed; top: 16px; right: 16px; z-index: 2147482000; display: flex; flex-direction: column; gap: 10px; width: min(360px, calc(100vw - 32px)); pointer-events: none; }
+.fm-popup { pointer-events: auto; background: #0b2f5c; color: #fff; border-radius: 14px; border-left: 5px solid #ffc107; box-shadow: 0 16px 40px rgba(0, 0, 0, .32); padding: 12px 14px; animation: fm-in .25s ease-out; }
+.fm-popup-head { display: flex; align-items: center; gap: 8px; }
+.fm-popup-head i { color: #ffc107; }
+.fm-popup-head strong { flex: 1; font-size: .92rem; }
+.fm-popup-close { background: transparent; border: 0; color: #fff; font-size: 1.3rem; line-height: 1; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+.fm-popup-close:hover { background: rgba(255, 255, 255, .12); }
+.fm-popup dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 3px 10px; margin: 10px 0; font-size: .82rem; }
+.fm-popup dt { color: #bcd3f0; font-weight: 600; }
+.fm-popup dd { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+.fm-popup-view { width: 100%; min-height: 36px; border: 0; border-radius: 9px; background: #ffc107; color: #3b2a00; font: inherit; font-weight: 800; font-size: .82rem; cursor: pointer; }
+@keyframes fm-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .fm-popup { animation: none; } }
