@@ -203,14 +203,20 @@ export function createFocusMonitor({ db, teacherUid, describeStudent, selectedSe
             els.list.innerHTML = errorNote || `<p class="fm-state fm-empty"><i class="bi bi-shield-check" aria-hidden="true"></i> No student left the game during a level in this period.</p>`;
             return;
         }
+        // How many times each student left the game in the selected period.
+        const timesLeft = new Map();
+        events.forEach(e => {
+            const key = `${e.sectionDocId}/${e.studentDocId}`;
+            timesLeft.set(key, (timesLeft.get(key) || 0) + 1);
+        });
         els.list.innerHTML = errorNote + `
             <div class="table-responsive"><table class="fm-table">
                 <thead><tr><th>Student</th><th>Section</th><th>Level</th><th>Event</th><th>Left the game</th><th>Returned / time away</th><th>Session</th></tr></thead>
-                <tbody>${events.map(row).join("")}</tbody>
+                <tbody>${events.map(e => row(e, timesLeft.get(`${e.sectionDocId}/${e.studentDocId}`) || 1)).join("")}</tbody>
             </table></div>`;
     }
 
-    function row(event) {
+    function row(event, timesLeft = 1) {
         const d = details(event);
         const away = event.returned
             ? `${esc(event.returnedAt ? fmtDateTime(event.returnedAt) : "Returned")}<small>${event.secondsAway !== null ? `${esc(fmtDuration(event.secondsAway))} away` : ""}</small>`
@@ -218,7 +224,7 @@ export function createFocusMonitor({ db, teacherUid, describeStudent, selectedSe
         const session = `${d.levelDone ? `<span class="fm-pill fm-pill-done">Level completed</span>` : `<span class="fm-pill fm-pill-active">Level not completed yet</span>`}${
             d.online ? `<small class="fm-online"><span></span> In the game now</small>` : ""}`;
         return `<tr class="${isNew(event) ? "fm-row-new" : ""}">
-            <td data-label="Student"><strong>${esc(d.name)}</strong><small>${esc(d.number)}</small></td>
+            <td data-label="Student"><strong>${esc(d.name)}</strong><small>${esc(d.number)}</small><span class="fm-pill fm-pill-warn fm-times" title="Times this student left the game in the selected period">Left ${timesLeft} time${timesLeft === 1 ? "" : "s"}</span></td>
             <td data-label="Section">${esc(d.sectionName)}</td>
             <td data-label="Level"><strong>Level ${esc(event.levelId || "?")}</strong>${event.levelName ? `<small>${esc(event.levelName)}</small>` : ""}</td>
             <td data-label="Event"><span class="fm-type">${esc(EVENT_SHORT[event.type] || "Left active game")}</span><small>${esc(EVENT_LABELS[event.type] || "")}${event.awayCount > 1 ? ` · ${event.awayCount}${ordinal(event.awayCount)} time this level` : ""}</small></td>

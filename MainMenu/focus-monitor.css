@@ -33,6 +33,7 @@ html[data-theme="dark"] .fm-error { background: rgba(127, 29, 29, .25); color: #
 .fm-pill-done { background: rgba(15, 138, 95, .14); color: #0f7a54; }
 .fm-pill-active { background: rgba(31, 111, 209, .12); color: #1f5fb0; }
 .fm-pill-warn { background: rgba(217, 119, 6, .15); color: #92400e; }
+.fm-table td .fm-times { margin-top: 5px; }
 html[data-theme="dark"] .fm-pill-done { color: #4ade80; }
 html[data-theme="dark"] .fm-pill-active { color: #93c5fd; }
 html[data-theme="dark"] .fm-pill-warn { color: #fbbf24; }
@@ -53,7 +54,7 @@ html[data-theme="dark"] .fm-online { color: #4ade80 !important; }
   .fm-table td { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px; padding: 8px 12px; }
   .fm-table td::before { content: attr(data-label); font-size: .7rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--da-muted); }
   .fm-table td > * { grid-column: 2; justify-self: start; }
-  .fm-table td small { grid-column: 2; }
+  .fm-table td small, .fm-table td .fm-times { grid-column: 2; justify-self: start; }
 }
 
 /* Live notifications (top right, under the page header). */
