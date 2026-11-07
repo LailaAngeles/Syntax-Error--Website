@@ -1,0 +1,93 @@
+/* Final Assessment pages (teacher + Super Admin). Builds on data-analysis.css tokens (--da-*). */
+:root { --as-bad: #c2410c; --as-pass-bg: rgba(15, 138, 95, .12); --as-below-bg: rgba(194, 65, 12, .1); }
+html[data-theme="dark"] { --as-bad: #fb923c; --as-pass-bg: rgba(60, 207, 147, .14); --as-below-bg: rgba(251, 146, 60, .14); }
+
+.as-banner { display: flex; gap: 14px; align-items: flex-start; margin: 0 0 20px; padding: 14px 16px; border-radius: 14px;
+  background: var(--da-surface); border: 1px solid var(--da-line); border-left: 4px solid #ffc107; color: var(--da-ink); font-size: .88rem; line-height: 1.55; }
+.as-banner > i { font-size: 1.4rem; color: var(--da-accent); flex: none; margin-top: 1px; }
+.as-banner p { margin: 0; color: var(--da-muted); }
+.as-banner strong { color: var(--da-ink); }
+
+.as-kpi-score { --kpi: #ffc107; }
+.as-charts { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+.as-extra:empty { display: none; }
+
+/* pills */
+.as-score { display: inline-block; min-width: 46px; text-align: center; padding: 3px 9px; border-radius: 999px; font-weight: 800; font-size: .82rem; font-variant-numeric: tabular-nums; }
+.as-score.is-pass { background: var(--as-pass-bg); color: var(--da-level); }
+.as-score.is-below { background: var(--as-below-bg); color: var(--as-bad); }
+.as-status { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: .74rem; font-weight: 700; white-space: nowrap; border: 1px solid var(--da-line); background: var(--da-soft); color: var(--da-muted); }
+.as-status-completed { background: var(--as-pass-bg); color: var(--da-level); border-color: transparent; }
+.as-status-in-progress { background: rgba(255, 193, 7, .16); color: #8a5a00; border-color: transparent; }
+html[data-theme="dark"] .as-status-in-progress { color: #fcd34d; }
+.as-status-wrong { background: var(--as-below-bg); color: var(--as-bad); border-color: transparent; }
+
+/* per-level table */
+.as-rate { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.as-rate span { position: relative; width: 70px; height: 7px; border-radius: 99px; background: var(--da-line); overflow: hidden; }
+.as-rate span::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--rate); background: var(--rate-color); border-radius: inherit; }
+.as-level-table th { white-space: normal; vertical-align: bottom; }
+.as-msg { display: block; max-width: 240px; font-family: "Fira Code", ui-monospace, monospace; font-size: .78rem; overflow-wrap: anywhere; }
+.as-none { text-align: center; color: var(--da-muted); padding: 28px 12px !important; }
+
+/* student table tools */
+.as-tools { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 8px; }
+.as-search { flex: 1 1 240px; }
+.as-search input { min-height: 42px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--da-line); background: var(--da-surface); color: var(--da-ink); font: inherit; font-size: .9rem; text-transform: none; letter-spacing: 0; font-weight: 500; }
+.as-count { margin: 6px 0 10px; font-size: .82rem; color: var(--da-muted); }
+.as-view { min-height: 34px; padding: 6px 12px; font-size: .8rem; }
+.as-view:disabled { opacity: .45; cursor: not-allowed; }
+.as-student-table { min-width: 860px; }
+
+/* student popup */
+body.as-modal-open { overflow: hidden; }
+.as-modal { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(8, 18, 36, .55); }
+.as-modal[hidden] { display: none; }
+.as-modal-box { width: min(1040px, 100%); max-height: calc(100dvh - 32px); display: flex; flex-direction: column; background: var(--da-surface); color: var(--da-ink);
+  border: 1px solid var(--da-line); border-radius: 18px; box-shadow: 0 24px 60px rgba(0, 0, 0, .3); outline: none; overflow: hidden; }
+.as-modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 18px 20px 14px; border-bottom: 1px solid var(--da-line); }
+.as-modal-head h2 { margin: 2px 0 2px; font-size: 1.3rem; color: var(--da-ink); }
+.as-modal-head p { margin: 0; color: var(--da-muted); font-size: .86rem; }
+.as-close { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--da-line); background: var(--da-soft); color: var(--da-ink); font: inherit; font-weight: 700; font-size: .84rem; cursor: pointer; }
+.as-modal-body { padding: 16px 20px 22px; overflow-y: auto; }
+.as-attempts { display: flex; flex-wrap: wrap; gap: 6px; }
+.as-attempts button { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--da-line); background: var(--da-surface); color: var(--da-ink); font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; }
+.as-attempts button.is-active { background: var(--da-accent); border-color: var(--da-accent); color: #fff; }
+.as-note { margin: 8px 0 14px; font-size: .82rem; color: var(--da-muted); }
+.as-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+.as-stats > div { background: var(--da-soft); border: 1px solid var(--da-line); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.as-stats span { display: block; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--da-muted); }
+.as-stats strong { display: block; font-size: 1.3rem; margin: 3px 0 1px; color: var(--da-ink); font-variant-numeric: tabular-nums; }
+.as-stats small { display: block; font-size: .76rem; color: var(--da-muted); }
+.as-stat-score.is-pass { border-left: 4px solid var(--da-level); } .as-stat-score.is-pass strong { color: var(--da-level); }
+.as-stat-score.is-below { border-left: 4px solid var(--as-bad); } .as-stat-score.is-below strong { color: var(--as-bad); }
+.as-h3 { display: flex; align-items: center; gap: 8px; margin: 18px 0 10px; font-size: 1rem; color: var(--da-ink); }
+.as-h3 i { color: var(--da-accent); }
+.as-level-grid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+.as-level { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 7px 2px; border-radius: 9px; border: 1px solid var(--da-line); min-width: 0; }
+.as-level strong { font-size: .9rem; line-height: 1.1; }
+.as-level span { font-size: .7rem; font-variant-numeric: tabular-nums; opacity: .85; }
+.as-level-all { background: var(--as-pass-bg); border-color: transparent; color: var(--da-level); }
+.as-level-some { background: rgba(255, 193, 7, .18); border-color: transparent; color: #8a5a00; }
+html[data-theme="dark"] .as-level-some { color: #fcd34d; }
+.as-level-zero { background: var(--as-below-bg); border-color: transparent; color: var(--as-bad); }
+.as-level-none { color: var(--da-muted); border-style: dashed; }
+.as-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: .76rem; color: var(--da-muted); }
+.as-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.as-key { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--da-line); }
+.as-errors { margin: 0; padding-left: 16px; font-family: "Fira Code", ui-monospace, monospace; font-size: .76rem; }
+.as-errors li { overflow-wrap: anywhere; }
+.as-item-table { min-width: 720px; }
+
+/* Super Admin section comparison */
+.as-section-link { background: none; border: 0; padding: 0; font: inherit; font-weight: 700; color: var(--da-accent); cursor: pointer; }
+
+@media (max-width: 900px) {
+  .as-charts { grid-template-columns: minmax(0, 1fr); }
+  .as-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .as-level-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .as-modal { padding: 8px; }
+  .as-modal-head, .as-modal-body { padding-left: 14px; padding-right: 14px; }
+}

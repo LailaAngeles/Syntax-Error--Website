@@ -102,10 +102,14 @@ const clock = seconds => { if (!Number.isFinite(seconds)) return ''; const s = M
 // ---------- reading one student ----------
 const subjectOf = student => student?.['Subject Content'] || student?.subjectContent;
 
+// The Final Assessment saves under its own folder of Subject Content (see assessment-analysis.js).
+// It mixes questions from levels 1-19, so it is kept out of every level count, time and total here.
+export const isAssessmentKey = key => ['finalassessment', 'assessment'].includes(norm(key));
+
 // Every place in Subject Content that holds attempts, at whatever depth the level saves them.
 function attemptNodes(node, path = [], found = [], depth = 0) {
     if (!isMap(node) || depth > 8) return found;
-    const keys = Object.keys(node);
+    const keys = Object.keys(node).filter(k => depth > 0 || !isAssessmentKey(k));
     if (keys.some(k => attemptNumber(k) && isMap(node[k]))) found.push({ path, node });
     keys.forEach(k => { if (!attemptNumber(k)) attemptNodes(node[k], [...path, k], found, depth + 1); });
     return found;
@@ -143,6 +147,7 @@ export function levelsCompleted(student) {
         if (!isMap(node) || depth > 12 || seen.has(node)) return;
         seen.add(node);
         for (const [key, value] of Object.entries(node)) {
+            if (depth === 0 && isAssessmentKey(key)) continue;
             const k = norm(key);
             const m = k.match(/^level(\d{1,2})(?:is)?(?:completed|complete|finished)$/) || k.match(/^(?:completed|complete|finished)level(\d{1,2})$/);
             if (m && yes(value) && +m[1] >= 1 && +m[1] <= TOTAL_LEVELS) levels.add(+m[1]);
