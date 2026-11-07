@@ -90,13 +90,6 @@ export const METRIC_HELP = {
         example: "Ana 3 + Ben 1 + Carla 0 = 4 incorrect, from 3 students.",
         read: 'This points to the exact exercise to review.'
     },
-    messages: {
-        title: 'Most common error messages',
-        what: 'The messages the game showed most when an answer was wrong (top 6).',
-        how: 'Count how many times each exact message was saved in each topic. Different wording counts separately.',
-        example: '"Float must end with f!" saved 5 times shows as "5 times".',
-        read: "Shows which misunderstanding to address. Not every incorrect submission saves a message."
-    },
     recent: {
         title: 'Recent activity',
         what: 'The 8 latest saved attempts, newest first.',
@@ -213,13 +206,6 @@ export const METRIC_HELP = {
         how: "Longer bar = more time in that topic. One dot = one incorrect submission. Check mark = completed. \"In progress\" = nothing saved yet.",
         example: 'Attempts of 4 min and 2 min: the second bar is half as long.',
         read: 'Open an attempt to see its tasks and messages.'
-    },
-    's-messages': {
-        title: 'Most common errors',
-        what: 'The messages this student saw most (top 6).',
-        how: 'Count how many times each exact message was saved across all their attempts.',
-        example: 'Saved twice in Attempt 1 and once in Attempt 2: "3 times".',
-        read: 'A repeating message points to a specific habit to discuss.'
     },
 
     // ---------- Levels page ----------

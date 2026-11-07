@@ -155,6 +155,27 @@
   opacity: 1 !important; visibility: visible !important;
 }
 </style>
+    <style>
+/* Game manual: twin screenshots + readable step checklist */
+.manual-slide .manual-shot.twin-shots{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:clamp(8px,1.2vw,14px) !important;align-items:center !important;padding:clamp(8px,1vw,14px) !important;box-sizing:border-box !important;overflow:hidden !important}
+.manual-slide .manual-shot.twin-shots figure{display:flex !important;flex-direction:column !important;gap:8px !important;margin:0 !important;min-width:0 !important;width:100% !important}
+.manual-slide .manual-shot.twin-shots img{position:static !important;inset:auto !important;width:100% !important;height:auto !important;max-height:300px !important;aspect-ratio:2/1;object-fit:contain !important;border-radius:10px;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.manual-slide .manual-shot.twin-shots figcaption{color:#9bb6c7;font-family:"Fira Code",monospace;font-size:clamp(9px,.75vw,11px);text-align:center}
+.manual-copy h3{margin-bottom:.9rem}
+.manual-copy p{margin:0}
+.manual-points{list-style:none;counter-reset:mp;margin:1.1rem 0 0;padding:0;display:grid;gap:.55rem;text-align:left}
+.manual-points li{counter-increment:mp;position:relative;padding:.55rem .75rem .55rem 2.6rem;background:rgba(73,143,255,.07);border:1px solid rgba(119,173,244,.16);border-radius:10px;color:#b2c5d7;font-size:clamp(.8rem,1.05vw,.9rem);line-height:1.5}
+.manual-points li::before{content:counter(mp);position:absolute;left:.7rem;top:.55rem;width:1.35rem;height:1.35rem;border-radius:50%;display:grid;place-items:center;background:rgba(73,143,255,.22);color:#9fd0ff;font-family:"Fira Code",monospace;font-size:.7rem;font-weight:700}
+.manual-points b{color:#e3eefa;font-weight:600}
+.manual-copy .manual-hint{margin-top:1.2rem}
+.manual-slide.current .manual-points li{animation:mp-in .4s ease both}
+.manual-slide.current .manual-points li:nth-child(2){animation-delay:.08s}
+.manual-slide.current .manual-points li:nth-child(3){animation-delay:.16s}
+.manual-slide.current .manual-points li:nth-child(4){animation-delay:.24s}
+@keyframes mp-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.manual-slide.current .manual-points li{animation:none}}
+@media (max-width:600px){.manual-slide .manual-shot.twin-shots{gap:6px !important;padding:6px !important}.manual-slide .manual-shot.twin-shots img{border-radius:7px}}
+</style>
     <link rel="stylesheet" href="./syntaxerror-mobile.css?v=20261105">
     <link rel="stylesheet" href="./welcome.css?v=20261105">
     <link rel="stylesheet" href="./brand-logo.css?v=20261105">
@@ -270,7 +291,7 @@
                 <header><i class="bi bi-window-desktop"></i><div><span>FOR TEACHERS</span><h3>Data Analysis Portal</h3></div></header>
                 <ul>
                     <li><i class="bi bi-broadcast"></i><div><strong>Live class overview</strong><span>Level completion, time recorded and incorrect submissions for each section, updated as students play.</span></div></li>
-                    <li><i class="bi bi-grid-3x3-gap"></i><div><strong>Time and errors per topic</strong><span>See which topics take longest, which tasks get the most incorrect submissions, and the most common error messages.</span></div></li>
+                    <li><i class="bi bi-grid-3x3-gap"></i><div><strong>Time and errors per topic</strong><span>See which topics take longest, and which tasks get the most incorrect submissions.</span></div></li>
                     <li><i class="bi bi-person-lines-fill"></i><div><strong>Student records</strong><span>Each student's latest attempt beside their full history, with tasks and error messages, plus CSV reports.</span></div></li>
                     <li><i class="bi bi-shield-check"></i><div><strong>Secure, section-based access</strong><span>Accounts are created by the Super Admin, sign-in uses an email PIN, an account stays on one device at a time, and teachers only see their own sections.</span></div></li>
                 </ul>
@@ -281,172 +302,95 @@
 <section class="manual-section" id="user-manual" aria-labelledby="manual-heading">
  <div class="section-title-wrap manual-heading reveal"><span class="eyebrow"><i class="bi bi-terminal"></i> USER DOCUMENTATION / 01</span><h2 id="manual-heading">LEARN THE <span class="highlight">SYSTEM</span></h2><p>Short animated walkthroughs of the mobile game and the faculty portal. They play on their own; pause anytime or jump to any chapter.</p><a class="manual-full-link" href="help.html"><i class="bi bi-journal-text"></i> Open the full user manual for teachers and the Super Admin</a></div>
  <div class="manual-shell reveal">
-  <div class="manual-topbar"><div class="manual-tabs" role="tablist" aria-label="Choose user manual"><button class="manual-tab active" type="button" id="tab-game" role="tab" aria-selected="true" aria-controls="panel-game" data-manual="game"><i class="bi bi-phone"></i> Mobile game</button><button class="manual-tab" type="button" id="tab-web" role="tab" aria-selected="false" aria-controls="panel-web" data-manual="web"><i class="bi bi-window-desktop"></i> Website portal</button></div><div class="manual-counter" aria-live="polite"><span id="manual-index">01</span><span class="muted"> / 06</span></div></div>
+  <div class="manual-topbar"><div class="manual-tabs" role="tablist" aria-label="Choose user manual"><button class="manual-tab active" type="button" id="tab-game" role="tab" aria-selected="true" aria-controls="panel-game" data-manual="game"><i class="bi bi-phone"></i> Mobile game</button><button class="manual-tab" type="button" id="tab-web" role="tab" aria-selected="false" aria-controls="panel-web" data-manual="web"><i class="bi bi-window-desktop"></i> Website portal</button></div><div class="manual-counter" aria-live="polite"><span id="manual-index">01</span><span class="muted" id="manual-total"> / 04</span></div></div>
   <div class="manual-panels">
 <div class="manual-panel" id="panel-game" role="tabpanel" aria-labelledby="tab-game" >
 <div class="manual-track">
 <article class="manual-slide" data-index="0">
     <div class="manual-preview">
-        <div class="preview-chrome">
-            <div class="chrome-dots">
-                <i></i><i></i><i></i>
-            </div>
-            <span>MOBILE APP / WALKTHROUGH</span>
-            <i class="bi bi-arrows-fullscreen"></i>
-        </div>
-
-        <div class="manual-shot">
-            <img src="manual/login2.png"
-                 alt="Screenshot for step 01: Sign in with your school account"
-                 loading="lazy"
-                 onerror="this.hidden=true" />
-
-            <div class="shot-placeholder">
-                <div class="placeholder-icon">
-                    <i class="bi bi-person-circle"></i>
-                </div>
-                <span>YOUR SCREENSHOT GOES HERE</span>
-                <code>manual/game-01.jpg</code>
-            </div>
+        <div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
+        <div class="manual-shot twin-shots">
+            <figure><img src="manual/login.png" alt="SyntaxError title screen with the Login button" loading="lazy" /><figcaption>01 / Tap Login</figcaption></figure>
+            <figure><img src="manual/login2.png" alt="Sign-in form with email and password fields" loading="lazy" /><figcaption>02 / Enter your account</figcaption></figure>
         </div>
     </div>
-
     <div class="manual-copy">
-        <div class="step-mark">STEP 01 <span>—</span> 06</div>
-
-        <h3>Sign in with your school account</h3>
-
-        <p>
-            Access the mobile game using your official school account.
-            Your default password is your birthdate in YYYYMMDD format
-            (e.g., 20080115 for January 15, 2008). Then user must accept the terms and condition before they can proceed to the game and modify their default password.
-        </p>
-
-        <div class="manual-hint">
-            <i class="bi bi-info-circle"></i>
-            Use your school account and your birthdate as your default
-            password. Your account stays signed in on one device at a time.
-        </div>
+        <div class="step-mark">STEP 01 <span>—</span> 04</div>
+        <h3>Sign in to the game</h3>
+        <p>Open SyntaxError, tap LOGIN and sign in with your school account.</p>
+        <ol class="manual-points">
+            <li><b>Email:</b> your school email, e.g. surnamestudentnum@caloocan.sti.edu</li>
+            <li><b>Password:</b> your birthdate in YYYYMMDD format, e.g. 20080115</li>
+            <li><b>Terms and Conditions:</b> on your first sign-in, read them and tap Accept to continue</li>
+            <li><b>Default password:</b> when asked, choose Yes to set a new password, or No to keep it for now</li>
+        </ol>
+        <div class="manual-hint"><i class="bi bi-shield-lock"></i> Your account stays signed in on one device at a time. Forgot your password? Tap Forgot password?</div>
     </div>
 </article>
 
 <article class="manual-slide" data-index="1" aria-hidden="true">
     <div class="manual-preview">
-        <div class="preview-chrome">
-            <div class="chrome-dots"><i></i><i></i><i></i></div>
-            <span>MOBILE APP / WALKTHROUGH</span>
-            <i class="bi bi-arrows-fullscreen"></i>
-        </div>
-
-        <div class="manual-shot terms-screenshots">
-          
-                <img src="manual/mainmenu.png"
-                     alt="Top section of the Terms and Conditions"
-                     loading="lazy" />
-    
+        <div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
+        <div class="manual-shot">
+            <img src="manual/mainmenu.png" alt="Main Menu with Play, Settings, Credits and Exit buttons" loading="lazy" />
         </div>
     </div>
-
     <div class="manual-copy">
-        <div class="step-mark">STEP 02 <span>—</span> 06</div>
-        <h3>Main Menu</h3>
-      <p>
-            From the Main Menu, select Play to access the Level Menu
-            and begin your programming challenges. You can also open
-            Settings to adjust the game's audio or log out of your account.
-        </p>
-        <div class="manual-hint">
-            <i class="bi bi-check2-square"></i>
-            Agree to the Terms and Conditions to start playing.
-        </div>
+        <div class="step-mark">STEP 02 <span>—</span> 04</div>
+        <h3>Use the Main Menu</h3>
+        <p>After signing in, you arrive at the Main Menu.</p>
+        <ol class="manual-points">
+            <li><b>Play:</b> opens the Level Menu</li>
+            <li><b>Settings:</b> adjust the game audio or log out</li>
+            <li><b>Credits:</b> meet the team behind the game</li>
+            <li><b>Exit:</b> closes the app</li>
+        </ol>
+        <div class="manual-hint"><i class="bi bi-gear"></i> Log out from Settings before lending your phone to someone else.</div>
     </div>
 </article>
-
 
 <article class="manual-slide" data-index="2" aria-hidden="true">
     <div class="manual-preview">
-        <div class="preview-chrome">
-            <div class="chrome-dots"><i></i><i></i><i></i></div>
-            <span>MOBILE APP / WALKTHROUGH</span>
-            <i class="bi bi-arrows-fullscreen"></i>
-        </div>
-        <div class="manual-shot password-screenshots">
-            <figure class="password-image-first">
-                <img src="manual/lock.png"
-                     alt="Popup asking whether to change the default password"
-                     loading="lazy" />
-                <figcaption>Lock Level Menu</figcaption>
-            </figure>
-            <figure class="password-image-second">
-                <img src="manual/unlock.png"
-                     alt="Form for updating the default password"
-                     loading="lazy" />
-                <figcaption>Unlock Level Menu</figcaption>
-            </figure>
+        <div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
+        <div class="manual-shot twin-shots">
+            <figure><img src="manual/lock.png" alt="Level Menu with locked levels" loading="lazy" /><figcaption>01 / Locked levels</figcaption></figure>
+            <figure><img src="manual/unlock.png" alt="Level Menu with completed levels and full progress" loading="lazy" /><figcaption>02 / Unlocked and completed</figcaption></figure>
         </div>
     </div>
     <div class="manual-copy">
-        <div class="step-mark">STEP 03 <span>—</span> 06</div>
-        <h3>Level Menu</h3>
-        <p>By default players can play the level 1. Upon completing the level, students will get the pincode from the subject teacher to access the level</p>
-        <div class="manual-hint"><i class="bi bi-shield-lock"></i> For better account security, changing your default password is recommended.</div>
+        <div class="step-mark">STEP 03 <span>—</span> 04</div>
+        <h3>Unlock levels in the Level Menu</h3>
+        <p>The Level Menu holds 19 C# levels. Level 1 is open; a padlock marks locked levels.</p>
+        <ol class="manual-points">
+            <li>Complete the current level</li>
+            <li>Ask your teacher for the PIN of the next level</li>
+            <li>Enter the PIN to unlock it (valid for 5 minutes)</li>
+            <li>Track your time, attempts and progress bar; tap Replay to play again</li>
+        </ol>
+        <div class="manual-hint"><i class="bi bi-key-fill"></i> Tap any level to see its topic, best time, attempts, mistakes and what unlocks it.</div>
     </div>
 </article>
-
 
 <article class="manual-slide" data-index="3" aria-hidden="true">
     <div class="manual-preview">
-        <div class="preview-chrome">
-            <div class="chrome-dots">
-                <i></i><i></i><i></i>
-            </div>
-            <span>MOBILE APP / WALKTHROUGH</span>
-            <i class="bi bi-arrows-fullscreen"></i>
-        </div>
-
+        <div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>MOBILE APP / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
         <div class="manual-shot">
-            <img
-                src="manual/game.png"
-                alt="Screenshot for step 04: Main Menu and Settings"
-                loading="lazy"
-                onerror="this.hidden=true"
-            />
+            <img src="manual/game.png" alt="Level 1 gameplay with the task panel, timer, Codie and joystick" loading="lazy" />
+        </div>
     </div>
-
     <div class="manual-copy">
-        <div class="step-mark">STEP 04 <span>—</span> 06</div>
-
-        <h3>Explore the Main Menu and Settings</h3>
-
-        <p>
-            Begin your C# programming journey by playing Level 1.
-            Once you successfully complete the level, your teacher
-            will provide a unique PIN code to unlock the next level.
-            Enter the correct PIN code to gain access and continue
-            your learning journey. Each succeeding level requires
-            a teacher-provided PIN code. Your completion times and
-            overall game progress are displayed to help you track
-            your achievements.
-        </p>
-
-        <div class="manual-hint">
-            <i class="bi bi-key-fill"></i>
-            Complete Level 1, then enter the PIN code provided by
-            your teacher to unlock the next level. Each PIN code
-            is valid for 5 minutes. Completed levels display your
-            recorded time, while the progress bar shows your
-            overall game completion.
-        </div>
-
-
-        <div class="manual-hint">
-            <i class="bi bi-gear"></i>
-            Choose Play to start a level, or open Settings to manage
-            audio preferences and account logout.
-        </div>
+        <div class="step-mark">STEP 04 <span>—</span> 04</div>
+        <h3>Play Level 1</h3>
+        <p>You are now in the game. Follow the task and solve each coding challenge.</p>
+        <ol class="manual-points">
+            <li><b>Task:</b> the top-left panel tells you what to do</li>
+            <li><b>Joystick:</b> move around and follow the arrow to each terminal</li>
+            <li><b>Time:</b> tracks your timer and the tasks you have finished</li>
+            <li><b>Codie and Pause:</b> tap Codie for help, or Pause to stop the game</li>
+        </ol>
+        <div class="manual-hint"><i class="bi bi-controller"></i> Your time and incorrect answers are recorded and shown to your teacher.</div>
     </div>
 </article>
-
 
 </div></div>
 <div class="manual-panel" id="panel-web" role="tabpanel" aria-labelledby="tab-web" hidden>
@@ -501,7 +445,7 @@
   </div>
   <i class="sc-cursor"></i>
 </div></div></div>
-    <div class="manual-copy"><div class="step-mark">STEP 03 <span>—</span> 06</div><h3>Compare levels and topics</h3><p>See how many students completed each level, the time and incorrect submissions per topic, the coding tasks with the most incorrect submissions, and the error messages students saw most often. Switch between Latest attempt and All attempts.</p><div class="manual-hint"><i class="bi bi-download"></i> Export students or topics as CSV for your reports.</div></div>
+    <div class="manual-copy"><div class="step-mark">STEP 03 <span>—</span> 06</div><h3>Compare levels and topics</h3><p>See how many students completed each level, the time and incorrect submissions per topic, and the coding tasks with the most incorrect submissions. Switch between Latest attempt and All attempts.</p><div class="manual-hint"><i class="bi bi-download"></i> Export students or topics as CSV for your reports.</div></div>
     </article>
 <article class="manual-slide" data-index="3" aria-hidden="true">
     <div class="manual-preview"><div class="preview-chrome"><div class="chrome-dots"><i></i><i></i><i></i></div><span>WEB DASHBOARD / WALKTHROUGH</span><i class="bi bi-arrows-fullscreen"></i></div>
@@ -629,6 +573,6 @@
 <button id="scrollTopBtn" class="scroll-top-btn" aria-label="Scroll to top">
         <i class="bi bi-chevron-up"></i>
     </button>
-    <script src="script.js?v=20261105"></script>
+    <script src="script.js?v=20261107"></script>
 </body>
 </html>

@@ -181,6 +181,8 @@ function renderManual(resetTime = true) {
   const slides = [...document.querySelectorAll(`#panel-${selectedManual} .manual-slide`)];
   const idx = positions[selectedManual];
   if (indexLabel) indexLabel.textContent = String(idx + 1).padStart(2,'0');
+  const totalLabel = document.getElementById('manual-total');
+  if (totalLabel) totalLabel.textContent = ' / ' + String(slides.length).padStart(2,'0');
   if (dotsHolder) {
     dotsHolder.replaceChildren();
     slides.forEach((slide,n) => {

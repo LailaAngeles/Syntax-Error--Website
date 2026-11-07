@@ -369,12 +369,6 @@ export function topBy(list, key) {
     return list.length ? [...list].sort((a, b) => b[key] - a[key] || String(a.topic).localeCompare(String(b.topic)))[0] : null;
 }
 
-function commonMessages(topics, limit = 6) {
-    const out = [];
-    topics.forEach(t => t.messages.forEach((count, message) => out.push({ message, count, topic: t.topic })));
-    return out.sort((a, b) => b.count - a.count || a.message.localeCompare(b.message)).slice(0, limit);
-}
-
 // ---------- CSV export ----------
 export function downloadCsv(filename, header, rows) {
     const cell = value => {
@@ -390,12 +384,6 @@ export function downloadCsv(filename, header, rows) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-// Local date and time (the teacher's time zone), e.g. 2026-11-02 12:29.
-function localStamp(ms) {
-    const d = new Date(ms), p = n => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
-}
-
 // h:mm:ss, which Excel and Google Sheets read as a duration they can add up.
 function csvDuration(seconds) {
     const s = Math.round(seconds);
@@ -404,48 +392,47 @@ function csvDuration(seconds) {
 // ="..." keeps leading zeros of student numbers when the file is opened in Excel or Sheets.
 const csvId = s => s.id != null ? `="${s.id}"` : '';
 const csvIdentity = (s, yearOf) => [csvId(s), s.name ?? '', s.section ?? s.sectionName ?? '', yearOf?.(s) ?? ''];
-const csvDate = ms => ms ? localStamp(ms) : '';
 const csvResult = attempt => attempt.completed ? 'Completed' : 'Not completed';
 const STATUS_TEXT = { locked: 'Locked', eligible: 'Waiting for teacher code', unlocked: 'Unlocked, not played', 'in-progress': 'Started, not completed', completed: 'Completed' };
 const levelName = level => level ? `Level ${level}` : '';
 
 // Report 1: one row per student.
 export const STUDENT_CSV_HEADER = ['Student number', 'Name', 'Section', 'School year', `Levels completed (of ${TOTAL_LEVELS})`, 'Which levels',
-    'Total attempts', 'Latest attempt: level', 'Latest attempt: topic', 'Latest attempt: date', 'Latest attempt: time (h:mm:ss)', 'Latest attempt: incorrect submissions', 'Latest attempt: result',
-    'All attempts: time (h:mm:ss)', 'All attempts: incorrect submissions', 'Last activity'];
+    'Total attempts', 'Latest attempt: level', 'Latest attempt: topic', 'Latest attempt: time (h:mm:ss)', 'Latest attempt: incorrect submissions', 'Latest attempt: result',
+    'All attempts: time (h:mm:ss)', 'All attempts: incorrect submissions'];
 export function studentCsvRows(students, yearOf) {
     return uniqueStudents(students).map(s => {
         const r = studentRecord(s);
         const newest = [...r.topics].sort((a, b) => b.latest.when - a.latest.when)[0];
         return [...csvIdentity(s, yearOf), r.levels.size, [...r.levels].sort((a, b) => a - b).join('; '), r.attempts,
-            levelName(newest?.level), newest?.topic ?? '', csvDate(newest?.latest.when), newest ? csvDuration(newest.latest.time) : '', newest?.latest.wrong ?? '', newest ? csvResult(newest.latest) : '',
-            r.attempts ? csvDuration(r.time) : '', r.attempts ? r.wrong : '', csvDate(r.lastActivity)];
+            levelName(newest?.level), newest?.topic ?? '', newest ? csvDuration(newest.latest.time) : '', newest?.latest.wrong ?? '', newest ? csvResult(newest.latest) : '',
+            r.attempts ? csvDuration(r.time) : '', r.attempts ? r.wrong : ''];
     });
 }
 
 // Report 2: one row per student per topic played.
 export const TOPIC_CSV_HEADER = ['Student number', 'Name', 'Section', 'School year', 'Level', 'Topic', 'Level status', 'Total attempts',
-    'Latest attempt: date', 'Latest attempt: time (h:mm:ss)', 'Latest attempt: incorrect submissions', 'Latest attempt: result',
+    'Latest attempt: time (h:mm:ss)', 'Latest attempt: incorrect submissions', 'Latest attempt: result',
     'Earlier attempts: time (h:mm:ss)', 'Earlier attempts: incorrect submissions', 'All attempts: time (h:mm:ss)', 'All attempts: incorrect submissions'];
 export function topicCsvRows(students, yearOf) {
     return uniqueStudents(students).flatMap(s => {
         const r = studentRecord(s);
         return r.topics.map(t => [...csvIdentity(s, yearOf), levelName(t.level), t.topic, t.level ? STATUS_TEXT[levelStatus(r, t.level)] : '', t.attempts.length,
-            csvDate(t.latest.when), csvDuration(t.latest.time), t.latest.wrong, csvResult(t.latest),
+            csvDuration(t.latest.time), t.latest.wrong, csvResult(t.latest),
             csvDuration(t.previous.time), t.previous.wrong, csvDuration(t.time), t.wrong]);
     });
 }
 
 // Report 3: one student, one row per attempt, oldest first within each level.
-export const ATTEMPT_CSV_HEADER = ['Student number', 'Name', 'Section', 'School year', 'Level', 'Topic', 'Attempt number', 'Latest attempt?', 'Date',
+export const ATTEMPT_CSV_HEADER = ['Student number', 'Name', 'Section', 'School year', 'Level', 'Topic', 'Attempt number', 'Latest attempt?',
     'Time (h:mm:ss)', 'Incorrect submissions', 'Tasks completed', 'Result'];
 export function attemptCsvRows(student, yearOf) {
     return studentRecord(student).topics.flatMap(t => t.attempts.map(a => [...csvIdentity(student, yearOf), levelName(t.level), t.topic, a.n, a === t.latest ? 'Yes' : 'No',
-        csvDate(a.when), csvDuration(a.time), a.wrong, a.tasks.length ? `${a.tasksDone} of ${a.tasks.length}` : '', csvResult(a)]));
+        csvDuration(a.time), a.wrong, a.tasks.length ? `${a.tasksDone} of ${a.tasks.length}` : '', csvResult(a)]));
 }
 
 // Names and sections become part of a download's file name.
-export const csvFileName = (...parts) => `syntaxerror-${parts.filter(Boolean).join('-').replace(/[^\w-]+/g, '_')}-${new Date().toISOString().slice(0, 10)}.csv`;
+export const csvFileName = (...parts) => `syntaxerror-${parts.filter(Boolean).join('-').replace(/[^\w-]+/g, '_')}.csv`;
 
 // ---------- charts ----------
 const charts = new WeakMap();
@@ -596,18 +583,11 @@ const CLASS_TEMPLATE = `
   <div class="da-table-wrap"><table class="da-table"><thead><tr><th>Level · Topic</th><th>Students who played</th><th>Latest attempt, average</th><th>All attempts, average</th><th>Students with errors</th><th>Total attempts</th></tr></thead><tbody data-k="topic-rows"></tbody></table></div>
 </section>
 
-<div class="da-grid-2">
   <section class="card da-card">
     <div class="da-card-head"><div><h3><i class="bi bi-list-check"></i> Tasks with the most incorrect submissions</h3><p>Individual coding tasks inside each level, with the error message students saw most.</p></div>${help('tasks')}</div>
     <div class="da-table-wrap"><table class="da-table"><thead><tr><th>Task</th><th>Students</th><th>Total incorrect</th><th>Most common message</th></tr></thead><tbody data-k="task-rows"></tbody></table></div>
     <div data-more="tasks"></div>
   </section>
-  <section class="card da-card">
-    <div class="da-card-head"><div><h3><i class="bi bi-chat-square-text"></i> Most common error messages</h3><p>Messages the game showed when an answer was wrong.</p></div>${help('messages')}</div>
-    <ol class="da-messages" data-k="messages"></ol>
-    <div data-more="messages"></div>
-  </section>
-</div>
 
 <div class="da-grid-2">
   <section class="card da-card">
@@ -761,21 +741,6 @@ export function renderClassOverview(root, students, options = {}) {
         : '<tr><td colspan="4" class="da-muted">No incorrect submissions recorded yet.</td></tr>';
     moreButton('tasks', allTasks.length, 3);
 
-    // Messages: grouped by topic until opened, because the full wording can be long.
-    const messages = commonMessages(s.topics);
-    const groups = new Map();
-    s.topics.forEach(t => t.messages.forEach(count => {
-        const g = groups.get(t.topic) || { topic: t.topic, kinds: 0, count: 0 };
-        g.kinds++; g.count += count; groups.set(t.topic, g);
-    }));
-    const groupList = [...groups.values()].sort((a, b) => b.count - a.count || a.topic.localeCompare(b.topic));
-    q(root, '[data-k="messages"]').innerHTML = !messages.length
-        ? '<li class="da-none">No error messages recorded yet.</li>'
-        : opened('messages')
-            ? messages.map(m => `<li><strong>${safeText(m.message)}</strong><small>${plural(m.count, 'time')} · ${safeText(m.topic)}</small></li>`).join('')
-            : groupList.slice(0, 3).map(g => `<li><strong>${safeText(g.topic)}</strong><small>${plural(g.kinds, 'different message')} · shown ${plural(g.count, 'time')}</small></li>`).join('');
-    moreButton('messages', messages.length, 0);
-
     // Activity
     const recent = s.recent.slice(0, opened('recent') ? 8 : 3);
     q(root, '[data-k="recent-rows"]').innerHTML = recent.length
@@ -794,7 +759,7 @@ export function renderClassOverview(root, students, options = {}) {
         ? (opened('not-started') ? names : []).map(st => `<li><strong>${safeText(st.name ?? st.id)}</strong><small>${safeText(st.id ?? '')}${st.section || st.sectionName ? ' · ' + safeText(st.section ?? st.sectionName) : ''}</small></li>`).join('')
         : `<li class="da-none">${s.total ? 'Every student has started playing.' : 'No students in this selection yet.'}</li>`;
     moreButton('not-started', names.length, 0);
-    set(root, '[data-k="more-counts"]', `${plural(allTasks.length, 'task')} with errors · ${plural(messages.length, 'error message')} · ${names.length} not started`);
+    set(root, '[data-k="more-counts"]', `${plural(allTasks.length, 'task')} with errors · ${names.length} not started`);
     labelCells(root);
 }
 
@@ -854,10 +819,6 @@ const DETAIL_TEMPLATE = `
   <div class="da-card-head"><div><h3><i class="bi bi-clock-history"></i> Attempt history</h3><p>One row per recorded attempt, oldest first. Bar = time · dots = incorrect submissions. Tap an attempt for its tasks and error messages.</p></div>${help('s-history')}</div>
   <div class="da-legend-row"><span><i class="da-key-bar"></i> Time</span><span><i class="da-key-dot"></i> 1 incorrect submission</span><span><i class="bi bi-check-circle-fill da-ok"></i> Completed</span><span><b class="da-latest-tag">Latest</b> Most recent attempt</span></div>
   <div data-k="history"></div>
-</section>
-<section class="da-card da-plain" data-k="messages-card">
-  <div class="da-card-head"><div><h3><i class="bi bi-chat-square-text"></i> Most common errors</h3><p>Messages the game showed when an answer was wrong.</p></div>${help('s-messages')}</div>
-  <ol class="da-messages" data-k="messages"></ol>
 </section>`;
 
 // Fixed categorical order (validated for colour-vision deficiencies in both themes). A level keeps
@@ -981,7 +942,7 @@ export function renderStudentDetail(root, student, options = {}) {
     const c = themeColors();
     const empty = !r.topics.length;
     q(root, '[data-k="empty"]').hidden = !empty;
-    root.querySelectorAll('.da-charts-stack, [data-k="progress-card"], [data-k="history-card"], [data-k="messages-card"]').forEach(el => { el.hidden = empty; });
+    root.querySelectorAll('.da-charts-stack, [data-k="progress-card"], [data-k="history-card"]').forEach(el => { el.hidden = empty; });
     syncViewSwitch(root);
     root.querySelectorAll('[data-k="topics-title"], [data-k="topics-wrap"], .da-export-row').forEach(el => { el.hidden = empty; });
     const latestView = root._view === 'latest';
@@ -1057,15 +1018,6 @@ export function renderStudentDetail(root, student, options = {}) {
       </div>`;
     }).join('');
 
-    const messages = new Map();
-    r.topics.forEach(t => t.attempts.forEach(a => a.tasks.forEach(task => task.errors.forEach(e => {
-        const m = messages.get(e.message) || { message: e.message, count: 0, topics: new Set() };
-        m.count++; m.topics.add(t.topic); messages.set(e.message, m);
-    }))));
-    const list = [...messages.values()].sort((a, b) => b.count - a.count || a.message.localeCompare(b.message)).slice(0, 6);
-    q(root, '[data-k="messages"]').innerHTML = list.length
-        ? list.map(m => `<li><strong>${safeText(m.message)}</strong><small>${plural(m.count, 'time')} · ${m.topics.size > 1 ? `${m.topics.size} topics` : safeText([...m.topics][0])}</small></li>`).join('')
-        : '<li class="da-none">No error messages recorded.</li>';
     setLiveNumbers(root, {
         's-progress': retried.length ? `${plural(retried.length, 'level')} retried: ${faster} faster, ${fewer} with fewer incorrect submissions.` : 'No level has been played more than once yet.'
     });
