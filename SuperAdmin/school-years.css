@@ -115,3 +115,8 @@ html[data-theme="dark"] .sy-row-actions button.sy-end-btn:hover:not(:disabled){b
 .sy-row-active .sy-row-actions{flex-direction:row-reverse}
 .sy-dialog button.sa-section-danger:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:700px){.sy-row-actions button.sy-end-btn{margin:10px 0 0;flex-basis:100%}}
+
+/* One section = one teacher: sections already held by another teacher are shown but not selectable. */
+.multi-select-dropdown label.taken,
+.teacher-section-pick.is-taken { opacity: .55; cursor: not-allowed; }
+.shared-section-warning { display: block; margin-top: 4px; font-size: .85em; color: #b45309; font-weight: 600; }

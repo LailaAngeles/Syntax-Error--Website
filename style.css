@@ -3890,3 +3890,44 @@ body {
   margin: 0 !important; padding: 0 !important; transform: none !important;
   opacity: 1 !important; visibility: visible !important;
 }
+
+/* Thesis adviser card, centred under the development team */
+.developers-grid.adviser-grid { grid-template-columns: minmax(0, 260px); justify-content: center; margin-top: 36px; }
+
+/* ===== Development team: unique layout (scoped to .team-*) ===== */
+.team-section .team-eyebrow { display: inline-block; font-size: .72rem; letter-spacing: .22em; font-weight: 700; color: #7fc4ff; margin-bottom: .6rem; }
+.team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 22px; margin-top: 2.4rem; }
+.team-card { position: relative; padding: 30px 22px 24px; border-radius: 22px; text-align: center; overflow: hidden;
+  background: radial-gradient(circle at 50% 0%, rgba(59, 145, 255, .2), transparent 60%), linear-gradient(160deg, rgba(24, 36, 52, .95), rgba(10, 16, 26, .98));
+  border: 1px solid rgba(120, 168, 204, .16); transition: transform .35s ease, border-color .35s ease, box-shadow .35s ease; }
+.team-card:hover { transform: translateY(-6px); border-color: rgba(99, 179, 255, .5); box-shadow: 0 20px 44px rgba(0, 0, 0, .35); }
+.team-index { position: absolute; top: 14px; right: 16px; font-family: var(--font-heading); font-size: .78rem; letter-spacing: .12em; color: rgba(127, 196, 255, .5); }
+.team-avatar { position: relative; width: 128px; height: 128px; margin: 0 auto 16px; border-radius: 50%; padding: 4px;
+  background: conic-gradient(#3b91ff, #9fd6ff, #1860e6, #3b91ff); box-shadow: 0 10px 28px rgba(59, 145, 255, .18); }
+.team-avatar .team-initials, .team-avatar img { position: absolute; inset: 4px; border-radius: 50%; }
+.team-initials { display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1b3554, #0d1828);
+  color: #cfe8ff; font-family: var(--font-heading); font-size: 1.9rem; font-weight: 800; letter-spacing: .06em; }
+.team-avatar img { width: calc(100% - 8px); height: calc(100% - 8px); object-fit: cover; }
+.team-avatar img:not([src]), .team-avatar img[src=""] { display: none; }
+.team-name { font-family: var(--font-heading); font-size: 1.08rem; font-weight: 700; color: #eaf4ff; margin: 0 0 8px; }
+.team-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; font-size: .7rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: #7fc4ff; background: rgba(59, 145, 255, .12); border: 1px solid rgba(59, 145, 255, .3); }
+
+/* Thesis adviser: a gold spotlight card */
+.team-spotlight { position: relative; display: flex; align-items: center; gap: 28px; max-width: 820px; margin: 36px auto 0; padding: 26px 30px; border-radius: 26px; overflow: hidden;
+  background: linear-gradient(120deg, rgba(59, 145, 255, .16), rgba(12, 19, 29, .96) 45%, rgba(12, 19, 29, .96));
+  border: 1px solid rgba(99, 179, 255, .5); box-shadow: 0 18px 50px rgba(59, 145, 255, .12); }
+.team-spotlight::after { content: ""; position: absolute; top: -40%; width: 40%; height: 180%; left: -30%; pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(159, 214, 255, .14), transparent); transform: rotate(18deg); animation: team-sheen 6s ease-in-out infinite; }
+@keyframes team-sheen { 0%, 100% { left: -30%; } 50% { left: 110%; } }
+.team-spotlight .team-avatar { flex: none; width: 112px; height: 112px; margin: 0; background: conic-gradient(#3b91ff, #d6ecff, #1860e6, #3b91ff); }
+.team-spotlight .team-initials { color: #e6f3ff; background: linear-gradient(135deg, #14305a, #0a1830); font-size: 1.7rem; }
+.team-spot-text { position: relative; min-width: 0; }
+.team-chip-gold { color: #7fc4ff; background: rgba(59, 145, 255, .14); border-color: rgba(99, 179, 255, .45); }
+.team-spot-text .team-name { font-size: 1.45rem; margin: 10px 0 6px; }
+.team-spot-text p { margin: 0; color: #a7b7c8; font-size: .92rem; }
+@media (max-width: 640px) {
+  .team-spotlight { flex-direction: column; text-align: center; gap: 16px; padding: 24px 20px; }
+  .team-avatar { width: 112px; height: 112px; }
+}
+@media (prefers-reduced-motion: reduce) { .team-spotlight::after { animation: none; } .team-card { transition: none; } }

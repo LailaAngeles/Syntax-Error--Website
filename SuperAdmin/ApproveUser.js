@@ -18,6 +18,8 @@ import {
     sendPasswordResetEmail // Added for password reset functionality
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 import { activeYear, isCurrentSection, watchSchoolYears } from "../MainMenu/school-years.js";
+import { sectionHolders, heldByOthers, sectionsOf, isSectionConflict } from "./section-rules.js";
+import { saveTeacherSections } from "./section-assignment.js";
 
 // Firebase Config
 const firebaseConfig = {
@@ -293,6 +295,17 @@ async function cleanupExpiredArchivedUsers() {
     }
     return removed;
 }
+// Archived sections not restored within 7 days are deleted (opportunistic, like archived users).
+async function cleanupExpiredArchivedSections() {
+    const snapshot = await getDocs(collection(db, 'archivedSections'));
+    for (const item of snapshot.docs) {
+        const archivedMs = archiveDate(item.data());
+        if (archivedMs !== null && Date.now() >= archivedMs + SEVEN_DAYS_MS) {
+            try { await deleteDoc(item.ref); }
+            catch (error) { console.warn('Could not delete expired archived section', item.id, error); }
+        }
+    }
+}
 function renderArchiveTable() {
     const search=(saArchiveSearch.value || '').trim().toLowerCase();
     const rows=archiveRecords.filter(item => {
@@ -404,10 +417,11 @@ archiveSectionBtn?.addEventListener("click", async () => {
     viewArchiveModal.classList.add('sa-sections-archive-mode');
     viewArchiveModal.querySelector('.sa-archive-subtitle').textContent = 'Find and restore sections that were previously removed.';
     archiveModalTitle.textContent = "Archived Sections";
-    archiveMessage.textContent = "Restore a section from the archive. Archived section records are retained according to your configured Firestore cleanup policy.";
+    archiveMessage.textContent = "Restore a section within 7 days. After 7 days it is deleted permanently.";
     dynamicArchiveList.innerHTML = '<div class="sa-section-loading">Loading archived sections...</div>';
     viewArchiveModal.classList.remove("hidden");
     try {
+        await cleanupExpiredArchivedSections();
         const snapshot = await getDocs(collection(db, "archivedSections"));
         dynamicArchiveList.replaceChildren();
         const wrap = document.createElement('div');wrap.className='sa-section-archive';
@@ -440,6 +454,8 @@ archiveSectionBtn?.addEventListener("click", async () => {
                 const parsed=rawDate ? new Date(rawDate) : null;
                 date.textContent=parsed && !Number.isNaN(parsed.getTime()) ? parsed.toLocaleString() : 'Date not recorded';
                 info.append(name);
+                const archivedMs=archiveDate(entry);
+                if(archivedMs!==null){const left=document.createElement('small');left.className='sa-section-date';left.textContent=`Deletes in ${Math.max(0,Math.ceil((archivedMs+SEVEN_DAYS_MS-Date.now())/86400000))} day(s) unless restored`;info.append(left);}
                 const btn=document.createElement('button');btn.type='button';btn.className='sa-section-primary';btn.innerHTML='<i class="bi bi-arrow-counterclockwise"></i> Restore';
                 btn.addEventListener('click',async()=>{
                     const fields=newSectionFields(entry.name);
@@ -582,7 +598,8 @@ confirmDeleteSections?.addEventListener("click", async () => {
 
     toggleLoading(true);
     for (const cb of selected) {
-        await setDoc(doc(collection(db, "archivedSections")), { name: cb.dataset.name, archivedAt: new Date().toISOString() });
+        const archivedAt = new Date();
+        await setDoc(doc(collection(db, "archivedSections")), { name: cb.dataset.name, archivedAt: archivedAt.toISOString(), expiresAt: Timestamp.fromMillis(archivedAt.getTime() + SEVEN_DAYS_MS) });
         await deleteDoc(doc(db, "sections", cb.value));
 
         const usersSnapshot = await getDocs(collection(db, "approvedUsers"));
@@ -759,13 +776,16 @@ function renderApprovedUsers() {
         approvedTable.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:gray;">No teacher accounts yet. Add one with the form above.</td></tr>`;
         return;
     }
+    // Which teacher holds each section, from the live list. A section held by one teacher is not offered to others.
+    const holders = sectionHolders(latestApproved.docs.map(d => ({ id: d.id, data: d.data() })));
     const liveIds = new Set();
     latestApproved.forEach(docSnap => {
         const data = docSnap.data();
         liveIds.add(docSnap.id);
         const row = document.createElement("tr");
         row.dataset.id = docSnap.id;
-        const multiSelect = createMultiSelect(draftSections.get(docSnap.id) || data.section || []);
+        const saved = sectionsOf(data);
+        const multiSelect = createMultiSelect(draftSections.get(docSnap.id) || data.section || [], { uid: docSnap.id, holders, saved });
         row.innerHTML = `
             <td><input type="checkbox" class="approvedCheck" data-id="${docSnap.id}"></td>
             <td class="teacher-id-col"><strong></strong><small></small></td>
@@ -776,6 +796,14 @@ function renderApprovedUsers() {
         row.querySelector(".teacher-id-col strong").textContent = data.name || data.email;
         row.querySelector(".teacher-id-col small").textContent = data.name ? data.email : "";
         if (draftSections.has(docSnap.id)) row.querySelector(".teacher-id-col small").textContent += " · unsaved changes";
+        // Legacy data may already have one section on two teachers. Warn only; nothing is changed automatically.
+        const shared = saved.filter(n => heldByOthers(holders, n, docSnap.id).length);
+        if (shared.length) {
+            const warn = document.createElement("span");
+            warn.className = "shared-section-warning";
+            warn.textContent = `⚠ Shared with another teacher: ${shared.join(", ")}. Remove it from one of them.`;
+            row.querySelector(".teacher-id-col").appendChild(warn);
+        }
         row.querySelector(".select-col").appendChild(multiSelect);
         approvedTable.appendChild(row);
     });
@@ -806,14 +834,20 @@ approvedTable.addEventListener("click", async event => {
         const selected = Array.from(container.querySelectorAll("input:checked")).map(c => c.value);
         const year = currentYear();
         if (schoolYears.length && !year) throw new Error("No active school year");
-        const update = { section: selected.length ? selected : ["No Section"] };
         // Kept per school year, so each year's teacher assignment stays on record.
-        if (year) update[`sectionsByYear.${year.id}`] = selected.filter(s => s !== "No Section");
-        await updateDoc(doc(db, "approvedUsers", btn.dataset.id), update);
+        // The transaction refuses any section another teacher already holds.
+        await saveTeacherSections(db, btn.dataset.id, selected, { yearId: year?.id ?? null });
         draftSections.delete(btn.dataset.id);
         alert("Updated!");
     } catch (error) {
         console.error("Section assignment failed:", error);
+        if (isSectionConflict(error)) {
+            // Drop the refused ticks and show the live state, where the taken section is now disabled.
+            draftSections.delete(btn.dataset.id);
+            renderApprovedUsers();
+            alert(`Not saved. ${error.message}`);
+            return;
+        }
         alert(error?.message === "No active school year"
             ? "No school year is active. Start the school year first, in the School years panel, then assign sections."
             : "The section assignment could not be saved. Please try again.");
@@ -862,12 +896,16 @@ document.getElementById('selectAllApproved')?.addEventListener('change', e => {
 });
 
 // --- MULTI-SELECT HELPER ---
-function createMultiSelect(selectedSections = []) {
+// uid/holders/saved describe the row: a section another teacher holds is shown disabled, unless this
+// teacher already has it saved (their own sections stay selectable).
+function createMultiSelect(selectedSections = [], { uid = null, holders = new Map(), saved = [] } = {}) {
     const container = document.createElement("div");
     container.className = "multi-select-container";
+    const takenBy = name => saved.includes(name) ? [] : heldByOthers(holders, name, uid);
+    const effective = selectedSections.filter(n => !takenBy(n).length);
     const input = document.createElement("div");
     input.className = "multi-select-input";
-    input.textContent = selectedSections.length ? selectedSections.join(", ") : "No Section";
+    input.textContent = effective.length ? effective.join(", ") : "No Section";
     const dropdown = document.createElement("div");
     dropdown.className = "multi-select-dropdown";
 
@@ -876,8 +914,15 @@ function createMultiSelect(selectedSections = []) {
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.value = sec.name;
-        if (selectedSections.includes(sec.name)) checkbox.checked = true;
-        
+        const owners = takenBy(sec.name);
+        if (owners.length) {
+            checkbox.disabled = true;
+            label.classList.add("taken");
+            label.title = `Assigned to ${owners[0].name}`;
+        } else if (selectedSections.includes(sec.name)) {
+            checkbox.checked = true;
+        }
+
         checkbox.addEventListener("change", () => {
             const all = Array.from(dropdown.querySelectorAll("input"));
             if (sec.name === "No Section" && checkbox.checked) {
@@ -889,7 +934,7 @@ function createMultiSelect(selectedSections = []) {
             const checked = all.filter(c => c.checked).map(c => c.value);
             input.textContent = checked.length ? checked.join(", ") : "No Section";
         });
-        label.append(checkbox, " ", sec.name);
+        label.append(checkbox, " ", owners.length ? `${sec.name} (assigned to ${owners[0].name})` : sec.name);
         dropdown.appendChild(label);
     });
 

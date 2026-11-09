@@ -2,6 +2,8 @@ import { initializeApp, getApps, getApp, deleteApp } from 'https://www.gstatic.c
 import { getFirestore, collection, getDocs, query, where, doc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
 import { initializeAuth, inMemoryPersistence, createUserWithEmailAndPassword, deleteUser, signOut } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js';
 import { activeYear, isCurrentSection, watchSchoolYears } from '../MainMenu/school-years.js';
+import { sectionHolders, heldByOthers, isSectionConflict } from './section-rules.js';
+import { saveTeacherSections } from './section-assignment.js';
 const config={apiKey:'AIzaSyCEK9ungYl1PkiqgLkWJPCtNXAsQ3c6xxc',authDomain:'syntaxerror-data.firebaseapp.com',projectId:'syntaxerror-data',storageBucket:'syntaxerror-data.firebasestorage.app',messagingSenderId:'513961059475',appId:'1:513961059475:web:fbf6f471357465dbaad966'};
 const app=getApps().length?getApp():initializeApp(config);
 const db=getFirestore(app);
@@ -25,7 +27,15 @@ let creating = false;
 const chosenSections = new Set();
 let schoolYears = null;
 let sectionSnapshot = null;
+let teacherEntries = [];   // live approvedUsers records, to know which sections are already assigned
 const sectionsText = names => names.length ? names.join(', ') : 'No Section';
+// Message if any of these sections is already held by a teacher; '' when all are free.
+function conflictMessage(names) {
+  const holders = sectionHolders(teacherEntries);
+  const clashes = names.filter(n => heldByOthers(holders, n).length);
+  if (!clashes.length) return '';
+  return clashes.map(n => `${n} is already assigned to ${heldByOthers(holders, n)[0].name}`).join('; ') + '. Choose a different section.';
+}
 function renderSectionSummary() {
   sectionSummary.replaceChildren();
   if (!chosenSections.size) {
@@ -44,7 +54,9 @@ function renderSectionChoices() {
   if (!schoolYears || !sectionSnapshot) return;
   const names = new Set();
   sectionSnapshot.forEach(d => { const name = d.data().name; if (name && isCurrentSection(d.data(), schoolYears)) names.add(name); });
-  [...chosenSections].forEach(name => { if (!names.has(name)) chosenSections.delete(name); });
+  const holders = sectionHolders(teacherEntries);
+  const takenBy = name => heldByOthers(holders, name);
+  [...chosenSections].forEach(name => { if (!names.has(name) || takenBy(name).length) chosenSections.delete(name); });
   sectionChoices.replaceChildren();
   if (!names.size) {
     const note = document.createElement('p');
@@ -55,14 +67,16 @@ function renderSectionChoices() {
     sectionChoices.append(note);
   }
   [...names].sort((a, b) => a.localeCompare(b)).forEach(name => {
+    const owners = takenBy(name);
     const option = document.createElement('label');
-    option.className = 'teacher-section-pick';
+    option.className = 'teacher-section-pick' + (owners.length ? ' is-taken' : '');
     const box = document.createElement('input');
     box.type = 'checkbox';
     box.value = name;
     box.checked = chosenSections.has(name);
+    box.disabled = owners.length > 0;
     const span = document.createElement('span');
-    span.textContent = name;
+    span.textContent = owners.length ? `${name} (assigned to ${owners[0].name})` : name;
     option.append(box, span);
     sectionChoices.append(option);
   });
@@ -77,6 +91,10 @@ sectionChoices?.addEventListener('change', e => {
 watchSchoolYears(db, years => { schoolYears = years; renderSectionChoices(); });
 onSnapshot(collection(db, 'sections'), snap => { sectionSnapshot = snap; renderSectionChoices(); },
   error => console.error('Sections listener error:', error));
+onSnapshot(collection(db, 'approvedUsers'), snap => {
+  teacherEntries = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+  renderSectionChoices();
+}, error => console.error('Teacher listener error:', error));
 function closeConfirm() {
   if (creating) return;
   confirmModal.hidden = true;
@@ -133,12 +151,11 @@ async function provisionTeacher({teacherName,teacherEmail,pass}) {
     await deleteApp(provisioner).catch(() => {});
   }
 }
-// The same write as Save in the Current teachers table, so assignments are recorded per school year too.
+// The same save as Save in the Current teachers table (one transaction, refuses sections another teacher holds),
+// so assignments are recorded per school year too.
 async function assignSections(uid, names) {
   const year = activeYear(schoolYears || []);
-  const update = { section: names };
-  if (year) update[`sectionsByYear.${year.id}`] = names;
-  await updateDoc(doc(db, 'approvedUsers', uid), update);
+  await saveTeacherSections(db, uid, names, { yearId: year?.id ?? null });
 }
 function describeError(error) {
   if (error?.rollbackFailed) return 'The teacher record could not be saved and the login account could not be removed. Delete it in Firebase Authentication before retrying.';
@@ -171,6 +188,9 @@ form?.addEventListener('submit', async e => {
   } finally {
     button.disabled=false;
   }
+  // Refuse before any account is created if a chosen section was taken since it was picked.
+  const taken = conflictMessage([...chosenSections]);
+  if (taken) return showMessage(taken);
   showMessage('');
   pendingTeacher={teacherName,teacherEmail,pass,sections:[...chosenSections].sort((a,b)=>a.localeCompare(b))};
   document.getElementById('teacherConfirmName').textContent=teacherName;
@@ -191,10 +211,14 @@ confirmYes?.addEventListener('click', async () => {
   try {
     const uid=await provisionTeacher(teacher);
     // The account now exists. A failed assignment must not read as a failed account, or a retry would hit a duplicate.
-    let assigned=true;
+    let assigned=true, assignProblem='';
     if(teacher.sections.length) {
       try { await assignSections(uid,teacher.sections); }
-      catch(error) { assigned=false; console.error('Section assignment failed:',{code:error?.code,message:error?.message}); }
+      catch(error) {
+        assigned=false;
+        if (isSectionConflict(error)) assignProblem = error.message;
+        console.error('Section assignment failed:',{code:error?.code,message:error?.message});
+      }
     }
     showMessage('');
     form.reset();
@@ -208,7 +232,9 @@ confirmYes?.addEventListener('click', async () => {
     const note=document.getElementById('teacherSuccessNote');
     note.classList.toggle('teacher-note-warning',!assigned);
     note.textContent=!assigned
-      ? `The account was created, but the sections could not be saved. Assign ${teacher.sections.join(', ')} under Current teachers. Do not add this teacher again.`
+      ? (assignProblem
+          ? `The account was created, but ${assignProblem} Assign other sections under Current teachers. Do not add this teacher again.`
+          : `The account was created, but the sections could not be saved. Assign ${teacher.sections.join(', ')} under Current teachers. Do not add this teacher again.`)
       : teacher.sections.length ? 'Give the email and default password to the teacher privately.'
       : 'No section was assigned. Assign one under Current teachers so the teacher can see students.';
     console.info('Teacher created:', uid);

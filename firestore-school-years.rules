@@ -17,8 +17,12 @@
         && request.resource.data.status in ['upcoming', 'active', 'completed', 'archived']
         && request.resource.data.startYear is int
         && request.resource.data.endYear == request.resource.data.startYear + 1;
-      // Only a year that never started can be removed; started years are history.
-      allow delete: if resource.data.status == 'upcoming';
+      // Deletes allowed for: a year that never started; a removed year (archived with removedAt) once its
+      // 7 days have passed (the page does this); and an ended year, only when the Super Admin chooses
+      // Delete permanently. Active years are never deleted.
+      allow delete: if resource.data.status == 'upcoming'
+        || (resource.data.status == 'archived' && resource.data.removedAt != null)
+        || resource.data.status == 'completed';
     }
 
 // Fields added to existing documents (no new rules needed if those documents are already writable):

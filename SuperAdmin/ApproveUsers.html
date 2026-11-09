@@ -76,7 +76,7 @@
             <div>
                 <span class="sy-panel-kicker">MANAGE SCHOOL YEARS</span>
                 <h2 id="syPanelTitle">School years</h2>
-                <p>Add a school year, choose which one is active, and archive finished years. Student records stay with their school year.</p>
+                <p>Add a school year, choose which one is active, and end it when it is finished. Ended years stay under Past school years with their student records.</p>
             </div>
             <button type="button" id="syCreateBtn" class="sy-add-btn"><i class="bi bi-plus-lg" aria-hidden="true"></i> Add School Year</button>
         </div>
@@ -84,8 +84,13 @@
             <h3 class="sy-group-title">Active school year</h3>
             <div id="syActiveCard"></div>
             <div id="syOtherWrap" hidden>
-                <h3 class="sy-group-title">Not started and completed</h3>
+                <h3 class="sy-group-title">Not started</h3>
                 <div id="syYearList" class="sy-list"></div>
+            </div>
+            <div id="syPastWrap" hidden>
+                <h3 class="sy-group-title">Past school years</h3>
+                <p class="sy-field-note">Ended years keep their student details. They are never deleted automatically; only you can delete one, permanently.</p>
+                <div id="syPastList" class="sy-list"></div>
             </div>
             <details class="sy-archive" id="syArchive">
                 <summary><i class="bi bi-archive" aria-hidden="true"></i> Archived school years <span class="sy-count" id="syArchiveCount">0</span></summary>
