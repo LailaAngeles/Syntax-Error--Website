@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { 
-    getFirestore, collection, getDocs, getDoc, onSnapshot, query, where, writeBatch, doc, updateDoc, deleteDoc, setDoc, serverTimestamp 
+    getFirestore, collection, getDocs, getDoc, onSnapshot, query, where, writeBatch, doc, updateDoc, deleteDoc, setDoc, serverTimestamp, deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 import { renderStudentSummary, renderStudentDetail, studentSummary, uniqueStudents, studentCsvRows, topicCsvRows, STUDENT_CSV_HEADER, TOPIC_CSV_HEADER, downloadCsv, csvFileName, fmtTime } from "./record-analysis.js";
@@ -160,9 +160,24 @@ function renderRealtimeStudents() {
 let activeStudentDetailsId = null;
 let activeStudentDetailsSection = null;
 
+// The birthday (YYYY-MM-DD) as the student's first password: YYYYMMDD.
 function formatBirthdayToPassword(dateStr) {
     if (!dateStr || dateStr === "No Birthday") return "";
     return String(dateStr).replace(/-/g, "");
+}
+
+// Student accounts live in Firestore only (no Firebase Authentication account). Their password is saved on the
+// classList record as a salted PBKDF2-SHA256 hash, never as text:
+//   passwordHash = "pbkdf2-sha256$<iterations>$<salt base64>$<hash base64>"
+// The game (Assets/Script/Accounts/PasswordHash.cs) uses the same format to check a sign-in and to save a
+// changed password, so both sides read each other's hashes.
+const PASSWORD_HASH_ITERATIONS = 100000;
+const toBase64 = bytes => btoa(String.fromCharCode(...bytes));
+async function hashStudentPassword(password) {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(String(password)), "PBKDF2", false, ["deriveBits"]);
+    const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations: PASSWORD_HASH_ITERATIONS }, key, 256);
+    return `pbkdf2-sha256$${PASSWORD_HASH_ITERATIONS}$${toBase64(salt)}$${toBase64(new Uint8Array(bits))}`;
 }
 
 // UI Helpers
@@ -886,21 +901,6 @@ window.saveManualStudent = async function () {
             );
 
 
-        /*
-         * Birthday becomes the initial password.
-         *
-         * Example:
-         * 2005-01-14
-         *
-         * becomes:
-         * 20050114
-         */
-        const studentPassword =
-            formatBirthdayToPassword(
-                birthday
-            );
-
-
         await setDoc(
             studentRef,
             {
@@ -912,7 +912,12 @@ window.saveManualStudent = async function () {
 
                 birthday: birthday,
 
-                password: studentPassword,
+                // First password: the birthday (YYYYMMDD), saved only as a hash. Changed at first sign-in.
+                passwordHash: await hashStudentPassword(formatBirthdayToPassword(birthday)),
+
+                mustChangePassword: true,
+
+                passwordChoiceDone: false,
 
                 progress: 0,
 
@@ -1071,6 +1076,7 @@ window.importExcel = async function () {
             }
 
             let addedCount = 0;
+            const newStudents = [];   // [record ref, record]: hashed and added to the batch after this loop
             let skippedCount = 0;
             const invalidRows = [];
             let skippedActiveCount = 0;
@@ -1084,7 +1090,6 @@ window.importExcel = async function () {
                 const rawBirthday = values[3];
 
                 const sBirthday = excelDateToJSDate(rawBirthday);
-                const sPassword = formatBirthdayToPassword(sBirthday);
 
                 if (!sId && !sName) return; // empty row
 
@@ -1099,17 +1104,18 @@ window.importExcel = async function () {
                 if (!allExistingIds.has(sId)) {
                     const studentRef = doc(db, "sections", parentDocId, "classList", sId);
 
-                    batch.set(studentRef, {
+                    newStudents.push([studentRef, {
                         id: sId,
                         name: sName,
                         email: sEmail,
                         birthday: sBirthday,
-                        password: sPassword,
+                        mustChangePassword: true,
+                        passwordChoiceDone: false,
                         progress: 0,
                         idleTime: "0m",
                         difficulty: [0, 0, 0, 0, 0],
                         attempts: []
-                    });
+                    }]);
 
                     addedCount++;
                     allExistingIds.add(sId);
@@ -1125,6 +1131,11 @@ window.importExcel = async function () {
             });
 
             if (addedCount > 0) {
+                // First password for each new student: the birthday (YYYYMMDD), saved only as a hash.
+                for (const [studentRef, record] of newStudents) {
+                    record.passwordHash = await hashStudentPassword(formatBirthdayToPassword(record.birthday));
+                    batch.set(studentRef, record);
+                }
                 await batch.commit();
                 logTeacherActivity(db, auth, { action: "students_imported", summary: `Imported ${addedCount} student(s) from a class list`, section: selectedSectionName });
                 alert(`Import Complete!\n` +
@@ -1224,7 +1235,7 @@ window.confirmResetSelection = function() {
     document.getElementById("reset-step-2").style.display = "block";
     document.getElementById("reset-confirm-text").innerHTML = 
         `<i class="bi bi-exclamation-triangle"></i> You are about to reset the password for <b>${student.name}</b>. This action cannot be undone.` +
-        (student.uid ? `<br><br>This student already signs in with their own account. This reset updates the class list only and may not change the password they use in the game.` : "");
+        `<br><br>This is a temporary password: the student must choose their own at the next sign-in.`;
 
     document.getElementById("final-reset-btn").onclick = () => saveNewPassword(student);
 };
@@ -1243,10 +1254,15 @@ async function saveNewPassword(student) {
 
     toggleLoading(true);
     try {
+        // Saved only as a hash in Firestore (any old text password is removed); the student must choose their
+        // own password at the next sign-in.
         const studentRef = doc(db, "sections", student.parentDocId, "classList", student.id);
-        
         await updateDoc(studentRef, {
-            password: newPass
+            passwordHash: await hashStudentPassword(newPass),
+            password: deleteField(),
+            mustChangePassword: true,
+            passwordChoiceDone: false,
+            passwordResetAt: serverTimestamp()
         });
 
         logTeacherActivity(db, auth, { action: "password_reset", summary: `Reset the password of ${student.name}`, section: student.section, studentId: student.id });
@@ -1255,7 +1271,7 @@ async function saveNewPassword(student) {
         await fetchClassList();
     } catch (error) {
         console.error("Firestore Update Error:", error);
-        toast("The password could not be updated. Check your connection.", "error");
+        toast("The password could not be updated: " + (error?.message || "check your connection."), "error");
     } finally {
         toggleLoading(false);
     }
